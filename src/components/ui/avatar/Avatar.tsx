@@ -1,11 +1,13 @@
 import Image from "next/image";
 import React from "react";
+import { twMerge } from "tailwind-merge";
 
 interface AvatarProps {
   src: string; // URL of the avatar image
   alt?: string; // Alt text for the avatar
   size?: "xsmall" | "small" | "medium" | "large" | "xlarge" | "xxlarge"; // Avatar size
   status?: "online" | "offline" | "busy" | "none"; // Status indicator
+  className?: string;
 }
 
 const sizeClasses = {
@@ -37,9 +39,15 @@ const Avatar: React.FC<AvatarProps> = ({
   alt = "User Avatar",
   size = "medium",
   status = "none",
+  className = "",
 }) => {
   return (
-    <div className={`relative  rounded-full ${sizeClasses[size]}`}>
+    <div
+      className={twMerge(
+        `relative rounded-full ${sizeClasses[size]}`,
+        className,
+      )}
+    >
       {/* Avatar Image */}
       <Image
         width="0"
@@ -47,13 +55,13 @@ const Avatar: React.FC<AvatarProps> = ({
         sizes="100vw"
         src={src}
         alt={alt}
-        className="object-cover w-full rounded-full"
+        className="w-full rounded-full object-cover"
       />
 
       {/* Status Indicator */}
       {status !== "none" && (
         <span
-          className={`absolute bottom-0 right-0 rounded-full border-[1.5px] border-white dark:border-gray-900 ${
+          className={`absolute right-0 bottom-0 rounded-full border-[1.5px] border-white dark:border-gray-900 ${
             statusSizeClasses[size]
           } ${statusColorClasses[status] || ""}`}
         ></span>

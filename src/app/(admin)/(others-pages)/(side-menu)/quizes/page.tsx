@@ -12,13 +12,21 @@ export const metadata: Metadata = {
 };
 
 export default function BasicTables() {
+  const sessionId = Array(10)
+    .fill(0)
+    .map((_, index) => (_ = index));
+
+  console.log(sessionId);
   return (
     <div>
-      <PageBreadcrumb pageTitle="Basic Table" />
-      <div className="space-y-6">
-        <ComponentCard title="Basic Table 1">
-          <BasicTableOne />
-        </ComponentCard>
+      <PageBreadcrumb pageTitle="Quizes" />
+      <div className="flex w-full flex-wrap justify-start gap-6">
+        {sessionId.map((key, value) => (
+          <div
+            key={key}
+            className="h-32 w-52 shrink-0 basis-52 rounded-2xl border bg-white"
+          ></div>
+        ))}
       </div>
     </div>
   );
