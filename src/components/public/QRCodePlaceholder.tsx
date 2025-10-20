@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 
 export default function QRCodePlaceholder({ joinCode }: { joinCode: string }) {
-  const baseUrl = process.env.APP_IP;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_IP;
   const [joinUrl, setJoinUrl] = useState("");
 
   useEffect(() => {
