@@ -1,15 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import QRCodePlaceholder from "@/components/public/QRCodePlaceholder";
 import Avatar from "../ui/avatar/Avatar";
+import { Lock, Unlock } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Button } from "../ui/button";
 
 interface LobbyContentInterface {
   joinCode: string;
 }
 
 export default function LobbyContent({ joinCode }: LobbyContentInterface) {
-  const [players, setPlayers] = useState<string[]>(["Andin", "Budi"]);
+  const [players, setPlayers] = useState<string[]>(["Ardi", "Shinta"]);
+  const [isLocked, setIsLocked] = useState<boolean>(false);
 
   return (
     <>
@@ -20,36 +28,50 @@ export default function LobbyContent({ joinCode }: LobbyContentInterface) {
         <div className="w-full max-w-4xl">
           <div className="flex items-center justify-between">
             <div className="text-sm opacity-90">
-              Join at <span className="font-semibold">kuizz.live</span>
+              Join at <span className="font-semibold">kuizz.my.id</span>
             </div>
             <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 rounded-md bg-white/10 px-3 py-1 hover:bg-white/20">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 11V7"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M7 11h10v9H7z"
-                  />
-                </svg>
-                Lock
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className={`flex items-center gap-2 rounded-lg px-4 py-2 shadow ${isLocked ? "bg-red-700 hover:bg-red-800" : "bg-white/10 hover:bg-white/20"}`}
+                    onClick={() => setIsLocked(!isLocked)}
+                  >
+                    {isLocked ? <Lock width={18} /> : <Unlock width={18} />}
+                    <span>{isLocked ? "Locked" : "Unlocked"}</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isLocked ? "Game is Locked" : "Game is Unlocked"}
+                </TooltipContent>
+              </Tooltip>
 
-              <button className="rounded-lg bg-white px-4 py-2 font-semibold text-blue-800 shadow">
-                Start
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  {players.length < 1 ? (
+                    <span className="inline-block w-fit">
+                      <Button
+                        className="rounded-lg bg-white px-4 py-2 font-semibold text-blue-800 shadow hover:bg-white/80 disabled:bg-white/80"
+                        disabled={players.length < 1}
+                      >
+                        Start
+                      </Button>
+                    </span>
+                  ) : (
+                    <Button
+                      className="rounded-lg bg-white px-4 py-2 font-semibold text-blue-800 shadow hover:bg-white/80 disabled:bg-white/80"
+                      disabled={players.length < 1}
+                    >
+                      Start
+                    </Button>
+                  )}
+                </TooltipTrigger>
+                <TooltipContent>
+                  {players.length < 1
+                    ? "Need at least 1 player to start"
+                    : "Start the game"}
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
 
@@ -76,8 +98,8 @@ export default function LobbyContent({ joinCode }: LobbyContentInterface) {
               </div>
 
               <div className="text-right">
-                <div className="text-sm opacity-90">Players</div>
                 <div className="mt-1 text-3xl font-bold">{players.length}</div>
+                <div className="text-sm opacity-90">Participants Joined</div>
               </div>
             </div>
           </div>
