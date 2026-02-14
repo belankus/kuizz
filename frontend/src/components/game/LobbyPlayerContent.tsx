@@ -3,19 +3,16 @@
 import { useEffect, useState } from "react";
 import Avatar from "../ui/avatar/Avatar";
 
-interface LobbyPlayerProps {
-  nickname: string;
-  players: string[];
-  isLocked: boolean;
-}
-
 interface LobbyContentInterface {
   joinCode: string;
+  nickname: string | null;
+  players: any[];
 }
 
-export default function LobbyPlayer({ joinCode }: LobbyContentInterface) {
-  const nickname = "Guest";
-  const players = ["Guest 1", "Guest 2", "Guest 3"];
+export default function LobbyPlayer({
+  nickname,
+  players,
+}: LobbyContentInterface) {
   const isLocked = false;
 
   return (
@@ -54,10 +51,10 @@ export default function LobbyPlayer({ joinCode }: LobbyContentInterface) {
                 />
                 <h3
                   className={`mt-2 text-lg font-semibold ${
-                    player === nickname ? "text-yellow-300" : ""
+                    player.nickname === nickname ? "text-yellow-300" : ""
                   }`}
                 >
-                  {player}
+                  {player.nickname}
                 </h3>
               </div>
             ))}

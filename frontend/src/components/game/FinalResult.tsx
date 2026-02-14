@@ -1,13 +1,13 @@
 "use client";
 
 interface Player {
-  name: string;
+  nickname: string;
   score: number;
 }
 
 interface FinalResultProps {
   players: Player[];
-  myName: string;
+  myName: string | null;
   isHost: boolean;
   onPlayAgain?: () => void;
 }
@@ -21,10 +21,10 @@ export default function FinalResult({
   const sorted = [...players].sort((a, b) => b.score - a.score);
   const topThree = sorted.slice(0, 3);
 
-  const myRank = sorted.findIndex((p) => p.name === myName) + 1;
+  const myRank = sorted.findIndex((p) => p.nickname === myName) + 1;
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-gradient-to-br from-purple-800 via-indigo-700 to-blue-900 px-6 py-16 text-white">
+    <div className="flex min-h-screen flex-col items-center bg-linear-to-br from-purple-800 via-indigo-700 to-blue-900 px-6 py-16 text-white">
       <h1 className="mb-12 text-4xl font-bold">🎉 Game Finished!</h1>
 
       {/* Podium */}
@@ -45,14 +45,14 @@ export default function FinalResult({
           <div
             key={index}
             className={`flex items-center justify-between rounded-lg px-6 py-3 ${
-              player.name === myName
+              player.nickname === myName
                 ? "bg-yellow-500 text-black"
                 : "bg-white/10"
             }`}
           >
             <div className="flex items-center gap-4">
               <span className="font-bold">{index + 1}</span>
-              <span>{player.name}</span>
+              <span>{player.nickname}</span>
             </div>
             <span className="font-semibold">{player.score}</span>
           </div>
@@ -80,7 +80,7 @@ function PodiumCard({
   player,
   position,
 }: {
-  player: { name: string; score: number };
+  player: { nickname: string; score: number };
   position: number;
 }) {
   const height = position === 1 ? "h-40" : position === 2 ? "h-32" : "h-28";
@@ -94,7 +94,7 @@ function PodiumCard({
         className={`flex w-24 flex-col items-center justify-end rounded-t-lg bg-white/20 ${height}`}
       >
         <div className="pb-3 text-center">
-          <div className="font-bold">{player.name}</div>
+          <div className="font-bold">{player.nickname}</div>
           <div className="text-sm opacity-80">{player.score}</div>
         </div>
       </div>

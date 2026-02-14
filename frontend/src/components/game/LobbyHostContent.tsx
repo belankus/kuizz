@@ -10,21 +10,49 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "../ui/button";
+import { io, Socket } from "socket.io-client";
 
 interface LobbyContentInterface {
   joinCode: string;
+  players: any[];
 }
 
-export default function LobbyContent({ joinCode }: LobbyContentInterface) {
-  const [players, setPlayers] = useState<string[]>(["Ardi", "Shinta"]);
+export default function LobbyContent({
+  joinCode,
+  players,
+}: LobbyContentInterface) {
   const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    const s = io("http://localhost:3000");
+
+    s.on("connect", () => {
+      console.log("Connected:", s.id);
+    });
+
+    setSocket(s);
+
+    return () => {
+      s.disconnect();
+    };
+  }, []);
+
+  const startGame = () => {
+    const hostToken = localStorage.getItem("hostToken");
+
+    socket?.emit("host_start_game", {
+      roomCode: "123456",
+      hostToken,
+    });
+  };
 
   return (
     <>
       {/* Full-bleed hero-style lobby similar to Kahoot */}
       <div className="absolute inset-0 bg-linear-to-br from-blue-800 via-blue-700 to-blue-900"></div>
 
-      <div className="relative z-10 flex min-h-[80vh] flex-col items-center justify-start px-6 pt-12 text-white">
+      <div className="relative z-10 flex min-h-screen flex-col items-center justify-start px-6 pt-12 text-white">
         <div className="w-full max-w-4xl">
           <div className="flex items-center justify-between">
             <div className="text-sm opacity-90">
@@ -60,7 +88,7 @@ export default function LobbyContent({ joinCode }: LobbyContentInterface) {
                   ) : (
                     <Button
                       className="rounded-lg bg-white px-4 py-2 font-semibold text-blue-800 shadow hover:bg-white/80 disabled:bg-white/80"
-                      disabled={players.length < 1}
+                      onClick={startGame}
                     >
                       Start
                     </Button>
@@ -120,7 +148,9 @@ export default function LobbyContent({ joinCode }: LobbyContentInterface) {
                     status="online"
                     className="animation-pulsing"
                   />
-                  <h3 className="mt-2 text-lg font-semibold">{player}</h3>
+                  <h3 className="mt-2 text-lg font-semibold">
+                    {player.nickname}
+                  </h3>
                 </div>
               ))}
             </div>
