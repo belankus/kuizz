@@ -6,8 +6,8 @@ interface PageProps {
   };
 }
 
-export default function GamePage({ params }: PageProps) {
-  const { roomCode } = params;
+export default async function GamePage({ params }: PageProps) {
+  const { roomCode } = await params;
 
   return <GameContainer roomCode={roomCode} />;
 }
