@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
-
-interface Player {
-  playerId: string;
-  nickname: string;
-  score: number;
-}
+import { randomUUID } from 'crypto';
 
 interface Question {
   question: string;
@@ -22,10 +17,13 @@ interface Answer {
 interface GameSession {
   roomCode: string;
   hostId: string;
+  hostToken: string;
+  isLocked: boolean;
   phase: string;
   currentQuestionIndex: number;
   players: {
     playerId: string;
+    playerToken: string;
     nickname: string;
     score: number;
   }[];
@@ -48,9 +46,10 @@ export class GameService {
   }
 
   async createGame(roomCode: string, hostId: string) {
+    const hostToken = randomUUID();
     const questions = [
       {
-        question: 'What is the capital of France?',
+        question: 'Capital of France?',
         options: [
           { id: '1', text: 'London' },
           { id: '2', text: 'Berlin' },
@@ -58,13 +57,37 @@ export class GameService {
           { id: '4', text: 'Madrid' },
         ],
         correctOptionId: '3',
-        timeLimit: 10,
+        timeLimit: 8,
+      },
+      {
+        question: '2 + 2 = ?',
+        options: [
+          { id: '1', text: '3' },
+          { id: '2', text: '4' },
+          { id: '3', text: '5' },
+          { id: '4', text: '6' },
+        ],
+        correctOptionId: '2',
+        timeLimit: 6,
+      },
+      {
+        question: 'Color of the sky?',
+        options: [
+          { id: '1', text: 'Blue' },
+          { id: '2', text: 'Green' },
+          { id: '3', text: 'Red' },
+          { id: '4', text: 'Yellow' },
+        ],
+        correctOptionId: '1',
+        timeLimit: 7,
       },
     ];
 
     const game: GameSession = {
       roomCode,
       hostId,
+      hostToken,
+      isLocked: false,
       phase: 'WAITING',
       currentQuestionIndex: 0,
       players: [],
