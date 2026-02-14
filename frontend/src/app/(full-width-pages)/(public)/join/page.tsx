@@ -1,17 +1,17 @@
-import JoinContent from "@/components/public/JoinContent";
+import JoinContent from "@/components/game/JoinContent";
 
 export default async function JoinPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  let sessionId: string = "";
-  const filter = (await searchParams).sessionId as string;
-  if (filter && filter.length > 1) sessionId = filter;
+  let roomId: string = "";
+  const filter = (await searchParams).roomId as string;
+  if (filter && filter.length > 1) roomId = filter;
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <JoinContent sessionId={sessionId} />
+    <div className="relative min-h-screen overflow-hidden">
+      <JoinContent roomId={roomId} />
     </div>
   );
 }

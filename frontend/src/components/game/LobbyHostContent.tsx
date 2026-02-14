@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import QRCodePlaceholder from "@/components/public/QRCodePlaceholder";
+import QRCodePlaceholder from "@/components/game/QRCodePlaceholder";
 import Avatar from "../ui/avatar/Avatar";
 import { Lock, Unlock } from "lucide-react";
 import {
@@ -22,7 +22,7 @@ export default function LobbyContent({ joinCode }: LobbyContentInterface) {
   return (
     <>
       {/* Full-bleed hero-style lobby similar to Kahoot */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-800 via-blue-700 to-blue-900"></div>
 
       <div className="relative z-10 flex min-h-[80vh] flex-col items-center justify-start px-6 pt-12 text-white">
         <div className="w-full max-w-4xl">

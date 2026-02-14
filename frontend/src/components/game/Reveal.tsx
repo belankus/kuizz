@@ -14,7 +14,7 @@ export default function Reveal({
   const isCorrect = selectedOptionId === correctOptionId;
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900 px-6 text-white">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-blue-800 via-blue-700 to-blue-900 px-6 text-white">
       <h1 className="text-center text-3xl font-bold">{question}</h1>
 
       <div className="mt-10 grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2">

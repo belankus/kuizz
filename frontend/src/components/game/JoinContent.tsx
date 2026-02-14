@@ -3,22 +3,22 @@
 import { useEffect, useState } from "react";
 
 interface JoinContentInterface {
-  sessionId: string;
+  roomId: string;
 }
 
-export default function JoinContent({ sessionId }: JoinContentInterface) {
+export default function JoinContent({ roomId }: JoinContentInterface) {
   const [players, setPlayers] = useState<string[]>(["Ayu", "Budi"]);
   const [nick, setNick] = useState("");
   const [code, setCode] = useState("KZ42");
 
   useEffect(() => {
-    if (sessionId.length > 1) setCode(sessionId);
+    if (roomId.length > 1) setCode(roomId);
   }, []);
 
   return (
     <>
       {/* Full-bleed hero-style lobby similar to Kahoot */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-800 via-blue-700 to-blue-900"></div>
       <div className="relative z-10 flex min-h-[80vh] flex-col items-center justify-start px-6 pt-12 text-white">
         <div className="container-card mx-auto max-w-md">
           <a href="/" className="mb-4 inline-block text-sm">

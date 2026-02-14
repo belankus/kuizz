@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { socket } from "@/lib/socket";
 import Countdown from "./Countdown";
 import Question from "./Question";
 import Reveal from "./Reveal";
 import Leaderboard from "./Leaderboard";
 import FinalResult from "./FinalResult";
+import LobbyContent from "./LobbyPlayerContent";
 
 type GamePhase =
+  | "WAITING"
   | "COUNTDOWN"
   | "QUESTION"
   | "REVEAL"
@@ -19,50 +22,60 @@ interface GameContainerProps {
 }
 
 export default function GameContainer({ roomCode }: GameContainerProps) {
-  const [phase, setPhase] = useState<GamePhase>("COUNTDOWN");
+  const [phase, setPhase] = useState<GamePhase>("WAITING");
+  const [question, setQuestion] = useState<any>(null);
+  const [correctOptionId, setCorrectOptionId] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
-
-  const totalQuestions = 3; // contoh
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  // dummy question data
-  const question = {
-    text: "What is the capital of France?",
-    options: [
-      { id: "1", text: "London" },
-      { id: "2", text: "Berlin" },
-      { id: "3", text: "Paris" },
-      { id: "4", text: "Madrid" },
-    ],
-    correctOptionId: "3",
-  };
+  const [rankings, setRankings] = useState<any[]>([]);
 
   useEffect(() => {
-    if (phase === "COUNTDOWN") {
-      const t = setTimeout(() => setPhase("QUESTION"), 3500);
-      return () => clearTimeout(t);
-    }
+    socket.connect();
 
-    if (phase === "REVEAL") {
-      const t = setTimeout(() => setPhase("LEADERBOARD"), 3000);
-      return () => clearTimeout(t);
-    }
+    // join room
+    socket.emit("join_room", {
+      roomCode,
+      nickname: "Budi",
+    });
 
-    if (phase === "LEADERBOARD") {
-      const t = setTimeout(() => {
-        const isLastQuestion = currentIndex === totalQuestions - 1;
+    socket.on("phase_changed", (data) => {
+      setPhase(data.phase);
+    });
 
-        if (isLastQuestion) {
-          setPhase("FINISHED");
-        } else {
-          setCurrentIndex((prev) => prev + 1);
-          setPhase("QUESTION");
-        }
-      }, 3000);
+    socket.on("question_started", (data) => {
+      setQuestion(data.question);
+      setSelected(null);
+      setCorrectOptionId(null);
+      setPhase("QUESTION");
+    });
 
-      return () => clearTimeout(t);
-    }
-  }, [phase, currentIndex]);
+    socket.on("reveal", (data) => {
+      setCorrectOptionId(data.correctOptionId);
+      setPhase("REVEAL");
+    });
+
+    socket.on("leaderboard", (data) => {
+      setRankings(data.rankings);
+      setPhase("LEADERBOARD");
+    });
+
+    socket.on("game_finished", (data) => {
+      setRankings(data.finalRankings);
+      setPhase("FINISHED");
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [roomCode]);
+
+  const handleAnswer = (optionId: string) => {
+    setSelected(optionId);
+
+    socket.emit("submit_answer", {
+      roomCode,
+      selectedOptionId: optionId,
+    });
+  };
 
   switch (phase) {
     case "COUNTDOWN":
@@ -71,56 +84,32 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
     case "QUESTION":
       return (
         <Question
-          question={question.text}
-          options={question.options}
+          question={question?.question}
+          options={question?.options || []}
           questionNumber={1}
-          totalQuestions={10}
-          timeLeft={30}
-          onSelect={(id) => {
-            setSelected(id);
-            setTimeout(() => setPhase("REVEAL"), 1000);
-          }}
+          totalQuestions={1}
+          timeLeft={question?.timeLimit || 10}
+          onSelect={handleAnswer}
         />
       );
 
     case "REVEAL":
       return (
         <Reveal
-          question={question.text}
-          options={question.options}
-          correctOptionId={question.correctOptionId}
+          question={question?.question}
+          options={question?.options || []}
+          correctOptionId={correctOptionId || ""}
           selectedOptionId={selected}
         />
       );
 
     case "LEADERBOARD":
-      return (
-        <Leaderboard
-          players={[
-            { name: "Ardi", score: 1200 },
-            { name: "Shinta", score: 950 },
-            { name: "Budi", score: 870 },
-          ]}
-          myName="Budi"
-        />
-      );
+      return <Leaderboard players={rankings} myName="Budi" />;
 
     case "FINISHED":
-      return (
-        <FinalResult
-          players={[
-            { name: "Ardi", score: 2500 },
-            { name: "Shinta", score: 2100 },
-            { name: "Budi", score: 1800 },
-            { name: "Rina", score: 1600 },
-          ]}
-          myName="Budi"
-          isHost={false}
-          onPlayAgain={() => setPhase("COUNTDOWN")}
-        />
-      );
+      return <FinalResult players={rankings} myName="Budi" isHost={false} />;
 
     default:
-      return null;
+      return <LobbyContent joinCode={roomCode} />;
   }
 }

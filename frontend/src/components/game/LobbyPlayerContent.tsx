@@ -20,7 +20,7 @@ export default function LobbyPlayer({ joinCode }: LobbyContentInterface) {
 
   return (
     <>
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-blue-800 via-blue-700 to-blue-900"></div>
 
       <div className="relative z-10 flex min-h-screen flex-col items-center px-6 pt-16 text-white">
         <div className="w-full max-w-3xl text-center">

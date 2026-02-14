@@ -8,7 +8,7 @@ export default function QRCodePlaceholder({ joinCode }: { joinCode: string }) {
   const [joinUrl, setJoinUrl] = useState("");
 
   useEffect(() => {
-    setJoinUrl(`${baseUrl}/join?sessionId=${joinCode}`);
+    setJoinUrl(`${baseUrl}/join?roomId=${joinCode}`);
   });
 
   // console.log("joinUrl", joinUrl);

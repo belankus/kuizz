@@ -22,7 +22,7 @@ export default function Question({
   const [selected, setSelected] = useState<string | null>(null);
 
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-br from-blue-800 via-blue-700 to-blue-900 text-white">
+    <div className="flex min-h-screen flex-col bg-linear-to-br from-blue-800 via-blue-700 to-blue-900 text-white">
       <div className="flex items-center justify-between bg-black/20 px-6 py-4">
         <div className="text-sm">
           Question {questionNumber} / {totalQuestions}
