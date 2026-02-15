@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 
-const CreatePage = dynamic(() => import("./PageClient"), {
+const CreatePage = dynamic(() => import("./PageClientCreate"), {
   ssr: false,
 });
 

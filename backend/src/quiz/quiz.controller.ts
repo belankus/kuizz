@@ -8,6 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { QuizService } from './quiz.service.js';
+import { UpdateQuizDto } from '../lib/dto.js';
 
 @Controller('quiz')
 export class QuizController {
@@ -29,7 +30,7 @@ export class QuizController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() body: any) {
+  async updateQuiz(@Param('id') id: string, @Body() body: UpdateQuizDto) {
     return this.quizService.updateQuiz(id, body);
   }
 

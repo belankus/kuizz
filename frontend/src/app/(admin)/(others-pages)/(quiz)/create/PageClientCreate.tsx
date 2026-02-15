@@ -15,6 +15,37 @@ import { Button } from "@/components/ui/button";
 import { Check, Circle, Diamond, Square, Triangle, X } from "lucide-react";
 import { nanoid } from "nanoid";
 
+const initialAnswers = [
+  {
+    id: nanoid(),
+    text: "",
+    correct: true,
+    color: "bg-red-500",
+    shape: "triangle",
+  },
+  {
+    id: nanoid(),
+    text: "",
+    correct: false,
+    color: "bg-blue-500",
+    shape: "diamond",
+  },
+  {
+    id: nanoid(),
+    text: "",
+    correct: false,
+    color: "bg-green-500",
+    shape: "circle",
+  },
+  {
+    id: nanoid(),
+    text: "",
+    correct: false,
+    color: "bg-yellow-500",
+    shape: "square",
+  },
+];
+
 export default function CreatePage() {
   const router = useRouter();
   const [quizTitle, setQuizTitle] = useState("Untitled Quiz");
@@ -26,6 +57,15 @@ export default function CreatePage() {
     { color: "bg-green-500", icon: "circle" },
     { color: "bg-yellow-500", icon: "square" },
   ];
+  const [questions, setQuestions] = useState([
+    {
+      id: nanoid(),
+      text: "",
+      timeLimit: 20,
+      answers: initialAnswers,
+    },
+  ]);
+  const currentQuestion = questions[activeIndex];
 
   function renderIcon(type: string) {
     const size = 24;
@@ -43,46 +83,6 @@ export default function CreatePage() {
         return <Circle size={size} />;
     }
   }
-
-  const [questions, setQuestions] = useState([
-    {
-      id: nanoid(),
-      text: "",
-      timeLimit: 20,
-      answers: [
-        {
-          id: nanoid(),
-          text: "",
-          correct: true,
-          color: "bg-red-500",
-          shape: "triangle",
-        },
-        {
-          id: nanoid(),
-          text: "",
-          correct: false,
-          color: "bg-blue-500",
-          shape: "diamond",
-        },
-        {
-          id: nanoid(),
-          text: "",
-          correct: false,
-          color: "bg-green-500",
-          shape: "circle",
-        },
-        {
-          id: nanoid(),
-          text: "",
-          correct: false,
-          color: "bg-yellow-500",
-          shape: "square",
-        },
-      ],
-    },
-  ]);
-
-  const currentQuestion = questions[activeIndex];
 
   function updateQuestionText(text: string) {
     const updated = structuredClone(questions);
@@ -111,10 +111,6 @@ export default function CreatePage() {
   function addAnswer() {
     const updated = structuredClone(questions);
     const answers = updated[activeIndex].answers;
-
-    // const newId = answers.length
-    //   ? Math.max(...answers.map((a) => a.id)) + 1
-    //   : 1;
 
     const paletteItem = colorPalette[answers.length % colorPalette.length];
 
@@ -145,51 +141,20 @@ export default function CreatePage() {
   }
 
   function addQuestion() {
-    // const newId = questions.length + 1;
-
     setQuestions([
       ...questions,
       {
         id: nanoid(),
         text: "",
         timeLimit: 20,
-        answers: [
-          {
-            id: nanoid(),
-            text: "",
-            correct: true,
-            color: "bg-red-500",
-            shape: "triangle",
-          },
-          {
-            id: nanoid(),
-            text: "",
-            correct: false,
-            color: "bg-blue-500",
-            shape: "diamond",
-          },
-          {
-            id: nanoid(),
-            text: "",
-            correct: false,
-            color: "bg-green-500",
-            shape: "circle",
-          },
-          {
-            id: nanoid(),
-            text: "",
-            correct: false,
-            color: "bg-yellow-500",
-            shape: "square",
-          },
-        ],
+        answers: initialAnswers,
       },
     ]);
 
     setActiveIndex(questions.length);
   }
 
-  async function saveQuiz() {
+  async function handleSaveQuiz() {
     for (const q of questions) {
       if (!q.text.trim()) {
         toast.error("Each question must have text", {
@@ -238,7 +203,8 @@ export default function CreatePage() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to save quiz");
+        toast.error("Failed to save quiz");
+        return;
       }
 
       const data = await res.json();
@@ -505,7 +471,7 @@ export default function CreatePage() {
             Cancel
           </Button>
           <Button
-            onClick={saveQuiz}
+            onClick={handleSaveQuiz}
             className="bg-green-600 px-4 py-2 text-white shadow hover:bg-green-700"
           >
             Save Quiz

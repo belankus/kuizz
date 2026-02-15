@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Quiz } from '../generated/prisma/client.js';
 import { QuizCreateInput } from '../generated/prisma/models.js';
+import { UpdateQuizDto } from 'src/lib/dto.js';
 
 @Injectable()
 export class QuizService {
@@ -72,36 +73,52 @@ export class QuizService {
     });
   }
 
-  async updateQuiz(id: string, data: any) {
-    await this.prisma.option.deleteMany({
-      where: {
-        question: {
-          quizId: id,
-        },
-      },
-    });
-
-    await this.prisma.question.deleteMany({
-      where: {
-        quizId: id,
-      },
-    });
-
-    return this.prisma.quiz.update({
+  async updateQuiz(id: string, body: UpdateQuizDto) {
+    const existing = await this.prisma.quiz.findUnique({
       where: { id },
-      data: {
-        title: data.title,
-        questions: {
-          create: data.questions.map((q: any, index: number) => ({
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Quiz not found');
+    }
+
+    // transaction biar atomic
+    return this.prisma.$transaction(async (tx) => {
+      // update basic info
+      await tx.quiz.update({
+        where: { id },
+        data: {
+          title: body.title,
+          description: body.description,
+        },
+      });
+
+      // delete all existing questions (cascade options)
+      await tx.question.deleteMany({
+        where: { quizId: id },
+      });
+
+      // recreate questions
+      for (let i = 0; i < body.questions.length; i++) {
+        const q = body.questions[i];
+
+        await tx.question.create({
+          data: {
+            quizId: id,
             text: q.text,
             timeLimit: q.timeLimit,
-            order: index,
+            order: i,
             options: {
-              create: q.options,
+              create: q.options.map((opt) => ({
+                text: opt.text,
+                isCorrect: opt.isCorrect,
+              })),
             },
-          })),
-        },
-      },
+          },
+        });
+      }
+
+      return { message: 'Quiz updated successfully' };
     });
   }
 
