@@ -1,8 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { Quiz } from '../generated/prisma/client.js';
+import { Prisma, Quiz } from '../generated/prisma/client.js';
 import { QuizCreateInput } from '../generated/prisma/models.js';
 import { UpdateQuizDto } from 'src/lib/dto.js';
+import ExcelJS from 'exceljs';
 
 @Injectable()
 export class QuizService {
@@ -136,5 +141,147 @@ export class QuizService {
     });
 
     return { message: 'Quiz deleted successfully' };
+  }
+  async exportQuiz(id: string): Promise<Buffer> {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id },
+      include: {
+        questions: {
+          include: {
+            options: true,
+          },
+          orderBy: { order: 'asc' },
+        },
+      },
+    });
+
+    if (!quiz) {
+      throw new Error('Quiz not found');
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Quiz');
+
+    const maxOptions = Math.max(...quiz.questions.map((q) => q.options.length));
+
+    const header = ['Question', 'TimeLimit'];
+
+    for (let i = 1; i <= maxOptions; i++) {
+      header.push(`Option${i}`);
+      header.push(`Correct${i}`);
+    }
+
+    sheet.addRow(header);
+
+    for (const question of quiz.questions) {
+      const row = [question.text, question.timeLimit];
+
+      for (let i = 0; i < maxOptions; i++) {
+        const option = question.options[i];
+
+        if (option) {
+          row.push(option.text);
+          row.push(option.isCorrect ? 'YES' : 'NO');
+        } else {
+          row.push('');
+          row.push('');
+        }
+      }
+
+      sheet.addRow(row);
+    }
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    return Buffer.from(buffer);
+  }
+
+  async importQuiz(file: Express.Multer.File) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(file.buffer as any);
+
+    const worksheet = workbook.worksheets[0];
+
+    if (!worksheet) {
+      throw new Error('Worksheet not found');
+    }
+
+    const questions: {
+      text: string;
+      timeLimit: number;
+      options: Prisma.OptionCreateWithoutQuestionInput[];
+    }[] = [];
+
+    // Skip header (row 1)
+    for (let i = 2; i <= worksheet.rowCount; i++) {
+      const row = worksheet.getRow(i);
+
+      const questionText = row.getCell(1).value?.toString().trim();
+      const timeLimit = Number(row.getCell(2).value) || 20;
+
+      if (!questionText) continue;
+
+      const options: Prisma.OptionCreateWithoutQuestionInput[] = [];
+
+      // mulai kolom 3 → dynamic
+      for (let col = 3; col <= row.cellCount; col += 2) {
+        const optionText = row.getCell(col).value?.toString().trim();
+        const correctValue = row
+          .getCell(col + 1)
+          .value?.toString()
+          .trim();
+
+        if (!optionText) continue;
+
+        options.push({
+          text: optionText,
+          isCorrect: correctValue?.toUpperCase() === 'YES',
+        });
+      }
+
+      // 🔥 VALIDATION
+      if (options.length < 2) {
+        throw new BadRequestException(
+          `Row ${i}: Question "${questionText}" must have at least 2 options`,
+        );
+      }
+
+      if (!options.some((o) => o.isCorrect)) {
+        throw new BadRequestException(
+          `Row ${i}: Question "${questionText}" must have at least 1 correct answer`,
+        );
+      }
+
+      questions.push({
+        text: questionText,
+        timeLimit,
+        options,
+      });
+    }
+
+    if (!questions.length) {
+      throw new BadRequestException('No valid questions found');
+    }
+
+    // 🔥 CREATE QUIZ
+    const quiz = await this.prisma.quiz.create({
+      data: {
+        title: 'Imported Quiz',
+        questions: {
+          create: questions.map((q, index) => ({
+            text: q.text,
+            timeLimit: q.timeLimit,
+            order: index,
+            options: {
+              create: q.options,
+            },
+          })),
+        },
+      },
+      include: {
+        questions: true,
+      },
+    });
+
+    return quiz;
   }
 }
