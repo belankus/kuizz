@@ -57,3 +57,18 @@ export type Question = Prisma.QuestionModel
  * 
  */
 export type Option = Prisma.OptionModel
+/**
+ * Model GameSession
+ * 
+ */
+export type GameSession = Prisma.GameSessionModel
+/**
+ * Model GamePlayer
+ * 
+ */
+export type GamePlayer = Prisma.GamePlayerModel
+/**
+ * Model GameAnswer
+ * 
+ */
+export type GameAnswer = Prisma.GameAnswerModel

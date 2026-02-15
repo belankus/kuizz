@@ -36,7 +36,7 @@ const navItems: NavItem[] = [
     icon: <TableIcon />,
     subItems: [
       { name: "Quizes", path: "/quizes" },
-      { name: "Sessions", path: "/sessions" },
+      { name: "Game Rooms", path: "/rooms" },
     ],
   },
   {

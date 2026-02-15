@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -23,30 +23,68 @@ model User {
 }
 
 model Quiz {
-  id          String     @id @default(uuid())
-  title       String
-  description String?
-  ownerId     String?
-  owner       User?       @relation(fields: [ownerId], references: [id])
-  questions   Question[]
-  createdAt   DateTime   @default(now())
+  id           String        @id @default(uuid())
+  title        String
+  description  String?
+  ownerId      String?
+  owner        User?         @relation(fields: [ownerId], references: [id])
+  questions    Question[]
+  createdAt    DateTime      @default(now())
+  gameSessions GameSession[] @relation("QuizToGameSessions") // relation to GameSession
 }
 
 model Question {
   id        String   @id @default(uuid())
   quizId    String
-  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
   text      String
-  timeLimit Int      // seconds
+  timeLimit Int // seconds
   order     Int
   mediaUrl  String?
   options   Option[]
 }
 
 model Option {
-  id          String   @id @default(uuid())
-  questionId  String
-  question    Question @relation(fields: [questionId], references: [id])
-  text        String
-  isCorrect   Boolean  @default(false)
+  id         String   @id @default(uuid())
+  questionId String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  isCorrect  Boolean  @default(false)
+}
+
+model GameSession {
+  id             String       @id @default(uuid())
+  quizId         String?
+  quiz           Quiz?        @relation("QuizToGameSessions", fields: [quizId], references: [id], onDelete: SetNull)
+  title          String // snapshot quiz title
+  questions      Json // snapshot seluruh question + options
+  totalQuestions Int
+  createdAt      DateTime     @default(now())
+  finishedAt     DateTime?
+  players        GamePlayer[] @relation("SessionToPlayers")
+
+  @@index([quizId])
+}
+
+model GamePlayer {
+  id        String       @id @default(uuid())
+  sessionId String
+  session   GameSession  @relation("SessionToPlayers", fields: [sessionId], references: [id], onDelete: Cascade)
+  nickname  String
+  score     Int
+  answers   GameAnswer[] @relation("PlayerToAnswers")
+
+  @@index([sessionId])
+}
+
+model GameAnswer {
+  id               String     @id @default(uuid())
+  playerId         String
+  player           GamePlayer @relation("PlayerToAnswers", fields: [playerId], references: [id], onDelete: Cascade)
+  questionIndex    Int
+  selectedOptionId String
+  isCorrect        Boolean
+  responseTime     Int
+
+  @@index([playerId])
 }

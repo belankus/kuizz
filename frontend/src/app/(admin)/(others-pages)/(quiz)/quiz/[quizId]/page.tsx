@@ -1,27 +1,94 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
-export default function CreatePage() {
+export default function EditPage() {
+  const { quizId } = useParams();
+  const router = useRouter();
+
   const [title, setTitle] = useState("");
-  const [answers, setAnswers] = useState([
-    { id: 1, text: "", color: "bg-red-600", shape: "▲", correct: false },
-    {
-      id: 2,
-      text: "",
-      color: "bg-blue-600",
-      shape: "◆",
-      correct: false,
-    },
-    {
-      id: 3,
-      text: "",
-      color: "bg-yellow-500",
-      shape: "●",
-      correct: false,
-    },
-    { id: 4, text: "", color: "bg-green-600", shape: "■", correct: true },
-  ]);
+  const [answers, setAnswers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchQuiz() {
+      try {
+        const res = await fetch(`http://localhost:3000/quiz/${quizId}`);
+        const data = await res.json();
+
+        const question = data.questions[0];
+
+        setTitle(question.text);
+
+        setAnswers(
+          question.options.map((o: any, index: number) => ({
+            id: o.id,
+            text: o.text,
+            correct: o.isCorrect,
+            color: [
+              "bg-red-600",
+              "bg-blue-600",
+              "bg-yellow-500",
+              "bg-green-600",
+            ][index % 4],
+            shape: ["▲", "◆", "●", "■"][index % 4],
+          })),
+        );
+
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        router.push("/quizes");
+      }
+    }
+
+    fetchQuiz();
+  }, [quizId]);
+
+  async function updateQuiz() {
+    const validAnswers = answers.filter((a) => a.text.trim() !== "");
+
+    if (!validAnswers.some((a) => a.correct)) {
+      Swal.fire("Error", "Select at least 1 correct answer", "warning");
+      return;
+    }
+
+    const payload = {
+      title,
+      questions: [
+        {
+          text: title,
+          timeLimit: 20,
+          options: validAnswers.map((a) => ({
+            text: a.text,
+            isCorrect: a.correct,
+          })),
+        },
+      ],
+    };
+
+    try {
+      const res = await fetch(`http://localhost:3000/quiz/${quizId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error();
+
+      await Swal.fire({
+        icon: "success",
+        title: "Quiz Updated",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+
+      router.push("/quizes");
+    } catch {
+      Swal.fire("Error", "Update failed", "error");
+    }
+  }
 
   function toggleCorrect(id: number) {
     setAnswers(
@@ -52,61 +119,6 @@ export default function CreatePage() {
         correct: false,
       },
     ]);
-  }
-
-  async function saveQuiz() {
-    if (!title.trim()) {
-      alert("Question title is required");
-      return;
-    }
-
-    const validAnswers = answers.filter((a) => a.text.trim() !== "");
-
-    if (validAnswers.length < 2) {
-      alert("At least 2 answers required");
-      return;
-    }
-
-    if (!validAnswers.some((a) => a.correct)) {
-      alert("Select at least 1 correct answer");
-      return;
-    }
-
-    const payload = {
-      title: title, // quiz title
-      questions: [
-        {
-          text: title, // sementara pakai title sebagai question text
-          timeLimit: 20,
-          options: validAnswers.map((a) => ({
-            text: a.text,
-            isCorrect: a.correct,
-          })),
-        },
-      ],
-    };
-
-    try {
-      const res = await fetch("http://localhost:3000/quiz", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        throw new Error("Failed to save quiz");
-      }
-
-      const data = await res.json();
-      console.log("Saved quiz:", data);
-
-      alert("Quiz saved successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Error saving quiz");
-    }
   }
 
   return (
@@ -196,10 +208,10 @@ export default function CreatePage() {
           </button>
 
           <button
-            onClick={saveQuiz}
+            onClick={updateQuiz}
             className="rounded bg-green-600 px-4 py-2 text-white"
           >
-            Save Quiz
+            Save Changes
           </button>
         </div>
       </main>

@@ -54,7 +54,10 @@ export const ModelName = {
   User: 'User',
   Quiz: 'Quiz',
   Question: 'Question',
-  Option: 'Option'
+  Option: 'Option',
+  GameSession: 'GameSession',
+  GamePlayer: 'GamePlayer',
+  GameAnswer: 'GameAnswer'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -116,12 +119,54 @@ export const OptionScalarFieldEnum = {
 export type OptionScalarFieldEnum = (typeof OptionScalarFieldEnum)[keyof typeof OptionScalarFieldEnum]
 
 
+export const GameSessionScalarFieldEnum = {
+  id: 'id',
+  quizId: 'quizId',
+  title: 'title',
+  questions: 'questions',
+  totalQuestions: 'totalQuestions',
+  createdAt: 'createdAt',
+  finishedAt: 'finishedAt'
+} as const
+
+export type GameSessionScalarFieldEnum = (typeof GameSessionScalarFieldEnum)[keyof typeof GameSessionScalarFieldEnum]
+
+
+export const GamePlayerScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  nickname: 'nickname',
+  score: 'score'
+} as const
+
+export type GamePlayerScalarFieldEnum = (typeof GamePlayerScalarFieldEnum)[keyof typeof GamePlayerScalarFieldEnum]
+
+
+export const GameAnswerScalarFieldEnum = {
+  id: 'id',
+  playerId: 'playerId',
+  questionIndex: 'questionIndex',
+  selectedOptionId: 'selectedOptionId',
+  isCorrect: 'isCorrect',
+  responseTime: 'responseTime'
+} as const
+
+export type GameAnswerScalarFieldEnum = (typeof GameAnswerScalarFieldEnum)[keyof typeof GameAnswerScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -138,4 +183,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
