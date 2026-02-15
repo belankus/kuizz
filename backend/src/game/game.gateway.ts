@@ -6,7 +6,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { GameService } from './game.service';
+import { GameService } from './game.service.js';
 import { randomUUID } from 'crypto';
 
 type Player = {

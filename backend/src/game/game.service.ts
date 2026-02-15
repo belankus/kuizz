@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RedisService } from '../redis/redis.service';
+import { RedisService } from '../redis/redis.service.js';
 import { randomUUID } from 'crypto';
 
 interface Question {
