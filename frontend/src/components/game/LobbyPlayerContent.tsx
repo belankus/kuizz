@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Avatar from "../ui/avatar/Avatar";
+import { Avatar, AvatarImage } from "../ui/avatar";
 
 interface LobbyContentInterface {
   joinCode: string;
@@ -44,11 +44,9 @@ export default function LobbyPlayer({
                 key={index}
                 className="flex flex-col items-center justify-center"
               >
-                <Avatar
-                  src="/images/user/user-01.jpg"
-                  status="online"
-                  className="animation-pulsing"
-                />
+                <Avatar className="animation-pulsing">
+                  <AvatarImage src="/images/user/user-01.jpg" />
+                </Avatar>
                 <h3
                   className={`mt-2 text-lg font-semibold ${
                     player.nickname === nickname ? "text-yellow-300" : ""

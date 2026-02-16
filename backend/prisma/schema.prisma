@@ -54,6 +54,7 @@ model Option {
 
 model GameSession {
   id             String       @id @default(uuid())
+  hostId         String?
   quizId         String?
   quiz           Quiz?        @relation("QuizToGameSessions", fields: [quizId], references: [id], onDelete: SetNull)
   title          String // snapshot quiz title
@@ -61,9 +62,17 @@ model GameSession {
   totalQuestions Int
   createdAt      DateTime     @default(now())
   finishedAt     DateTime?
+  status         GameStatus   @default(WAITING)
   players        GamePlayer[] @relation("SessionToPlayers")
 
   @@index([quizId])
+}
+
+enum GameStatus {
+  WAITING
+  STARTED
+  FINISHED
+  ABORTED
 }
 
 model GamePlayer {
@@ -72,8 +81,10 @@ model GamePlayer {
   session   GameSession  @relation("SessionToPlayers", fields: [sessionId], references: [id], onDelete: Cascade)
   nickname  String
   score     Int
+  joinedAt  DateTime     @default(now())
   answers   GameAnswer[] @relation("PlayerToAnswers")
 
+  @@unique([sessionId, nickname])
   @@index([sessionId])
 }
 

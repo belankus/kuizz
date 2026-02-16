@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { socket } from "@/lib/socket";
 
 export default function JoinContent() {
   const router = useRouter();
@@ -9,8 +10,24 @@ export default function JoinContent() {
 
   const [nick, setNick] = useState("");
   const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Auto-fill roomId from query ?roomId=123456
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+    console.log("Socket connected?", socket.connected);
+
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
+
+    socket.on("connect_error", (err) => {
+      console.log("Socket error:", err);
+    });
+  }, []);
+
   useEffect(() => {
     const roomId = searchParams.get("roomId");
     if (roomId) setCode(roomId);
@@ -19,12 +36,39 @@ export default function JoinContent() {
   const handleJoin = () => {
     if (!nick || !code) return;
 
-    // Save to localStorage
-    localStorage.setItem("nickname", nick);
-    localStorage.setItem("roomCode", code);
+    setLoading(true);
+    setError(null);
 
-    // Redirect to game route
-    router.push(`/game/${code}`);
+    const existingToken = localStorage.getItem("playerToken");
+
+    socket.emit("join_room", {
+      roomCode: code,
+      nickname: nick,
+      playerToken: existingToken ?? undefined,
+    });
+
+    socket.once("player_registered", (data) => {
+      localStorage.setItem("nickname", nick);
+      localStorage.setItem("roomCode", code);
+      localStorage.setItem("playerToken", data.playerToken);
+
+      router.push(`/game/${code}`);
+    });
+
+    socket.once("room_not_found", () => {
+      setError("Room tidak ditemukan.");
+      setLoading(false);
+    });
+
+    socket.once("room_locked", () => {
+      setError("Room sudah dikunci oleh host.");
+      setLoading(false);
+    });
+
+    socket.once("game_already_started", () => {
+      setError("Game sudah dimulai.");
+      setLoading(false);
+    });
   };
 
   return (
@@ -62,15 +106,21 @@ export default function JoinContent() {
               />
             </div>
 
+            {error && (
+              <div className="rounded bg-red-500 px-3 py-2 text-sm">
+                {error}
+              </div>
+            )}
+
             <button
               onClick={handleJoin}
-              disabled={!nick || !code}
+              disabled={!nick || !code || loading}
               className="mt-2 w-full rounded-lg bg-indigo-600 px-4 py-3 text-white disabled:opacity-50"
             >
-              Join
+              {loading ? "Joining..." : "Join"}
             </button>
 
-            <div className="mt-3 text-xs">
+            <div className="mt-3 text-xs opacity-80">
               Tip: jika kamu lihat QR, scan untuk membuka kuizz.live langsung.
             </div>
           </div>

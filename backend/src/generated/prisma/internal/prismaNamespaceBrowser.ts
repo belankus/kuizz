@@ -121,12 +121,14 @@ export type OptionScalarFieldEnum = (typeof OptionScalarFieldEnum)[keyof typeof 
 
 export const GameSessionScalarFieldEnum = {
   id: 'id',
+  hostId: 'hostId',
   quizId: 'quizId',
   title: 'title',
   questions: 'questions',
   totalQuestions: 'totalQuestions',
   createdAt: 'createdAt',
-  finishedAt: 'finishedAt'
+  finishedAt: 'finishedAt',
+  status: 'status'
 } as const
 
 export type GameSessionScalarFieldEnum = (typeof GameSessionScalarFieldEnum)[keyof typeof GameSessionScalarFieldEnum]
@@ -136,7 +138,8 @@ export const GamePlayerScalarFieldEnum = {
   id: 'id',
   sessionId: 'sessionId',
   nickname: 'nickname',
-  score: 'score'
+  score: 'score',
+  joinedAt: 'joinedAt'
 } as const
 
 export type GamePlayerScalarFieldEnum = (typeof GamePlayerScalarFieldEnum)[keyof typeof GamePlayerScalarFieldEnum]

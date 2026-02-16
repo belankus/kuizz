@@ -47,6 +47,7 @@ import {
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { socket } from "@/lib/socket";
 
 type Quiz = {
   id: string;
@@ -60,6 +61,7 @@ export default function BasicTables() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetch("http://localhost:3000/quiz")
@@ -91,6 +93,32 @@ export default function BasicTables() {
     }
   };
 
+  const handleStartGame = (quizId: string) => {
+    if (loading) return;
+
+    setLoading(true);
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    // LISTENER DULU
+    socket.once("host_registered", (data) => {
+      localStorage.setItem("hostToken", data.hostToken);
+      localStorage.setItem("roomCode", data.roomCode);
+      localStorage.setItem("hostRoom", data.roomCode);
+
+      router.push(`/game/${data.roomCode}`);
+    });
+
+    socket.once("connect_error", () => {
+      setLoading(false);
+    });
+
+    socket.emit("create_game", {
+      quizId,
+    });
+  };
   return (
     <div>
       <PageBreadcrumb pageTitle="Quizes" />
@@ -124,6 +152,10 @@ export default function BasicTables() {
                     >
                       <PencilIcon />
                       Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleStartGame(quiz.id)}>
+                      <PencilIcon />
+                      Start Game
                     </DropdownMenuItem>
                     <DropdownMenuSub>
                       <DropdownMenuSubTrigger>

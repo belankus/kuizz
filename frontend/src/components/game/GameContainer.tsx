@@ -66,11 +66,13 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
     socket.on("connect", () => {
       console.log("Connected:", socket.id);
 
-      socket.emit("join_room", {
-        roomCode,
-        nickname: storedNickname,
-        playerToken,
-      });
+      if (!isHost) {
+        socket.emit("join_room", {
+          roomCode,
+          nickname: storedNickname,
+          playerToken,
+        });
+      }
 
       socket.emit("get_current_state", {
         roomCode,

@@ -1012,12 +1012,14 @@ export type OptionScalarFieldEnum = (typeof OptionScalarFieldEnum)[keyof typeof 
 
 export const GameSessionScalarFieldEnum = {
   id: 'id',
+  hostId: 'hostId',
   quizId: 'quizId',
   title: 'title',
   questions: 'questions',
   totalQuestions: 'totalQuestions',
   createdAt: 'createdAt',
-  finishedAt: 'finishedAt'
+  finishedAt: 'finishedAt',
+  status: 'status'
 } as const
 
 export type GameSessionScalarFieldEnum = (typeof GameSessionScalarFieldEnum)[keyof typeof GameSessionScalarFieldEnum]
@@ -1027,7 +1029,8 @@ export const GamePlayerScalarFieldEnum = {
   id: 'id',
   sessionId: 'sessionId',
   nickname: 'nickname',
-  score: 'score'
+  score: 'score',
+  joinedAt: 'joinedAt'
 } as const
 
 export type GamePlayerScalarFieldEnum = (typeof GamePlayerScalarFieldEnum)[keyof typeof GamePlayerScalarFieldEnum]
@@ -1151,6 +1154,20 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'GameStatus'
+ */
+export type EnumGameStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GameStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'GameStatus[]'
+ */
+export type ListEnumGameStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GameStatus[]'>
     
 
 

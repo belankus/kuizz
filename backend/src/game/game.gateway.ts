@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service.js';
 import { randomUUID } from 'crypto';
+import { PrismaService } from 'src/prisma/prisma.service.js';
 
 type Player = {
   playerId: string;
@@ -27,16 +28,19 @@ export class GameGateway {
 
   @SubscribeMessage('create_game')
   async handleCreate(
-    @MessageBody() data: { roomCode: string },
+    @MessageBody() data: { quizId: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const game = await this.gameService.createGame(data.roomCode, client.id);
+    const game = await this.gameService.createGameFromQuiz(
+      client.id,
+      data.quizId,
+    );
 
-    client.join(data.roomCode);
+    client.join(game.roomCode);
 
     client.emit('host_registered', {
       hostToken: game.hostToken,
-      roomCode: data.roomCode,
+      roomCode: game.roomCode,
     });
 
     client.emit('game_created', game);
@@ -65,7 +69,7 @@ export class GameGateway {
       return;
     }
 
-    let player: Player | null = null;
+    let player: Player | undefined;
     // 🔥 If playerToken exists → try reconnect
     if (data.playerToken) {
       player = game.players.find((p) => p.playerToken === data.playerToken);
@@ -151,16 +155,21 @@ export class GameGateway {
 
     // Countdown server-side
     setTimeout(async () => {
-      game.phase = 'QUESTION';
-      game.questionStartTime = Date.now();
+      const updatedGame = await this.gameService.getGame(data.roomCode);
+      if (!updatedGame) return;
 
-      await this.gameService.updateGame(data.roomCode, game);
+      updatedGame.phase = 'QUESTION';
+      updatedGame.questionStartTime = Date.now();
+
+      await this.gameService.updateGame(data.roomCode, updatedGame);
+
+      // 🔥 MARK SESSION STARTED (ONLY ONCE)
+      await this.gameService.markSessionStarted(updatedGame.sessionId);
 
       this.server.to(data.roomCode).emit('question_started', {
-        question: game.questions[game.currentQuestionIndex],
+        question: updatedGame.questions[updatedGame.currentQuestionIndex],
       });
 
-      // start question timer
       this.startQuestionTimer(data.roomCode);
     }, 3000);
   }
@@ -178,6 +187,7 @@ export class GameGateway {
     if (!game) return;
 
     if (game.phase !== 'QUESTION') return;
+    if (!game.questionStartTime) return;
 
     const questionIndex = game.currentQuestionIndex;
 
@@ -332,6 +342,11 @@ export class GameGateway {
         this.server.to(roomCode).emit('game_finished', {
           finalRankings: rankings,
         });
+
+        // 🔥 PERSIST TO DB + CLEAN REDIS
+        await this.gameService.finalizeGame(roomCode);
+
+        return;
       } else {
         updatedGame.currentQuestionIndex += 1;
         updatedGame.phase = 'QUESTION';

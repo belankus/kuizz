@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import QRCodePlaceholder from "@/components/game/QRCodePlaceholder";
-import Avatar from "../ui/avatar/Avatar";
+import { Avatar, AvatarImage } from "../ui/avatar";
 import { Lock, Unlock } from "lucide-react";
 import {
   Tooltip,
@@ -42,7 +42,7 @@ export default function LobbyContent({
     const hostToken = localStorage.getItem("hostToken");
 
     socket?.emit("host_start_game", {
-      roomCode: "123456",
+      roomCode: joinCode,
       hostToken,
     });
   };
@@ -143,11 +143,9 @@ export default function LobbyContent({
                   key={index}
                   className="flex flex-col items-center justify-center"
                 >
-                  <Avatar
-                    src="/images/user/user-01.jpg"
-                    status="online"
-                    className="animation-pulsing"
-                  />
+                  <Avatar className="animation-pulsing">
+                    <AvatarImage src="/images/user/user-01.jpg" />
+                  </Avatar>
                   <h3 className="mt-2 text-lg font-semibold">
                     {player.nickname}
                   </h3>
