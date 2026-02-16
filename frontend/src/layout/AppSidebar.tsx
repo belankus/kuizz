@@ -8,6 +8,7 @@ import {
   Boxes,
   CalendarHeart,
   ChevronDownIcon,
+  Download,
   Ellipsis,
   GridIcon,
   ListIcon,
@@ -41,7 +42,13 @@ const navItems: NavItem[] = [
   },
 ];
 
-const othersItems: NavItem[] = [];
+const othersItems: NavItem[] = [
+  {
+    icon: <Download />,
+    name: "Import",
+    path: "/import",
+  },
+];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();

@@ -95,7 +95,7 @@ export default function BasicTables() {
     <div>
       <PageBreadcrumb pageTitle="Quizes" />
       <Button onClick={() => router.push("/create")} className="mb-4">
-        <PlusIcon className="h-4 w-4" /> Create New Quiz
+        <PlusIcon className="h-4 w-4" /> New Quiz
       </Button>
 
       {quizzes.length === 0 && <EmptyPlaceholder />}
@@ -223,7 +223,11 @@ const EmptyPlaceholder = () => {
         <Button size="sm" onClick={() => router.push("/create")}>
           Create Quiz
         </Button>
-        <Button size="sm" variant="outline">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => router.push("/import")}
+        >
           Import Project
         </Button>
       </EmptyContent>
