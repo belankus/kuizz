@@ -34,6 +34,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import {
+  ArrowUpRightIcon,
   Ellipsis,
   FolderCode,
   PencilIcon,
@@ -104,18 +105,19 @@ export default function BasicTables() {
             key={index}
             className="flex h-32 w-52 shrink-0 basis-52 flex-col rounded-2xl border bg-white"
           >
-            <div className="h-24 border-b">
-              <h2 className="pt-2 pb-2 pl-4">{quiz.title}</h2>
-            </div>
-            <div className="flex items-center justify-between pl-4 text-sm text-gray-500">
-              <div>{quiz.questions.length} questions</div>
+            <div className="flex h-24 items-start justify-between gap-2 border-b">
+              <h2 className="truncate pt-2 pb-2 pl-4">{quiz.title}</h2>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon-xs">
+                  <Button
+                    variant="outline"
+                    size="icon-xs"
+                    className="mt-2 mr-2"
+                  >
                     <Ellipsis />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent side="top" align="start">
+                <DropdownMenuContent side="bottom" align="start">
                   <DropdownMenuGroup>
                     <DropdownMenuItem
                       onSelect={() => router.push(`/quiz/${quiz.id}`)}
@@ -159,6 +161,9 @@ export default function BasicTables() {
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
+            </div>
+            <div className="flex items-center justify-start pl-4 text-sm text-gray-500">
+              <div>{quiz.questions.length} questions</div>
             </div>
           </div>
         ))}
@@ -208,18 +213,30 @@ const EmptyPlaceholder = () => {
         <EmptyMedia variant="icon">
           <FolderCode />
         </EmptyMedia>
-        <EmptyTitle>Quiz Empty</EmptyTitle>
-        <EmptyDescription>Create a new quiz to get started.</EmptyDescription>
+        <EmptyTitle>No Quizzes Yet</EmptyTitle>
+        <EmptyDescription>
+          You haven't created any quizzes yet. Get started by creating your
+          first project.
+        </EmptyDescription>
       </EmptyHeader>
-      <EmptyContent>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/create")}
-        >
+      <EmptyContent className="flex-row justify-center gap-2">
+        <Button size="sm" onClick={() => router.push("/create")}>
           Create Quiz
         </Button>
+        <Button size="sm" variant="outline">
+          Import Project
+        </Button>
       </EmptyContent>
+      <Button
+        variant="link"
+        asChild
+        className="text-muted-foreground"
+        size="sm"
+      >
+        <a href="#">
+          Learn More <ArrowUpRightIcon />
+        </a>
+      </Button>
     </Empty>
   );
 };

@@ -6,7 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma, Quiz } from '../generated/prisma/client.js';
 import { QuizCreateInput } from '../generated/prisma/models.js';
-import { UpdateQuizDto } from 'src/lib/dto.js';
+import { CreateQuizDto, UpdateQuizDto } from 'src/lib/dto.js';
 import ExcelJS from 'exceljs';
 
 @Injectable()
@@ -46,26 +46,23 @@ export class QuizService {
     return quiz;
   }
 
-  async createQuiz(data: QuizCreateInput): Promise<Quiz> {
+  async createQuiz(data: CreateQuizDto): Promise<Quiz> {
+    const normalizedQuestions = this.normalizeAndValidateQuestions(
+      data.questions ?? [],
+    );
+
     return this.prisma.quiz.create({
       data: {
         title: data.title,
         questions: {
-          create: Array.isArray(data.questions)
-            ? data.questions.map((q: any, index: number) => ({
-                text: q.text,
-                timeLimit: q.timeLimit,
-                order: q.order ?? index,
-                options: {
-                  create: Array.isArray(q.options)
-                    ? q.options.map((o: any) => ({
-                        text: o.text,
-                        isCorrect: o.isCorrect,
-                      }))
-                    : [],
-                },
-              }))
-            : [],
+          create: normalizedQuestions.map((q, index) => ({
+            text: q.text,
+            timeLimit: q.timeLimit,
+            order: index,
+            options: {
+              create: q.options,
+            },
+          })),
         },
       },
       include: {
@@ -87,6 +84,10 @@ export class QuizService {
       throw new NotFoundException('Quiz not found');
     }
 
+    const normalizedQuestions = this.normalizeAndValidateQuestions(
+      body.questions ?? [],
+    );
+
     // transaction biar atomic
     return this.prisma.$transaction(async (tx) => {
       // update basic info
@@ -104,8 +105,8 @@ export class QuizService {
       });
 
       // recreate questions
-      for (let i = 0; i < body.questions.length; i++) {
-        const q = body.questions[i];
+      for (let i = 0; i < normalizedQuestions.length; i++) {
+        const q = normalizedQuestions[i];
 
         await tx.question.create({
           data: {
@@ -114,10 +115,7 @@ export class QuizService {
             timeLimit: q.timeLimit,
             order: i,
             options: {
-              create: q.options.map((opt) => ({
-                text: opt.text,
-                isCorrect: opt.isCorrect,
-              })),
+              create: q.options,
             },
           },
         });
@@ -142,14 +140,13 @@ export class QuizService {
 
     return { message: 'Quiz deleted successfully' };
   }
+
   async exportQuiz(id: string): Promise<Buffer> {
     const quiz = await this.prisma.quiz.findUnique({
       where: { id },
       include: {
         questions: {
-          include: {
-            options: true,
-          },
+          include: { options: true },
           orderBy: { order: 'asc' },
         },
       },
@@ -162,31 +159,39 @@ export class QuizService {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Quiz');
 
-    const maxOptions = Math.max(...quiz.questions.map((q) => q.options.length));
+    const maxOptions = Math.max(
+      4,
+      ...quiz.questions.map((q) => q.options.length),
+    );
 
     const header = ['Question', 'TimeLimit'];
 
     for (let i = 1; i <= maxOptions; i++) {
       header.push(`Option${i}`);
-      header.push(`Correct${i}`);
     }
+
+    header.push('Correct');
 
     sheet.addRow(header);
 
     for (const question of quiz.questions) {
-      const row = [question.text, question.timeLimit];
+      const row: (string | number)[] = [question.text, question.timeLimit];
 
-      for (let i = 0; i < maxOptions; i++) {
-        const option = question.options[i];
+      question.options.forEach((option) => {
+        row.push(option.text);
+      });
 
-        if (option) {
-          row.push(option.text);
-          row.push(option.isCorrect ? 'YES' : 'NO');
-        } else {
-          row.push('');
-          row.push('');
-        }
+      // pad kosong kalau kurang dari maxOptions
+      for (let i = question.options.length; i < maxOptions; i++) {
+        row.push('');
       }
+
+      const correctIndexes = question.options
+        .map((opt, index) => (opt.isCorrect ? index + 1 : null))
+        .filter(Boolean)
+        .join(',');
+
+      row.push(correctIndexes);
 
       sheet.addRow(row);
     }
@@ -200,9 +205,20 @@ export class QuizService {
     await workbook.xlsx.load(file.buffer as any);
 
     const worksheet = workbook.worksheets[0];
-
     if (!worksheet) {
-      throw new Error('Worksheet not found');
+      throw new BadRequestException('Worksheet not found');
+    }
+
+    const headerRow = worksheet.getRow(1);
+    const headers = headerRow.values as string[];
+
+    const optionStartIndex = 3;
+    const correctIndex = headers.findIndex(
+      (h) => h?.toString().toLowerCase() === 'correct',
+    );
+
+    if (correctIndex === -1) {
+      throw new BadRequestException('Correct column not found');
     }
 
     const questions: {
@@ -211,44 +227,65 @@ export class QuizService {
       options: Prisma.OptionCreateWithoutQuestionInput[];
     }[] = [];
 
-    // Skip header (row 1)
+    const errors: string[] = [];
+
     for (let i = 2; i <= worksheet.rowCount; i++) {
       const row = worksheet.getRow(i);
 
       const questionText = row.getCell(1).value?.toString().trim();
-      const timeLimit = Number(row.getCell(2).value) || 20;
+      const rawTimeLimit = row.getCell(2).value;
+      const timeLimit = Number(rawTimeLimit) || 20;
 
-      if (!questionText) continue;
+      if (!questionText) {
+        errors.push(`Row ${i}: Question text is required`);
+        continue;
+      }
+
+      if (timeLimit < 5 || timeLimit > 300) {
+        errors.push(`Row ${i}: TimeLimit must be between 5 and 300`);
+      }
 
       const options: Prisma.OptionCreateWithoutQuestionInput[] = [];
 
-      // mulai kolom 3 → dynamic
-      for (let col = 3; col <= row.cellCount; col += 2) {
-        const optionText = row.getCell(col).value?.toString().trim();
-        const correctValue = row
-          .getCell(col + 1)
-          .value?.toString()
-          .trim();
-
-        if (!optionText) continue;
-
-        options.push({
-          text: optionText,
-          isCorrect: correctValue?.toUpperCase() === 'YES',
-        });
+      for (let col = optionStartIndex; col < correctIndex; col++) {
+        const value = row.getCell(col).value?.toString().trim();
+        if (value) {
+          options.push({
+            text: value,
+            isCorrect: false,
+          });
+        }
       }
 
-      // 🔥 VALIDATION
       if (options.length < 2) {
-        throw new BadRequestException(
-          `Row ${i}: Question "${questionText}" must have at least 2 options`,
-        );
+        errors.push(`Row ${i}: Minimum 2 options required`);
+        continue;
+      }
+
+      if (options.length > 8) {
+        errors.push(`Row ${i}: Maximum 8 options allowed`);
+      }
+
+      const correctRaw = row.getCell(correctIndex).value?.toString().trim();
+
+      if (!correctRaw) {
+        errors.push(`Row ${i}: Correct column required`);
+        continue;
+      }
+
+      const correctIndexes = correctRaw.split(',').map((v) => Number(v.trim()));
+
+      for (const index of correctIndexes) {
+        if (!index || index < 1 || index > options.length) {
+          errors.push(`Row ${i}: Correct index "${index}" out of range`);
+        } else {
+          options[index - 1].isCorrect = true;
+        }
       }
 
       if (!options.some((o) => o.isCorrect)) {
-        throw new BadRequestException(
-          `Row ${i}: Question "${questionText}" must have at least 1 correct answer`,
-        );
+        errors.push(`Row ${i}: At least 1 correct answer required`);
+        continue;
       }
 
       questions.push({
@@ -258,30 +295,89 @@ export class QuizService {
       });
     }
 
+    if (errors.length) {
+      throw new BadRequestException({
+        message: 'Validation failed',
+        errors,
+      });
+    }
+
     if (!questions.length) {
       throw new BadRequestException('No valid questions found');
     }
 
-    // 🔥 CREATE QUIZ
-    const quiz = await this.prisma.quiz.create({
-      data: {
-        title: 'Imported Quiz',
-        questions: {
-          create: questions.map((q, index) => ({
-            text: q.text,
-            timeLimit: q.timeLimit,
-            order: index,
-            options: {
-              create: q.options,
-            },
-          })),
+    return this.prisma.$transaction(async (tx) => {
+      const quiz = await tx.quiz.create({
+        data: {
+          title: 'Imported Quiz',
+          questions: {
+            create: questions.map((q, index) => ({
+              text: q.text,
+              timeLimit: q.timeLimit,
+              order: index,
+              options: {
+                create: q.options,
+              },
+            })),
+          },
         },
-      },
-      include: {
-        questions: true,
-      },
-    });
+        include: { questions: true },
+      });
 
-    return quiz;
+      return quiz;
+    });
+  }
+
+  private normalizeAndValidateQuestions(questions: any[]) {
+    if (!Array.isArray(questions) || questions.length === 0) {
+      throw new BadRequestException('At least 1 question is required');
+    }
+
+    return questions.map((q, qIndex) => {
+      if (!q.text || !q.text.trim()) {
+        throw new BadRequestException(
+          `Question ${qIndex + 1}: Text is required`,
+        );
+      }
+
+      const timeLimit =
+        Number(q.timeLimit) >= 5 && Number(q.timeLimit) <= 300
+          ? Number(q.timeLimit)
+          : 20;
+
+      // 🔥 FILTER OPTION KOSONG
+      const filteredOptions = Array.isArray(q.options)
+        ? q.options
+            .filter((o) => o.text && o.text.trim() !== '')
+            .map((o) => ({
+              text: o.text.trim(),
+              isCorrect: Boolean(o.isCorrect),
+            }))
+        : [];
+
+      if (filteredOptions.length < 2) {
+        throw new BadRequestException(
+          `Question ${qIndex + 1}: Minimum 2 options required`,
+        );
+      }
+
+      if (!filteredOptions.some((o) => o.isCorrect)) {
+        throw new BadRequestException(
+          `Question ${qIndex + 1}: At least 1 correct answer required`,
+        );
+      }
+
+      if (filteredOptions.length > 8) {
+        throw new BadRequestException(
+          `Question ${qIndex + 1}: Maximum 8 options allowed`,
+        );
+      }
+
+      return {
+        text: q.text.trim(),
+        timeLimit,
+        options: filteredOptions,
+      };
+    });
   }
 }

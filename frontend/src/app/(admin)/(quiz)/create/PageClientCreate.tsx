@@ -14,6 +14,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Check, Circle, Diamond, Square, Triangle, X } from "lucide-react";
 import { nanoid } from "nanoid";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const initialAnswers = [
   {
@@ -234,7 +235,7 @@ export default function CreatePage() {
       <div
         ref={setNodeRef}
         style={style}
-        className={`flex items-start gap-2 rounded border p-3 ${
+        className={`mb-2 flex w-full items-start gap-2 rounded border p-3 ${
           index === activeIndex ? "bg-indigo-100" : ""
         }`}
       >
@@ -288,10 +289,10 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="grid min-h-[80vh] grid-cols-[220px_1fr_320px] gap-6">
+    <div className="grid min-h-[80vh] grid-cols-[minmax(0,220px)_minmax(0,1fr)_minmax(0,320px)] gap-6">
       {/* Left sidebar - question list */}
-      <aside className="h-fit rounded-xl bg-white p-4 shadow">
-        <div className="mb-4 flex items-center justify-between">
+      <aside className="h-fit min-w-0 space-y-4">
+        <div className="mb-4 flex items-center justify-between rounded-xl bg-white p-4 shadow">
           <div>
             {isEditingTitle ? (
               <input
@@ -326,7 +327,7 @@ export default function CreatePage() {
           </div>
         </div>
 
-        <div className="space-y-3">
+        <ScrollArea className="h-96 w-full rounded-xl bg-white p-2 shadow [&_[data-radix-scroll-area-viewport]>div]:block! [&_[data-radix-scroll-area-viewport]>div]:min-w-0!">
           <DndContext
             collisionDetection={closestCenter}
             onDragEnd={(event) => {
@@ -350,7 +351,9 @@ export default function CreatePage() {
               ))}
             </SortableContext>
           </DndContext>
+        </ScrollArea>
 
+        <div>
           <button
             onClick={addQuestion}
             className="w-full rounded bg-blue-600 px-3 py-2 text-white"
