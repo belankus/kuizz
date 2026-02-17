@@ -32,6 +32,8 @@ interface GameContainerProps {
 export default function GameContainer({ roomCode }: GameContainerProps) {
   const [phase, setPhase] = useState<GamePhase>("WAITING");
   const [question, setQuestion] = useState<any>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const [answerStats, setAnswerStats] = useState<Record<string, number>>({});
   const [players, setPlayers] = useState<any[]>([]);
   const [correctOptionId, setCorrectOptionId] = useState<string | null>(null);
@@ -39,8 +41,11 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
   const [rankings, setRankings] = useState<any[]>([]);
   const [nickname, setNickname] = useState<string | null>(null);
   const [isHost, setIsHost] = useState<boolean>(false);
-  const [timeLeft, setTimeLeft] = useState<number>(0);
   const [hostToken, setHostToken] = useState<string | null>(null);
+  const [questionStartTime, setQuestionStartTime] = useState<number | null>(
+    null,
+  );
+  const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
     const storedNickname = localStorage.getItem("nickname");
@@ -114,6 +119,10 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
 
     socket.on("question_started", (data) => {
       setQuestion(data.question);
+      setQuestionStartTime(data.startTime);
+      setCurrentIndex(data.currentIndex);
+      setTotalQuestions(data.totalQuestions);
+
       setSelected(null);
       setCorrectOptionId(null);
       setAnswerStats({}); // 🔥 reset stats
@@ -149,6 +158,27 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
     };
   }, [roomCode]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const timeLeft = questionStartTime
+    ? Math.max(
+        0,
+        Math.ceil(
+          (question.timeLimit * 1000 - (now - questionStartTime)) / 1000,
+        ),
+      )
+    : 0;
+
+  const remainingMs = questionStartTime
+    ? Math.max(0, question.timeLimit * 1000 - (now - questionStartTime))
+    : 0;
+
   const handleAnswer = (optionId: string) => {
     setSelected(optionId);
 
@@ -170,6 +200,8 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
           question={question.question}
           options={question.options}
           timeLeft={timeLeft}
+          totalTime={question.timeLimit}
+          remainingMs={remainingMs}
           answerStats={answerStats}
           totalPlayers={players.length}
           correctOptionId={correctOptionId}
@@ -183,11 +215,13 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
         />
       ) : (
         <Question
-          question={question?.question}
-          options={question?.options || []}
-          questionNumber={1}
-          totalQuestions={1}
-          timeLeft={question?.timeLimit || 10}
+          question={question.question}
+          options={question.options || []}
+          timeLeft={timeLeft}
+          totalTime={question.timeLimit}
+          remainingMs={remainingMs}
+          questionNumber={currentIndex + 1}
+          totalQuestions={totalQuestions}
           onSelect={handleAnswer}
         />
       );
@@ -198,6 +232,8 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
           question={question.question}
           options={question.options}
           timeLeft={timeLeft}
+          totalTime={question.timeLimit}
+          remainingMs={remainingMs}
           answerStats={answerStats}
           totalPlayers={players.length}
           correctOptionId={correctOptionId}

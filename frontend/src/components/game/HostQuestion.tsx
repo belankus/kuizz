@@ -1,9 +1,13 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 interface HostQuestionProps {
   question: string;
   options: { id: string; text: string }[];
   timeLeft: number;
+  totalTime: number;
+  remainingMs: number;
   answerStats: Record<string, number>;
   totalPlayers: number;
   correctOptionId?: string | null; // only filled during REVEAL
@@ -15,6 +19,8 @@ export default function HostQuestion({
   question,
   options,
   timeLeft,
+  totalTime,
+  remainingMs,
   answerStats,
   totalPlayers,
   correctOptionId,
@@ -23,12 +29,35 @@ export default function HostQuestion({
 }: HostQuestionProps) {
   const totalAnswered = Object.values(answerStats).reduce((a, b) => a + b, 0);
 
+  const progress = totalTime > 0 ? (remainingMs / (totalTime * 1000)) * 100 : 0;
+
+  let barColor = "bg-green-500";
+  let timerColor = "text-white";
+
+  if (timeLeft <= 5) {
+    barColor = "bg-red-600";
+    timerColor = "text-red-500 animate-pulse";
+  } else if (timeLeft <= 10) {
+    barColor = "bg-yellow-400";
+    timerColor = "text-yellow-400 animate-pulse";
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-linear-to-br from-indigo-900 via-blue-800 to-blue-900 px-8 py-8 text-white">
+      {/* 🔥 Animated Time Progress Bar */}
+      {phase === "QUESTION" && (
+        <div className="mb-4 h-3 w-full overflow-hidden rounded bg-white/20">
+          <div
+            className={`h-3 transition-[width,background-color] duration-75 ease-linear ${barColor}`}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
+
       {/* Top Bar */}
       <div className="mb-8 flex items-center justify-between">
-        <div className="text-3xl font-bold">
-          ⏳ {phase === "QUESTION" ? `${timeLeft}s` : "Answer Reveal"}
+        <div className={`text-4xl font-bold ${timerColor}`}>
+          {phase === "QUESTION" ? `${timeLeft}s` : "Answer Reveal"}
         </div>
 
         <div className="text-lg font-medium">

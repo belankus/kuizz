@@ -64,7 +64,7 @@ export default function BasicTables() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:3000/quiz")
+    fetch("http://cachyos:3000/quiz")
       .then((res) => res.json())
       .then((data) => setQuizzes(data));
   }, []);

@@ -8,6 +8,8 @@ interface QuestionProps {
   questionNumber: number;
   totalQuestions: number;
   timeLeft: number;
+  totalTime: number;
+  remainingMs: number;
   onSelect: (id: string) => void;
 }
 
@@ -17,9 +19,23 @@ export default function Question({
   questionNumber,
   totalQuestions,
   timeLeft,
+  totalTime,
+  remainingMs,
   onSelect,
 }: QuestionProps) {
   const [selected, setSelected] = useState<string | null>(null);
+  const progress = totalTime > 0 ? (remainingMs / (totalTime * 1000)) * 100 : 0;
+
+  let barColor = "bg-green-500";
+  let timerColor = "text-white";
+
+  if (timeLeft <= 5) {
+    barColor = "bg-red-600";
+    timerColor = "text-red-500 animate-pulse";
+  } else if (timeLeft <= 10) {
+    barColor = "bg-yellow-400";
+    timerColor = "text-yellow-400 animate-pulse";
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-linear-to-br from-blue-800 via-blue-700 to-blue-900 text-white">
@@ -27,7 +43,14 @@ export default function Question({
         <div className="text-sm">
           Question {questionNumber} / {totalQuestions}
         </div>
-        <div className="text-xl font-bold">⏳ {timeLeft}s</div>
+        <div className={`text-xl font-bold ${timerColor}`}>⏳ {timeLeft}s</div>
+      </div>
+      {/* 🔥 Animated Time Progress Bar */}
+      <div className="mb-4 h-3 w-full bg-white/20">
+        <div
+          className={`h-3 transition-[width,background-color] duration-75 ease-linear ${barColor}`}
+          style={{ width: `${progress}%` }}
+        />
       </div>
 
       <div className="flex flex-1 items-center justify-center px-6 text-center">

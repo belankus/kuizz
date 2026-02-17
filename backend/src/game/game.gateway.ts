@@ -8,7 +8,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service.js';
 import { randomUUID } from 'crypto';
-import { PrismaService } from 'src/prisma/prisma.service.js';
 
 type Player = {
   playerId: string;
@@ -92,6 +91,9 @@ export class GameGateway {
       game.players.push(player);
     }
 
+    // 🔥 PENTING
+    client.data.playerToken = player.playerToken;
+
     await this.gameService.updateGame(data.roomCode, game);
 
     client.join(data.roomCode);
@@ -168,6 +170,9 @@ export class GameGateway {
 
       this.server.to(data.roomCode).emit('question_started', {
         question: updatedGame.questions[updatedGame.currentQuestionIndex],
+        startTime: updatedGame.questionStartTime,
+        currentIndex: updatedGame.currentQuestionIndex,
+        totalQuestions: updatedGame.questions.length,
       });
 
       this.startQuestionTimer(data.roomCode);
@@ -189,6 +194,13 @@ export class GameGateway {
     if (game.phase !== 'QUESTION') return;
     if (!game.questionStartTime) return;
 
+    const playerToken = client.data.playerToken;
+    if (!playerToken) return;
+    const playerExists = game.players.find(
+      (p) => p.playerToken === playerToken,
+    );
+    if (!playerExists) return;
+
     const questionIndex = game.currentQuestionIndex;
 
     if (!game.answers[questionIndex]) {
@@ -196,11 +208,11 @@ export class GameGateway {
     }
 
     // prevent double answer
-    if (game.answers[questionIndex][client.id]) return;
+    if (game.answers[questionIndex][playerToken]) return;
 
     const responseTime = Date.now() - game.questionStartTime;
 
-    game.answers[questionIndex][client.id] = {
+    game.answers[questionIndex][playerToken] = {
       selectedOptionId: data.selectedOptionId,
       responseTime,
     };
@@ -210,7 +222,7 @@ export class GameGateway {
     // 🔥 BUILD ANSWER STATS
     const stats: Record<string, number> = {};
 
-    for (const answer of Object.values(game.answers[questionIndex] || {})) {
+    for (const answer of Object.values(game.answers[questionIndex])) {
       const typedAnswer = answer as { selectedOptionId: string };
       stats[typedAnswer.selectedOptionId] =
         (stats[typedAnswer.selectedOptionId] || 0) + 1;
@@ -225,13 +237,17 @@ export class GameGateway {
 
   @SubscribeMessage('get_current_state')
   async handleGetCurrentState(
-    @MessageBody() data: { roomCode: string },
+    @MessageBody() data: { roomCode: string; playerToken?: string },
     @ConnectedSocket() client: Socket,
   ) {
     const game = await this.gameService.getGame(data.roomCode);
     if (!game) {
       client.emit('room_not_found');
       return;
+    }
+
+    if (!client.data.playerToken && data.playerToken) {
+      client.data.playerToken = data.playerToken;
     }
 
     client.join(data.roomCode);
@@ -243,6 +259,7 @@ export class GameGateway {
 
     if (game.phase === 'QUESTION') {
       response.question = game.questions[game.currentQuestionIndex];
+      response.startTime = game.questionStartTime;
     }
 
     if (game.phase === 'REVEAL') {
@@ -300,7 +317,7 @@ export class GameGateway {
 
     // 🔥 SCORING
     for (const player of game.players) {
-      const answer = answers[player.playerId];
+      const answer = answers[player.playerToken];
 
       if (!answer) continue;
 
@@ -356,6 +373,9 @@ export class GameGateway {
 
         this.server.to(roomCode).emit('question_started', {
           question: updatedGame.questions[updatedGame.currentQuestionIndex],
+          startTime: updatedGame.questionStartTime,
+          currentIndex: updatedGame.currentQuestionIndex,
+          totalQuestions: updatedGame.questions.length,
         });
 
         this.startQuestionTimer(roomCode);
