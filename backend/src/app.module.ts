@@ -6,6 +6,8 @@ import { QuizModule } from './quiz/quiz.module.js';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
+import { GameSessionModule } from './game-session/game-session.module.js';
+import { DashboardModule } from './dashboard/dashboard.module.js';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { UsersModule } from './users/users.module.js';
     QuizModule,
     AuthModule,
     UsersModule,
+    GameSessionModule,
+    DashboardModule,
   ],
 })
 export class AppModule {}

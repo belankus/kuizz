@@ -49,7 +49,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { socket } from "@/lib/socket";
 import { API_URL } from "@/lib/config";
-import { apiFetch } from "@/lib/auth";
+import { apiFetch, getAccessToken } from "@/lib/auth";
 
 type Quiz = {
   id: string;
@@ -117,8 +117,10 @@ export default function BasicTables() {
       setLoading(false);
     });
 
+    //... inside component
     socket.emit("create_game", {
       quizId,
+      token: getAccessToken(),
     });
   };
   return (
@@ -171,7 +173,6 @@ export default function BasicTables() {
                               window.location.href = `${API_URL}/quiz/${quiz.id}/export`;
                             }}
                           >
-
                             <Table2 />
                             Excel (.xlsx)
                           </DropdownMenuItem>
@@ -234,7 +235,7 @@ export default function BasicTables() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div >
+    </div>
   );
 }
 

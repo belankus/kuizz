@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { socket } from "@/lib/socket";
+import { getAccessToken } from "@/lib/auth";
 
 export default function TestSocketPage() {
   useEffect(() => {
@@ -36,11 +37,10 @@ export default function TestSocketPage() {
     };
   }, []);
 
-
-
   const createGame = () => {
     socket?.emit("create_game", {
       roomCode: "123456",
+      token: getAccessToken(),
     });
   };
 

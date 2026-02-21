@@ -93,6 +93,7 @@ export class GameService {
     // 🔥 CREATE GAME SESSION IN DB
     const session = await this.prisma.gameSession.create({
       data: {
+        hostId, // <= FIX: Add hostId here
         quizId: quiz.id,
         title: quiz.title,
         questions: snapshotQuestions as Prisma.InputJsonValue,

@@ -8,6 +8,8 @@ import {
 import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service.js';
 import { randomUUID } from 'crypto';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 interface CustomSocket extends Socket {
   data: {
@@ -22,26 +24,45 @@ export class GameGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private gameService: GameService) {}
+  constructor(
+    private gameService: GameService,
+    private jwtService: JwtService,
+    private configService: ConfigService,
+  ) {}
 
   @SubscribeMessage('create_game')
   async handleCreate(
-    @MessageBody() data: { quizId: string },
+    @MessageBody() data: { quizId: string; token: string },
     @ConnectedSocket() client: CustomSocket,
   ) {
-    const game = await this.gameService.createGameFromQuiz(
-      client.id,
-      data.quizId,
-    );
+    if (!data.token) {
+      client.emit('unauthorized');
+      return;
+    }
 
-    void client.join(game.roomCode);
+    try {
+      const decoded = this.jwtService.verify<{ sub: string }>(data.token, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
 
-    client.emit('host_registered', {
-      hostToken: game.hostToken,
-      roomCode: game.roomCode,
-    });
+      const hostId = decoded.sub;
 
-    client.emit('game_created', game);
+      const game = await this.gameService.createGameFromQuiz(
+        hostId,
+        data.quizId,
+      );
+
+      void client.join(game.roomCode);
+
+      client.emit('host_registered', {
+        hostToken: game.hostToken,
+        roomCode: game.roomCode,
+      });
+
+      client.emit('game_created', game);
+    } catch {
+      client.emit('unauthorized');
+    }
   }
 
   // ==== NEW: Step 1 Kahoot-style JOIN ====
