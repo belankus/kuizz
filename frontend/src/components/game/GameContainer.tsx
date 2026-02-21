@@ -45,6 +45,7 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
   const [questionStartTime, setQuestionStartTime] = useState<number | null>(
     null,
   );
+  const [isLocked, setIsLocked] = useState<boolean>(false);
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -95,6 +96,7 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
     socket.on("current_state", (data) => {
       setPhase(data.phase);
 
+      if (data.isLocked !== undefined) setIsLocked(data.isLocked);
       if (data.players) setPlayers(data.players);
       if (data.question) setQuestion(data.question);
       if (data.correctOptionId) setCorrectOptionId(data.correctOptionId);
@@ -107,6 +109,10 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
 
     socket.on("room_locked", () => {
       setPhase("ROOM_LOCKED");
+    });
+
+    socket.on("room_lock_changed", (data) => {
+      setIsLocked(data.isLocked);
     });
 
     socket.on("game_already_started", () => {
@@ -273,7 +279,11 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
 
     default:
       return isHost ? (
-        <LobbyContentHost players={players} joinCode={roomCode} />
+        <LobbyContentHost
+          players={players}
+          joinCode={roomCode}
+          initialIsLocked={isLocked}
+        />
       ) : (
         <LobbyContentPlayer
           players={players}

@@ -9,13 +9,13 @@ import { GithubStrategy } from './strategies/github.strategy.js';
 import { PrismaModule } from '../prisma/prisma.module.js';
 
 @Module({
-    imports: [
-        PrismaModule,
-        PassportModule,
-        JwtModule.register({}), // secrets injected per-call via ConfigService
-    ],
-    controllers: [AuthController],
-    providers: [AuthService, JwtStrategy, GoogleStrategy, GithubStrategy],
-    exports: [AuthService],
+  imports: [
+    PrismaModule,
+    PassportModule,
+    JwtModule.register({}), // secrets injected per-call via ConfigService
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, GithubStrategy],
+  exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}

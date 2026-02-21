@@ -1,4 +1,4 @@
-export interface CreateQuizDto {
+export class CreateQuizDto {
   title: string;
   questions: {
     text: string;

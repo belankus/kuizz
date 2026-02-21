@@ -16,16 +16,18 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { QuizService } from './quiz.service.js';
-import { UpdateQuizDto } from '../lib/dto.js';
+import { CreateQuizDto, UpdateQuizDto } from '../lib/dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 
 @Controller('quiz')
 export class QuizController {
-  constructor(private readonly quizService: QuizService) { }
+  constructor(private readonly quizService: QuizService) {}
 
   @Get()
-  findAll() {
-    return this.quizService.findAll();
+  @UseGuards(JwtAuthGuard)
+  findAll(@CurrentUser() user: { id: string }) {
+    return this.quizService.findAll(user.id);
   }
 
   @Get(':id')
@@ -44,7 +46,7 @@ export class QuizController {
       });
     } catch (error) {
       throw new HttpException(
-        error.message || 'Export failed',
+        error instanceof Error ? error.message : 'Export failed',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -52,19 +54,22 @@ export class QuizController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  create(@Body() body: any) {
-    return this.quizService.createQuiz(body);
+  create(@CurrentUser() user: { id: string }, @Body() body: CreateQuizDto) {
+    return this.quizService.createQuiz(body, user.id);
   }
 
   @Post('import')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
-  async importQuiz(@UploadedFile() file: Express.Multer.File) {
+  async importQuiz(
+    @CurrentUser() user: { id: string },
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     if (!file) {
       throw new BadRequestException('File is required');
     }
 
-    return this.quizService.importQuiz(file);
+    return this.quizService.importQuiz(file, user.id);
   }
 
   @Put(':id')

@@ -20,5 +20,4 @@ import { UsersModule } from './users/users.module.js';
     UsersModule,
   ],
 })
-export class AppModule { }
-
+export class AppModule {}

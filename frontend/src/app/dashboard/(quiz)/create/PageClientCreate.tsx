@@ -92,6 +92,12 @@ export default function CreatePage() {
     setQuestions(updated);
   }
 
+  function updateQuestionTimeLimit(timeLimit: number) {
+    const updated = structuredClone(questions);
+    updated[activeIndex].timeLimit = timeLimit;
+    setQuestions(updated);
+  }
+
   function updateAnswer(id: string, text: string) {
     const updated = structuredClone(questions);
     updated[activeIndex].answers = updated[activeIndex].answers.map((a) =>
@@ -236,8 +242,9 @@ export default function CreatePage() {
       <div
         ref={setNodeRef}
         style={style}
-        className={`mb-2 flex w-full items-start gap-2 rounded border p-3 ${index === activeIndex ? "bg-indigo-100" : ""
-          }`}
+        className={`mb-2 flex w-full items-start gap-2 rounded border p-3 ${
+          index === activeIndex ? "bg-indigo-100" : ""
+        }`}
       >
         {/* DRAG HANDLE */}
         <div
@@ -372,6 +379,19 @@ export default function CreatePage() {
             onChange={(e) => updateQuestionText(e.target.value)}
             placeholder="Your question here"
           />
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <label className="text-sm font-medium text-gray-500">
+              Time Limit (seconds):
+            </label>
+            <input
+              type="number"
+              min={5}
+              max={300}
+              className="w-24 rounded border p-1 text-center"
+              value={currentQuestion.timeLimit}
+              onChange={(e) => updateQuestionTimeLimit(Number(e.target.value))}
+            />
+          </div>
         </div>
 
         <div className="rounded-xl bg-white p-6 text-center shadow">
@@ -406,8 +426,9 @@ export default function CreatePage() {
                 <div className="px-4">
                   <button
                     onClick={() => toggleCorrect(a.id)}
-                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-white ${a.correct ? "bg-white text-green-600" : "bg-transparent"
-                      }`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-white ${
+                      a.correct ? "bg-white text-green-600" : "bg-transparent"
+                    }`}
                   >
                     {a.correct && <Check size={18} />}
                   </button>
@@ -468,7 +489,7 @@ export default function CreatePage() {
           <Button
             variant="outline"
             className="mr-2"
-            onClick={() => router.push("/quizes")}
+            onClick={() => router.push("/dashboard/quizes")}
           >
             Cancel
           </Button>

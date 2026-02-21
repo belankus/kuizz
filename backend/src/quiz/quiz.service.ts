@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { Prisma, Quiz } from '../generated/prisma/client.js';
-import { QuizCreateInput } from '../generated/prisma/models.js';
 import { CreateQuizDto, UpdateQuizDto } from 'src/lib/dto.js';
 import ExcelJS from 'exceljs';
 
@@ -13,8 +12,9 @@ import ExcelJS from 'exceljs';
 export class QuizService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll() {
+  async findAll(ownerId: string) {
     return this.prisma.quiz.findMany({
+      where: { ownerId },
       include: {
         questions: true,
       },
@@ -46,7 +46,7 @@ export class QuizService {
     return quiz;
   }
 
-  async createQuiz(data: CreateQuizDto): Promise<Quiz> {
+  async createQuiz(data: CreateQuizDto, ownerId: string): Promise<Quiz> {
     const normalizedQuestions = this.normalizeAndValidateQuestions(
       data.questions ?? [],
     );
@@ -54,6 +54,7 @@ export class QuizService {
     return this.prisma.quiz.create({
       data: {
         title: data.title,
+        ownerId,
         questions: {
           create: normalizedQuestions.map((q, index) => ({
             text: q.text,
@@ -200,9 +201,9 @@ export class QuizService {
     return Buffer.from(buffer);
   }
 
-  async importQuiz(file: Express.Multer.File) {
+  async importQuiz(file: Express.Multer.File, ownerId: string) {
     const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.load(file.buffer as any);
+    await workbook.xlsx.load(file.buffer as unknown as ArrayBuffer);
 
     const worksheet = workbook.worksheets[0];
     if (!worksheet) {
@@ -232,7 +233,7 @@ export class QuizService {
     for (let i = 2; i <= worksheet.rowCount; i++) {
       const row = worksheet.getRow(i);
 
-      const questionText = row.getCell(1).value?.toString().trim();
+      const questionText = row.getCell(1).text.trim();
       const rawTimeLimit = row.getCell(2).value;
       const timeLimit = Number(rawTimeLimit) || 20;
 
@@ -248,7 +249,7 @@ export class QuizService {
       const options: Prisma.OptionCreateWithoutQuestionInput[] = [];
 
       for (let col = optionStartIndex; col < correctIndex; col++) {
-        const value = row.getCell(col).value?.toString().trim();
+        const value = row.getCell(col).text.trim();
         if (value) {
           options.push({
             text: value,
@@ -266,7 +267,7 @@ export class QuizService {
         errors.push(`Row ${i}: Maximum 8 options allowed`);
       }
 
-      const correctRaw = row.getCell(correctIndex).value?.toString().trim();
+      const correctRaw = row.getCell(correctIndex).text.trim();
 
       if (!correctRaw) {
         errors.push(`Row ${i}: Correct column required`);
@@ -310,6 +311,7 @@ export class QuizService {
       const quiz = await tx.quiz.create({
         data: {
           title: 'Imported Quiz',
+          ownerId,
           questions: {
             create: questions.map((q, index) => ({
               text: q.text,
@@ -328,7 +330,9 @@ export class QuizService {
     });
   }
 
-  private normalizeAndValidateQuestions(questions: any[]) {
+  private normalizeAndValidateQuestions(
+    questions: NonNullable<CreateQuizDto['questions']>,
+  ) {
     if (!Array.isArray(questions) || questions.length === 0) {
       throw new BadRequestException('At least 1 question is required');
     }

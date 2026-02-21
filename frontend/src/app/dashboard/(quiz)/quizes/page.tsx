@@ -66,7 +66,7 @@ export default function BasicTables() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/quiz`)
+    apiFetch(`/quiz`)
       .then((res) => res.json())
       .then((data) => setQuizzes(data));
   }, []);

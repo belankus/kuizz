@@ -9,12 +9,11 @@ import { Server, Socket } from 'socket.io';
 import { GameService } from './game.service.js';
 import { randomUUID } from 'crypto';
 
-type Player = {
-  playerId: string;
-  playerToken: string;
-  nickname: string;
-  score: number;
-};
+interface CustomSocket extends Socket {
+  data: {
+    playerToken?: string;
+  };
+}
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -28,14 +27,14 @@ export class GameGateway {
   @SubscribeMessage('create_game')
   async handleCreate(
     @MessageBody() data: { quizId: string },
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: CustomSocket,
   ) {
     const game = await this.gameService.createGameFromQuiz(
       client.id,
       data.quizId,
     );
 
-    client.join(game.roomCode);
+    void client.join(game.roomCode);
 
     client.emit('host_registered', {
       hostToken: game.hostToken,
@@ -45,66 +44,112 @@ export class GameGateway {
     client.emit('game_created', game);
   }
 
-  @SubscribeMessage('join_room')
-  async handleJoin(
-    @MessageBody()
-    data: { roomCode: string; nickname: string; playerToken?: string },
-    @ConnectedSocket() client: Socket,
+  // ==== NEW: Step 1 Kahoot-style JOIN ====
+  @SubscribeMessage('check_room')
+  async handleCheckRoom(
+    @MessageBody() data: { roomCode: string },
+    @ConnectedSocket() client: CustomSocket,
   ) {
-    const game = await this.gameService.getGame(data.roomCode);
+    const info = await this.gameService.getGameInfo(data.roomCode);
 
-    if (!game) {
+    if (!info) {
       client.emit('room_not_found');
       return;
     }
 
-    if (game.phase !== 'WAITING') {
+    if (info.phase !== 'WAITING') {
       client.emit('game_already_started');
       return;
     }
 
-    if (game.isLocked) {
+    if (info.isLocked) {
       client.emit('room_locked');
       return;
     }
 
-    let player: Player | undefined;
-    // 🔥 If playerToken exists → try reconnect
-    if (data.playerToken) {
-      player = game.players.find((p) => p.playerToken === data.playerToken);
+    client.emit('room_valid', { roomCode: data.roomCode });
+  }
+
+  // ==== REFACTORED: Step 2 Kahoot-style JOIN ====
+  @SubscribeMessage('join_room')
+  async handleJoin(
+    @MessageBody()
+    data: { roomCode: string; nickname: string; playerToken?: string },
+    @ConnectedSocket() client: CustomSocket,
+  ) {
+    const info = await this.gameService.getGameInfo(data.roomCode);
+
+    if (!info) {
+      client.emit('room_not_found');
+      return;
     }
 
-    if (player) {
-      // reconnect
-      player.playerId = client.id;
-    } else {
-      // new player
-      const token = randomUUID();
-
-      player = {
-        playerId: client.id,
-        playerToken: token,
-        nickname: data.nickname,
-        score: 0,
-      };
-
-      game.players.push(player);
+    if (info.phase !== 'WAITING') {
+      client.emit('game_already_started');
+      return;
     }
 
-    // 🔥 PENTING
-    client.data.playerToken = player.playerToken;
+    if (info.isLocked) {
+      client.emit('room_locked');
+      return;
+    }
 
-    await this.gameService.updateGame(data.roomCode, game);
+    const tokenToUse = data.playerToken;
 
-    client.join(data.roomCode);
+    // 🔥 If playerToken exists → check if valid
+    const playersList = await this.gameService.getPlayersList(data.roomCode);
+
+    if (tokenToUse) {
+      const existingPlayer = playersList.find(
+        (p) => p.playerToken === tokenToUse,
+      );
+      if (existingPlayer) {
+        // Reconnect
+        await this.gameService.updatePlayerId(
+          data.roomCode,
+          tokenToUse,
+          client.id,
+        );
+        client.data.playerToken = tokenToUse;
+        void client.join(data.roomCode);
+
+        client.emit('player_registered', { playerToken: tokenToUse });
+        this.server.to(data.roomCode).emit('player_joined', {
+          players: await this.gameService.getPlayersList(data.roomCode),
+        });
+        return;
+      }
+    }
+
+    // New Player -> check nickname uniqueness
+    const isNicknameAvailable = await this.gameService.checkAndAddNickname(
+      data.roomCode,
+      data.nickname,
+    );
+    if (!isNicknameAvailable) {
+      client.emit('nickname_taken');
+      return;
+    }
+
+    const token = randomUUID();
+    client.data.playerToken = token;
+
+    await this.gameService.addPlayer(
+      data.roomCode,
+      token,
+      client.id,
+      data.nickname,
+    );
+
+    void client.join(data.roomCode);
 
     // send token back (important)
     client.emit('player_registered', {
-      playerToken: player.playerToken,
+      playerToken: token,
     });
 
     this.server.to(data.roomCode).emit('player_joined', {
-      players: game.players,
+      players: await this.gameService.getPlayersList(data.roomCode),
     });
   }
 
@@ -115,67 +160,74 @@ export class GameGateway {
       roomCode: string;
       hostToken: string;
     },
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: CustomSocket,
   ) {
-    const game = await this.gameService.getGame(data.roomCode);
-    if (!game) return;
+    const info = await this.gameService.getGameInfo(data.roomCode);
+    if (!info) return;
 
-    if (game.hostToken !== data.hostToken) {
+    if (info.hostToken !== data.hostToken) {
       client.emit('unauthorized');
       return;
     }
 
-    game.isLocked = !game.isLocked;
-
-    await this.gameService.updateGame(data.roomCode, game);
+    const newLockState = !info.isLocked;
+    await this.gameService.updateGameInfo(data.roomCode, {
+      isLocked: newLockState,
+    });
 
     this.server.to(data.roomCode).emit('room_lock_changed', {
-      isLocked: game.isLocked,
+      isLocked: newLockState,
     });
   }
 
   @SubscribeMessage('host_start_game')
   async handleStartGame(
     @MessageBody() data: { roomCode: string; hostToken: string },
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: CustomSocket,
   ) {
-    const game = await this.gameService.getGame(data.roomCode);
+    const info = await this.gameService.getGameInfo(data.roomCode);
 
-    if (!game) return;
+    if (!info) return;
 
-    if (game.hostToken !== data.hostToken) {
+    if (info.hostToken !== data.hostToken) {
       client.emit('unauthorized');
       return;
     }
 
-    game.phase = 'COUNTDOWN';
-    await this.gameService.updateGame(data.roomCode, game);
+    await this.gameService.updateGameInfo(data.roomCode, {
+      phase: 'COUNTDOWN',
+    });
 
     this.server.to(data.roomCode).emit('phase_changed', {
       phase: 'COUNTDOWN',
     });
 
     // Countdown server-side
-    setTimeout(async () => {
-      const updatedGame = await this.gameService.getGame(data.roomCode);
-      if (!updatedGame) return;
+    setTimeout(() => {
+      void (async () => {
+        const currentInfo = await this.gameService.getGameInfo(data.roomCode);
+        if (!currentInfo) return;
 
-      updatedGame.phase = 'QUESTION';
-      updatedGame.questionStartTime = Date.now();
+        const startTime = Date.now();
+        await this.gameService.updateGameInfo(data.roomCode, {
+          phase: 'QUESTION',
+          questionStartTime: startTime,
+        });
 
-      await this.gameService.updateGame(data.roomCode, updatedGame);
+        // 🔥 MARK SESSION STARTED (ONLY ONCE)
+        await this.gameService.markSessionStarted(currentInfo.sessionId);
 
-      // 🔥 MARK SESSION STARTED (ONLY ONCE)
-      await this.gameService.markSessionStarted(updatedGame.sessionId);
+        const questions = await this.gameService.getQuestions(data.roomCode);
 
-      this.server.to(data.roomCode).emit('question_started', {
-        question: updatedGame.questions[updatedGame.currentQuestionIndex],
-        startTime: updatedGame.questionStartTime,
-        currentIndex: updatedGame.currentQuestionIndex,
-        totalQuestions: updatedGame.questions.length,
-      });
+        this.server.to(data.roomCode).emit('question_started', {
+          question: questions[currentInfo.currentQuestionIndex],
+          startTime: startTime,
+          currentIndex: currentInfo.currentQuestionIndex,
+          totalQuestions: questions.length,
+        });
 
-      this.startQuestionTimer(data.roomCode);
+        void this.startQuestionTimer(data.roomCode);
+      })();
     }, 3000);
   }
 
@@ -186,47 +238,35 @@ export class GameGateway {
       roomCode: string;
       selectedOptionId: string;
     },
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: CustomSocket,
   ) {
-    const game = await this.gameService.getGame(data.roomCode);
-    if (!game) return;
+    const info = await this.gameService.getGameInfo(data.roomCode);
+    if (!info) return;
 
-    if (game.phase !== 'QUESTION') return;
-    if (!game.questionStartTime) return;
+    if (info.phase !== 'QUESTION') return;
+    if (!info.questionStartTime) return;
 
     const playerToken = client.data.playerToken;
     if (!playerToken) return;
-    const playerExists = game.players.find(
-      (p) => p.playerToken === playerToken,
-    );
-    if (!playerExists) return;
 
-    const questionIndex = game.currentQuestionIndex;
+    // ATOMIC SUBMISSION (HSETNX guarantees only first answer applies)
+    const responseTime = Date.now() - info.questionStartTime;
 
-    if (!game.answers[questionIndex]) {
-      game.answers[questionIndex] = {};
-    }
-
-    // prevent double answer
-    if (game.answers[questionIndex][playerToken]) return;
-
-    const responseTime = Date.now() - game.questionStartTime;
-
-    game.answers[questionIndex][playerToken] = {
-      selectedOptionId: data.selectedOptionId,
+    const wasAccepted = await this.gameService.submitAnswer(
+      data.roomCode,
+      info.currentQuestionIndex,
+      playerToken,
+      data.selectedOptionId,
       responseTime,
-    };
+    );
 
-    await this.gameService.updateGame(data.roomCode, game);
+    if (!wasAccepted) return; // Prevent double answer processing further down
 
-    // 🔥 BUILD ANSWER STATS
-    const stats: Record<string, number> = {};
-
-    for (const answer of Object.values(game.answers[questionIndex])) {
-      const typedAnswer = answer as { selectedOptionId: string };
-      stats[typedAnswer.selectedOptionId] =
-        (stats[typedAnswer.selectedOptionId] || 0) + 1;
-    }
+    // 🔥 GET ATOMIC ANSWER STATS
+    const stats = await this.gameService.getAnswerStats(
+      data.roomCode,
+      info.currentQuestionIndex,
+    );
 
     this.server.to(data.roomCode).emit('answer_stats', {
       stats,
@@ -238,10 +278,10 @@ export class GameGateway {
   @SubscribeMessage('get_current_state')
   async handleGetCurrentState(
     @MessageBody() data: { roomCode: string; playerToken?: string },
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: CustomSocket,
   ) {
-    const game = await this.gameService.getGame(data.roomCode);
-    if (!game) {
+    const info = await this.gameService.getGameInfo(data.roomCode);
+    if (!info) {
       client.emit('room_not_found');
       return;
     }
@@ -250,74 +290,90 @@ export class GameGateway {
       client.data.playerToken = data.playerToken;
     }
 
-    client.join(data.roomCode);
+    void client.join(data.roomCode);
 
-    const response: any = {
-      phase: game.phase,
-      players: game.players,
+    const playersList = await this.gameService.getPlayersList(data.roomCode);
+
+    const response: {
+      phase: string;
+      players: unknown[];
+      isLocked: boolean;
+      question?: unknown;
+      startTime?: number;
+      correctOptionId?: string;
+      rankings?: unknown[];
+    } = {
+      phase: info.phase,
+      players: playersList,
+      isLocked: info.isLocked,
     };
 
-    if (game.phase === 'QUESTION') {
-      response.question = game.questions[game.currentQuestionIndex];
-      response.startTime = game.questionStartTime;
-    }
-
-    if (game.phase === 'REVEAL') {
-      const question = game.questions[game.currentQuestionIndex];
+    if (info.phase === 'QUESTION' || info.phase === 'REVEAL') {
+      const questions = await this.gameService.getQuestions(data.roomCode);
+      const question = questions[info.currentQuestionIndex];
       response.question = question;
-      response.correctOptionId = question.correctOptionId;
+      response.startTime = info.questionStartTime;
+
+      if (info.phase === 'REVEAL' && question) {
+        response.correctOptionId = question.correctOptionId;
+      }
     }
 
-    if (game.phase === 'LEADERBOARD') {
-      response.rankings = [...game.players].sort((a, b) => b.score - a.score);
-    }
-
-    if (game.phase === 'FINISHED') {
-      const rankings = [...game.players].sort((a, b) => b.score - a.score);
-
-      response.rankings = rankings;
+    if (info.phase === 'LEADERBOARD' || info.phase === 'FINISHED') {
+      const leaderboard = await this.gameService.getLeaderboard(data.roomCode);
+      response.rankings = leaderboard;
     }
 
     client.emit('current_state', response);
   }
 
   private async startQuestionTimer(roomCode: string) {
-    const game = await this.gameService.getGame(roomCode);
-    if (!game) return;
+    const info = await this.gameService.getGameInfo(roomCode);
+    if (!info) return;
 
-    const currentQuestion = game.questions[game.currentQuestionIndex];
+    const questions = await this.gameService.getQuestions(roomCode);
+    if (questions.length === 0) return;
+    const currentQuestion = questions[info.currentQuestionIndex];
 
-    setTimeout(async () => {
-      const updatedGame = await this.gameService.getGame(roomCode);
+    setTimeout(() => {
+      void (async () => {
+        const updatedInfo = await this.gameService.getGameInfo(roomCode);
 
-      if (!updatedGame || updatedGame.phase !== 'QUESTION') return;
+        if (!updatedInfo || updatedInfo.phase !== 'QUESTION') return;
 
-      updatedGame.phase = 'REVEAL';
+        await this.gameService.updateGameInfo(roomCode, { phase: 'REVEAL' });
 
-      await this.gameService.updateGame(roomCode, updatedGame);
+        this.server.to(roomCode).emit('reveal', {
+          correctOptionId: currentQuestion.correctOptionId,
+        });
 
-      this.server.to(roomCode).emit('reveal', {
-        correctOptionId: currentQuestion.correctOptionId,
-      });
-
-      // move to leaderboard after 3 sec
-      setTimeout(async () => {
-        await this.moveToLeaderboard(roomCode);
-      }, 3000);
+        // move to leaderboard after 3 sec
+        setTimeout(() => {
+          void (async () => {
+            await this.moveToLeaderboard(roomCode);
+          })();
+        }, 3000);
+      })();
     }, currentQuestion.timeLimit * 1000);
   }
 
   private async moveToLeaderboard(roomCode: string) {
-    const game = await this.gameService.getGame(roomCode);
-    if (!game) return;
+    const info = await this.gameService.getGameInfo(roomCode);
+    if (!info) return;
 
-    const questionIndex = game.currentQuestionIndex;
-    const currentQuestion = game.questions[questionIndex];
-    const answers = game.answers[questionIndex] || {};
+    const questions = await this.gameService.getQuestions(roomCode);
+    const questionIndex = info.currentQuestionIndex;
+    const currentQuestion = questions[questionIndex];
 
-    // 🔥 SCORING
-    for (const player of game.players) {
-      const answer = answers[player.playerToken];
+    const playersList = await this.gameService.getPlayersList(roomCode);
+
+    // 🔥 SCORING ATOMICALLY
+    for (const player of playersList) {
+      const answer = await this.gameService.getAnswer(
+        roomCode,
+        questionIndex,
+        player.playerToken,
+      );
 
       if (!answer) continue;
 
@@ -329,57 +385,67 @@ export class GameGateway {
 
         const score = Math.max(0, Math.floor(maxScore * timeFactor));
 
-        player.score += score;
+        await this.gameService.incrementScore(
+          roomCode,
+          player.playerToken,
+          score,
+        );
       }
     }
 
     // 🔥 SET PHASE LEADERBOARD
-    game.phase = 'LEADERBOARD';
-    await this.gameService.updateGame(roomCode, game);
+    await this.gameService.updateGameInfo(roomCode, { phase: 'LEADERBOARD' });
 
-    const rankings = [...game.players].sort((a, b) => b.score - a.score);
+    const rankings = await this.gameService.getLeaderboard(roomCode);
 
     this.server.to(roomCode).emit('leaderboard', {
       rankings,
     });
 
     // 🔥 AFTER 3 SECONDS → NEXT QUESTION OR FINISH
-    setTimeout(async () => {
-      const updatedGame = await this.gameService.getGame(roomCode);
-      if (!updatedGame) return;
+    setTimeout(() => {
+      void (async () => {
+        const latestInfo = await this.gameService.getGameInfo(roomCode);
+        if (!latestInfo) return;
 
-      const isLastQuestion =
-        updatedGame.currentQuestionIndex >= updatedGame.questions.length - 1;
+        const isLastQuestion =
+          latestInfo.currentQuestionIndex >= questions.length - 1;
 
-      if (isLastQuestion) {
-        updatedGame.phase = 'FINISHED';
+        if (isLastQuestion) {
+          await this.gameService.updateGameInfo(roomCode, {
+            phase: 'FINISHED',
+          });
 
-        await this.gameService.updateGame(roomCode, updatedGame);
+          const finalRankings = await this.gameService.getLeaderboard(roomCode);
 
-        this.server.to(roomCode).emit('game_finished', {
-          finalRankings: rankings,
-        });
+          this.server.to(roomCode).emit('game_finished', {
+            finalRankings,
+          });
 
-        // 🔥 PERSIST TO DB + CLEAN REDIS
-        await this.gameService.finalizeGame(roomCode);
+          // 🔥 PERSIST TO DB + CLEAN REDIS
+          await this.gameService.finalizeGame(roomCode);
 
-        return;
-      } else {
-        updatedGame.currentQuestionIndex += 1;
-        updatedGame.phase = 'QUESTION';
-        updatedGame.questionStartTime = Date.now();
+          return;
+        } else {
+          const nextIndex = latestInfo.currentQuestionIndex + 1;
+          const newStartTime = Date.now();
 
-        await this.gameService.updateGame(roomCode, updatedGame);
+          await this.gameService.updateGameInfo(roomCode, {
+            currentQuestionIndex: nextIndex,
+            phase: 'QUESTION',
+            questionStartTime: newStartTime,
+          });
 
-        this.server.to(roomCode).emit('question_started', {
-          question: updatedGame.questions[updatedGame.currentQuestionIndex],
-          startTime: updatedGame.questionStartTime,
-          currentIndex: updatedGame.currentQuestionIndex,
-          totalQuestions: updatedGame.questions.length,
-        });
+          this.server.to(roomCode).emit('question_started', {
+            question: questions[nextIndex],
+            startTime: newStartTime,
+            currentIndex: nextIndex,
+            totalQuestions: questions.length,
+          });
 
-        this.startQuestionTimer(roomCode);
-      }
+          void this.startQuestionTimer(roomCode);
+        }
+      })();
     }, 3000);
   }
 }

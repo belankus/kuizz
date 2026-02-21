@@ -15,23 +15,46 @@ import { socket } from "@/lib/socket";
 interface LobbyContentInterface {
   joinCode: string;
   players: any[];
+  initialIsLocked?: boolean;
 }
 
 export default function LobbyContent({
   joinCode,
   players,
+  initialIsLocked = false,
 }: LobbyContentInterface) {
-  const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [isLocked, setIsLocked] = useState<boolean>(initialIsLocked);
+
+  useEffect(() => {
+    setIsLocked(initialIsLocked);
+  }, [initialIsLocked]);
 
   useEffect(() => {
     if (!socket.connected) {
       socket.connect();
     }
+
+    const onRoomLockChanged = (data: { isLocked: boolean }) => {
+      setIsLocked(data.isLocked);
+    };
+
+    socket.on("room_lock_changed", onRoomLockChanged);
+
     return () => {
+      socket.off("room_lock_changed", onRoomLockChanged);
       // tidak disconnect di sini agar socket tetap terhubung untuk game
     };
   }, []);
 
+  const toggleLock = () => {
+    const hostToken = localStorage.getItem("hostToken");
+    if (!hostToken) return;
+
+    socket.emit("toggle_lock_room", {
+      roomCode: joinCode,
+      hostToken,
+    });
+  };
 
   const startGame = () => {
     const hostToken = localStorage.getItem("hostToken");
@@ -58,7 +81,7 @@ export default function LobbyContent({
                 <TooltipTrigger asChild>
                   <Button
                     className={`flex items-center gap-2 rounded-lg px-4 py-2 shadow ${isLocked ? "bg-red-700 hover:bg-red-800" : "bg-white/10 hover:bg-white/20"}`}
-                    onClick={() => setIsLocked(!isLocked)}
+                    onClick={toggleLock}
                   >
                     {isLocked ? <Lock width={18} /> : <Unlock width={18} />}
                     <span>{isLocked ? "Locked" : "Unlocked"}</span>
