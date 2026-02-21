@@ -8,6 +8,7 @@ import * as XLSX from "xlsx";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet } from "lucide-react";
+import { apiFetch } from "@/lib/auth";
 
 type Option = {
   text: string;
@@ -116,7 +117,7 @@ export default function ImportPage() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:3000/quiz", {
+      const res = await apiFetch("/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -189,9 +190,8 @@ export default function ImportPage() {
             {/* Upload Area */}
             <div
               {...getRootProps()}
-              className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition ${
-                isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
-              }`}
+              className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition ${isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                }`}
             >
               <input {...getInputProps()} />
               <p className="text-gray-600">

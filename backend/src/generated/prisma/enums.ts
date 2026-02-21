@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const Role = {
+  USER: 'USER',
+  SUPERADMIN: 'SUPERADMIN'
+} as const
+
+export type Role = (typeof Role)[keyof typeof Role]
+
+
 export const GameStatus = {
   WAITING: 'WAITING',
   STARTED: 'STARTED',

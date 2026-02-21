@@ -48,6 +48,8 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { socket } from "@/lib/socket";
+import { API_URL } from "@/lib/config";
+import { apiFetch } from "@/lib/auth";
 
 type Quiz = {
   id: string;
@@ -64,7 +66,7 @@ export default function BasicTables() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch("http://cachyos:3000/quiz")
+    fetch(`${API_URL}/quiz`)
       .then((res) => res.json())
       .then((data) => setQuizzes(data));
   }, []);
@@ -75,7 +77,7 @@ export default function BasicTables() {
     try {
       setIsDeleting(true);
 
-      const res = await fetch(`http://localhost:3000/quiz/${deleteId}`, {
+      const res = await apiFetch(`/quiz/${deleteId}`, {
         method: "DELETE",
       });
 
@@ -122,7 +124,7 @@ export default function BasicTables() {
   return (
     <div>
       <PageBreadcrumb pageTitle="Quizes" />
-      <Button onClick={() => router.push("/create")} className="mb-4">
+      <Button onClick={() => router.push("/dashboard/create")} className="mb-4">
         <PlusIcon className="h-4 w-4" /> New Quiz
       </Button>
 
@@ -148,7 +150,7 @@ export default function BasicTables() {
                 <DropdownMenuContent side="bottom" align="start">
                   <DropdownMenuGroup>
                     <DropdownMenuItem
-                      onSelect={() => router.push(`/quiz/${quiz.id}`)}
+                      onSelect={() => router.push(`/dashboard/quiz/${quiz.id}`)}
                     >
                       <PencilIcon />
                       Edit
@@ -165,12 +167,11 @@ export default function BasicTables() {
                       <DropdownMenuPortal>
                         <DropdownMenuSubContent>
                           <DropdownMenuItem
-                            onSelect={() =>
-                              router.push(
-                                `http://localhost:3000/quiz/${quiz.id}/export`,
-                              )
-                            }
+                            onSelect={() => {
+                              window.location.href = `${API_URL}/quiz/${quiz.id}/export`;
+                            }}
                           >
+
                             <Table2 />
                             Excel (.xlsx)
                           </DropdownMenuItem>
@@ -233,7 +234,7 @@ export default function BasicTables() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
+    </div >
   );
 }
 
@@ -252,13 +253,13 @@ const EmptyPlaceholder = () => {
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent className="flex-row justify-center gap-2">
-        <Button size="sm" onClick={() => router.push("/create")}>
+        <Button size="sm" onClick={() => router.push("/dashboard/create")}>
           Create Quiz
         </Button>
         <Button
           size="sm"
           variant="outline"
-          onClick={() => router.push("/import")}
+          onClick={() => router.push("/dashboard/import")}
         >
           Import Project
         </Button>

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "@/lib/auth";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -195,7 +196,7 @@ export default function CreatePage() {
     };
 
     try {
-      const res = await fetch("http://localhost:3000/quiz", {
+      const res = await apiFetch("/quiz", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -216,7 +217,7 @@ export default function CreatePage() {
         position: "bottom-right",
       });
 
-      router.push("/quizes");
+      router.push("/dashboard/quizes");
     } catch (err) {
       toast.error("Failed to create quiz", { position: "bottom-right" });
     }
@@ -235,9 +236,8 @@ export default function CreatePage() {
       <div
         ref={setNodeRef}
         style={style}
-        className={`mb-2 flex w-full items-start gap-2 rounded border p-3 ${
-          index === activeIndex ? "bg-indigo-100" : ""
-        }`}
+        className={`mb-2 flex w-full items-start gap-2 rounded border p-3 ${index === activeIndex ? "bg-indigo-100" : ""
+          }`}
       >
         {/* DRAG HANDLE */}
         <div
@@ -406,9 +406,8 @@ export default function CreatePage() {
                 <div className="px-4">
                   <button
                     onClick={() => toggleCorrect(a.id)}
-                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-white ${
-                      a.correct ? "bg-white text-green-600" : "bg-transparent"
-                    }`}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-white ${a.correct ? "bg-white text-green-600" : "bg-transparent"
+                      }`}
                   >
                     {a.correct && <Check size={18} />}
                   </button>

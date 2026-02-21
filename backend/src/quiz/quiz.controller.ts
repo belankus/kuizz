@@ -8,19 +8,20 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
-  Res,
   HttpException,
   HttpStatus,
   StreamableFile,
   BadRequestException,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { QuizService } from './quiz.service.js';
 import { UpdateQuizDto } from '../lib/dto.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 
 @Controller('quiz')
 export class QuizController {
-  constructor(private readonly quizService: QuizService) {}
+  constructor(private readonly quizService: QuizService) { }
 
   @Get()
   findAll() {
@@ -50,11 +51,13 @@ export class QuizController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   create(@Body() body: any) {
     return this.quizService.createQuiz(body);
   }
 
   @Post('import')
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async importQuiz(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
@@ -65,11 +68,13 @@ export class QuizController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   async updateQuiz(@Param('id') id: string, @Body() body: UpdateQuizDto) {
     return this.quizService.updateQuiz(id, body);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   async deleteQuiz(@Param('id') id: string) {
     return this.quizService.deleteQuiz(id);
   }

@@ -10,7 +10,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "../ui/button";
-import { io, Socket } from "socket.io-client";
+import { socket } from "@/lib/socket";
 
 interface LobbyContentInterface {
   joinCode: string;
@@ -22,21 +22,16 @@ export default function LobbyContent({
   players,
 }: LobbyContentInterface) {
   const [isLocked, setIsLocked] = useState<boolean>(false);
-  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
-    const s = io("http://localhost:3000");
-
-    s.on("connect", () => {
-      console.log("Connected:", s.id);
-    });
-
-    setSocket(s);
-
+    if (!socket.connected) {
+      socket.connect();
+    }
     return () => {
-      s.disconnect();
+      // tidak disconnect di sini agar socket tetap terhubung untuk game
     };
   }, []);
+
 
   const startGame = () => {
     const hostToken = localStorage.getItem("hostToken");
