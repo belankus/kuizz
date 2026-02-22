@@ -37,6 +37,7 @@ import {
   ArrowUpRightIcon,
   Ellipsis,
   FolderCode,
+  Gamepad,
   PencilIcon,
   PlusIcon,
   ShareIcon,
@@ -158,7 +159,7 @@ export default function BasicTables() {
                       Edit
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => handleStartGame(quiz.id)}>
-                      <PencilIcon />
+                      <Gamepad />
                       Start Game
                     </DropdownMenuItem>
                     <DropdownMenuSub>

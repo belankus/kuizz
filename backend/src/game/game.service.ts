@@ -243,12 +243,13 @@ export class GameService {
     playerToken: string,
     playerId: string,
     nickname: string,
+    avatar?: object | null,
   ) {
     const client = this.redis.getClient();
     await client.hset(
       this.playersKey(roomCode),
       playerToken,
-      JSON.stringify({ playerId, nickname }),
+      JSON.stringify({ playerId, nickname, avatar: avatar ?? null }),
     );
     await client.zadd(this.scoresKey(roomCode), 0, playerToken);
   }
@@ -282,6 +283,7 @@ export class GameService {
       playerToken,
       playerId: data.playerId,
       nickname: data.nickname,
+      avatar: data.avatar ?? null,
       score: scores[playerToken] || 0,
     }));
   }
@@ -378,13 +380,22 @@ export class GameService {
 
   private async getPlayers(
     roomCode: string,
-  ): Promise<Record<string, { playerId: string; nickname: string }>> {
+  ): Promise<
+    Record<
+      string,
+      { playerId: string; nickname: string; avatar?: object | null }
+    >
+  > {
     const raw = await this.redis.getClient().hgetall(this.playersKey(roomCode));
-    const result: Record<string, { playerId: string; nickname: string }> = {};
+    const result: Record<
+      string,
+      { playerId: string; nickname: string; avatar?: object | null }
+    > = {};
     for (const key in raw) {
       result[key] = JSON.parse(raw[key]) as {
         playerId: string;
         nickname: string;
+        avatar?: object | null;
       };
     }
     return result;

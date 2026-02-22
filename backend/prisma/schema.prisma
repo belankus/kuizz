@@ -28,6 +28,7 @@ model User {
   provider     String?
   providerId   String?
   refreshToken String?
+  avatar       Json?
   quizzes      Quiz[]
   createdAt    DateTime @default(now())
 }

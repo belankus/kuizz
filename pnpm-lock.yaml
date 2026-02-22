@@ -222,6 +222,9 @@ importers:
       autoprefixer:
         specifier: ^10.4.20
         version: 10.4.24(postcss@8.5.6)
+      beanheads:
+        specifier: ^0.3.3
+        version: 0.3.3(react@19.2.4)
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -3525,6 +3528,12 @@ packages:
   bcrypt@6.0.0:
     resolution: {integrity: sha512-cU8v/EGSrnH+HnxV2z0J7/blxH8gq7Xh2JFT6Aroax7UohdmiJJlxApMxtKfuI7z68NvvVcmR78k2LbT6efhRg==}
     engines: {node: '>= 18'}
+
+  beanheads@0.3.3:
+    resolution: {integrity: sha512-xcL8FA02+5mIsonwXxnXqd11eXR534VgXCusogBn0t5JXNckaD1UgH0C65wq5h1osK8bbv+2IYpNQM9OplVFVQ==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      react: '>=16'
 
   big-integer@1.6.52:
     resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
@@ -11039,6 +11048,10 @@ snapshots:
     dependencies:
       node-addon-api: 8.5.0
       node-gyp-build: 4.8.4
+
+  beanheads@0.3.3(react@19.2.4):
+    dependencies:
+      react: 19.2.4
 
   big-integer@1.6.52: {}
 

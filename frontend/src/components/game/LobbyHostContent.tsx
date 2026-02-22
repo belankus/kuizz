@@ -1,8 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import QRCodePlaceholder from "@/components/game/QRCodePlaceholder";
-import { Avatar, AvatarImage } from "../ui/avatar";
+import {
+  AvatarDisplay,
+  getRandomAvatar,
+} from "@/components/avatar/AvatarBuilder";
+import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 import { Lock, Unlock } from "lucide-react";
 import {
   Tooltip,
@@ -155,20 +159,21 @@ export default function LobbyContent({
               Waiting for participants
             </div>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-10 sm:flex-row">
-              {players.map((player, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col items-center justify-center"
-                >
-                  <Avatar className="animation-pulsing">
-                    <AvatarImage src="/images/user/user-01.jpg" />
-                  </Avatar>
-                  <h3 className="mt-2 text-lg font-semibold">
-                    {player.nickname}
-                  </h3>
-                </div>
-              ))}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-8">
+              {players.map((player, index) => {
+                const avatarCfg: AvatarConfig =
+                  player.avatar ?? getRandomAvatar();
+                return (
+                  <div key={index} className="flex flex-col items-center">
+                    <div className="animate-[pulse_2s_ease-in-out_infinite] overflow-hidden rounded-full ring-4 ring-white/30">
+                      <AvatarDisplay config={avatarCfg} size={64} />
+                    </div>
+                    <h3 className="mt-2 text-sm font-semibold">
+                      {player.nickname}
+                    </h3>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

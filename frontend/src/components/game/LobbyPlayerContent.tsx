@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Avatar, AvatarImage } from "../ui/avatar";
+import {
+  AvatarDisplay,
+  getRandomAvatar,
+} from "@/components/avatar/AvatarBuilder";
+import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 
 interface LobbyContentInterface {
   joinCode: string;
@@ -38,24 +41,37 @@ export default function LobbyPlayer({
           </div>
 
           {/* Player List */}
-          <div className="mt-8 grid grid-cols-2 gap-8 sm:grid-cols-3">
-            {players.map((player, index) => (
-              <div
-                key={index}
-                className="flex flex-col items-center justify-center"
-              >
-                <Avatar className="animation-pulsing">
-                  <AvatarImage src="/images/user/user-01.jpg" />
-                </Avatar>
-                <h3
-                  className={`mt-2 text-lg font-semibold ${
-                    player.nickname === nickname ? "text-yellow-300" : ""
+          <div className="mt-8 flex flex-wrap justify-center gap-6">
+            {players.map((player, index) => {
+              const isMe = player.nickname === nickname;
+              const avatarCfg: AvatarConfig =
+                player.avatar ?? getRandomAvatar();
+              return (
+                <div
+                  key={index}
+                  className={`flex flex-col items-center rounded-2xl p-3 transition-transform ${
+                    isMe ? "scale-110" : ""
                   }`}
                 >
-                  {player.nickname}
-                </h3>
-              </div>
-            ))}
+                  <div
+                    className={`overflow-hidden rounded-full ${
+                      isMe
+                        ? "ring-4 ring-yellow-300 ring-offset-2 ring-offset-blue-800"
+                        : "ring-2 ring-white/20"
+                    }`}
+                  >
+                    <AvatarDisplay config={avatarCfg} size={64} />
+                  </div>
+                  <h3
+                    className={`mt-2 text-sm font-semibold ${
+                      isMe ? "text-yellow-300" : ""
+                    }`}
+                  >
+                    {isMe ? `✨ ${player.nickname}` : player.nickname}
+                  </h3>
+                </div>
+              );
+            })}
           </div>
 
           {/* Fun animation / idle state */}

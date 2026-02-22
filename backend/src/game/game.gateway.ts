@@ -95,7 +95,12 @@ export class GameGateway {
   @SubscribeMessage('join_room')
   async handleJoin(
     @MessageBody()
-    data: { roomCode: string; nickname: string; playerToken?: string },
+    data: {
+      roomCode: string;
+      nickname: string;
+      playerToken?: string;
+      avatar?: object | null;
+    },
     @ConnectedSocket() client: CustomSocket,
   ) {
     const info = await this.gameService.getGameInfo(data.roomCode);
@@ -160,6 +165,7 @@ export class GameGateway {
       token,
       client.id,
       data.nickname,
+      data.avatar ?? null,
     );
 
     void client.join(data.roomCode);

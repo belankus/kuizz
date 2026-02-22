@@ -111,6 +111,35 @@ export class GameSessionService {
         ? Math.round((totalAnswersCorrect / totalAnswersTotal) * 100)
         : 0;
 
+    // Player DETAILS
+    const parsedQuestions = session.questions as Array<{ timeLimit: number }>;
+
+    const playersDetail = session.players.map((player) => {
+      const formattedAnswers = player.answers.map((ans) => {
+        const qTimeLimit = parsedQuestions[ans.questionIndex]?.timeLimit || 20;
+        const timeFactor = 1 - ans.responseTime / (qTimeLimit * 1000);
+        const calculatedScore = ans.isCorrect
+          ? Math.max(0, Math.floor(1000 * timeFactor))
+          : 0;
+
+        return {
+          questionIndex: ans.questionIndex,
+          isCorrect: ans.isCorrect,
+          responseTime: ans.responseTime,
+          score: calculatedScore,
+        };
+      });
+
+      return {
+        id: player.id,
+        nickname: player.nickname,
+        totalScore: player.score,
+        answers: formattedAnswers.sort(
+          (a, b) => a.questionIndex - b.questionIndex,
+        ),
+      };
+    });
+
     return {
       session: {
         id: session.id,
@@ -127,6 +156,7 @@ export class GameSessionService {
       },
       topPlayers,
       questionsAnalytics,
+      playersDetail,
     };
   }
 

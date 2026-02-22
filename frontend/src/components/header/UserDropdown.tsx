@@ -1,18 +1,29 @@
 "use client";
-import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { getUserFromToken, logout, User } from "@/lib/auth";
+import { getUserFromToken, logout, User, apiFetch } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { AvatarDisplay } from "@/components/avatar/AvatarBuilder";
+import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [avatar, setAvatar] = useState<AvatarConfig | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    setUser(getUserFromToken());
+    const u = getUserFromToken();
+    setUser(u);
+    if (u) {
+      apiFetch("/users/me")
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data?.avatar) setAvatar(data.avatar as AvatarConfig);
+        })
+        .catch(() => null);
+    }
   }, []);
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
@@ -39,8 +50,15 @@ export default function UserDropdown() {
         onClick={toggleDropdown}
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
       >
-        <span className="bg-brand-500 mr-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full text-sm font-semibold text-white">
-          {initials}
+        {/* Avatar or initials */}
+        <span className="mr-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full">
+          {avatar ? (
+            <AvatarDisplay config={avatar} size={44} />
+          ) : (
+            <span className="bg-brand-500 flex h-full w-full items-center justify-center text-sm font-semibold text-white">
+              {initials}
+            </span>
+          )}
         </span>
         <span className="text-theme-sm mr-1 block font-medium">
           {user?.name || user?.email?.split("@")[0] || "Loading..."}
@@ -70,19 +88,30 @@ export default function UserDropdown() {
         onClose={closeDropdown}
         className="shadow-theme-lg dark:bg-gray-dark absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800"
       >
-        {/* User info */}
-        <div className="border-b border-gray-200 pb-3 dark:border-gray-800">
-          <span className="text-theme-sm block font-medium text-gray-700 dark:text-gray-400">
-            {user?.name || "—"}
-          </span>
-          <span className="text-theme-xs mt-0.5 block text-gray-500 dark:text-gray-400">
-            {user?.email || ""}
-          </span>
-          {user?.role === "SUPERADMIN" && (
-            <span className="mt-1.5 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
-              Super Admin
+        {/* User info with avatar */}
+        <div className="flex items-center gap-3 border-b border-gray-200 pb-3 dark:border-gray-800">
+          <div className="flex-shrink-0 overflow-hidden rounded-full ring-2 ring-indigo-100 dark:ring-indigo-900/40">
+            {avatar ? (
+              <AvatarDisplay config={avatar} size={40} />
+            ) : (
+              <span className="bg-brand-500 flex h-10 w-10 items-center justify-center text-sm font-semibold text-white">
+                {initials}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <span className="text-theme-sm block truncate font-medium text-gray-700 dark:text-gray-400">
+              {user?.name || "—"}
             </span>
-          )}
+            <span className="text-theme-xs mt-0.5 block truncate text-gray-500 dark:text-gray-400">
+              {user?.email || ""}
+            </span>
+            {user?.role === "SUPERADMIN" && (
+              <span className="mt-1.5 inline-block rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-600 dark:bg-purple-900/30 dark:text-purple-400">
+                Super Admin
+              </span>
+            )}
+          </div>
         </div>
 
         <ul className="flex flex-col gap-1 border-b border-gray-200 py-3 dark:border-gray-800">
