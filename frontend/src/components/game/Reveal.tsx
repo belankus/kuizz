@@ -1,17 +1,19 @@
 interface RevealProps {
   question: string;
   options: { id: string; text: string }[];
-  correctOptionId: string;
+  correctOptionIds: string[];
   selectedOptionId: string | null;
 }
 
 export default function Reveal({
   question,
   options,
-  correctOptionId,
+  correctOptionIds,
   selectedOptionId,
 }: RevealProps) {
-  const isCorrect = selectedOptionId === correctOptionId;
+  const isCorrect = selectedOptionId
+    ? correctOptionIds.includes(selectedOptionId)
+    : false;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-blue-800 via-blue-700 to-blue-900 px-6 text-white">
@@ -19,7 +21,7 @@ export default function Reveal({
 
       <div className="mt-10 grid w-full max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2">
         {options.map((opt) => {
-          const isCorrectOption = opt.id === correctOptionId;
+          const isCorrectOption = correctOptionIds.includes(opt.id);
           const isSelected = opt.id === selectedOptionId;
 
           return (

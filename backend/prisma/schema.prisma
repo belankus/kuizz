@@ -20,17 +20,18 @@ enum Role {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
+  id           String       @id @default(uuid())
+  email        String       @unique
   name         String?
   password     String?
-  role         Role     @default(USER)
+  role         Role         @default(USER)
   provider     String?
   providerId   String?
   refreshToken String?
   avatar       Json?
   quizzes      Quiz[]
-  createdAt    DateTime @default(now())
+  gameHistory  GamePlayer[] @relation("UserGameHistory")
+  createdAt    DateTime     @default(now())
 }
 
 model Quiz {
@@ -90,6 +91,8 @@ model GamePlayer {
   id        String       @id @default(uuid())
   sessionId String
   session   GameSession  @relation("SessionToPlayers", fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?        @relation("UserGameHistory", fields: [userId], references: [id], onDelete: SetNull)
   nickname  String
   score     Int
   joinedAt  DateTime     @default(now())
@@ -97,6 +100,7 @@ model GamePlayer {
 
   @@unique([sessionId, nickname])
   @@index([sessionId])
+  @@index([userId])
 }
 
 model GameAnswer {

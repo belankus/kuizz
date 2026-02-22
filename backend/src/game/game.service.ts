@@ -25,7 +25,7 @@ type SnapshotQuestion = {
   id: string;
   question: string;
   options: { id: string; text: string }[];
-  correctOptionId: string;
+  correctOptionIds: string[];
   timeLimit: number;
 };
 
@@ -72,9 +72,9 @@ export class GameService {
 
     // 🔥 SNAPSHOT QUESTIONS
     const snapshotQuestions: SnapshotQuestion[] = quiz.questions.map((q) => {
-      const correctOption = q.options.find((o) => o.isCorrect);
+      const correctOptions = q.options.filter((o) => o.isCorrect);
 
-      if (!correctOption) {
+      if (correctOptions.length === 0) {
         throw new Error(`Question "${q.text}" has no correct option`);
       }
 
@@ -86,7 +86,7 @@ export class GameService {
           id: o.id,
           text: o.text,
         })),
-        correctOptionId: correctOption.id,
+        correctOptionIds: correctOptions.map((o) => o.id),
       };
     });
 
@@ -166,6 +166,9 @@ export class GameService {
             session: { connect: { id: info.sessionId } },
             nickname: player.nickname,
             score: score,
+            ...(player.userId
+              ? { user: { connect: { id: player.userId } } }
+              : {}),
           },
         });
 
@@ -180,8 +183,9 @@ export class GameService {
               playerId: createdPlayer.id,
               questionIndex: i,
               selectedOptionId: answerData.selectedOptionId,
-              isCorrect:
-                answerData.selectedOptionId === question.correctOptionId,
+              isCorrect: question.correctOptionIds.includes(
+                answerData.selectedOptionId,
+              ),
               responseTime: answerData.responseTime,
             },
           });
@@ -244,12 +248,18 @@ export class GameService {
     playerId: string,
     nickname: string,
     avatar?: object | null,
+    userId?: string | null,
   ) {
     const client = this.redis.getClient();
     await client.hset(
       this.playersKey(roomCode),
       playerToken,
-      JSON.stringify({ playerId, nickname, avatar: avatar ?? null }),
+      JSON.stringify({
+        playerId,
+        nickname,
+        avatar: avatar ?? null,
+        userId: userId ?? null,
+      }),
     );
     await client.zadd(this.scoresKey(roomCode), 0, playerToken);
   }
@@ -284,6 +294,7 @@ export class GameService {
       playerId: data.playerId,
       nickname: data.nickname,
       avatar: data.avatar ?? null,
+      userId: data.userId ?? null,
       score: scores[playerToken] || 0,
     }));
   }
@@ -358,6 +369,8 @@ export class GameService {
       playerId: string;
       nickname: string;
       score: number;
+      avatar?: object | null;
+      userId?: string | null;
     }[] = [];
     for (let i = 0; i < result.length; i += 2) {
       const playerToken = result[i];
@@ -370,6 +383,8 @@ export class GameService {
           playerId: playerData.playerId,
           nickname: playerData.nickname,
           score,
+          avatar: playerData.avatar ?? null,
+          userId: playerData.userId ?? null,
         });
       }
     }
@@ -378,24 +393,33 @@ export class GameService {
 
   // === INTERNAL HELPERS ===
 
-  private async getPlayers(
-    roomCode: string,
-  ): Promise<
+  private async getPlayers(roomCode: string): Promise<
     Record<
       string,
-      { playerId: string; nickname: string; avatar?: object | null }
+      {
+        playerId: string;
+        nickname: string;
+        avatar?: object | null;
+        userId?: string | null;
+      }
     >
   > {
     const raw = await this.redis.getClient().hgetall(this.playersKey(roomCode));
     const result: Record<
       string,
-      { playerId: string; nickname: string; avatar?: object | null }
+      {
+        playerId: string;
+        nickname: string;
+        avatar?: object | null;
+        userId?: string | null;
+      }
     > = {};
     for (const key in raw) {
       result[key] = JSON.parse(raw[key]) as {
         playerId: string;
         nickname: string;
         avatar?: object | null;
+        userId?: string | null;
       };
     }
     return result;

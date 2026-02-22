@@ -218,6 +218,52 @@ export function getRandomAvatar(): AvatarConfig {
   };
 }
 
+// ── Consistent avatar util (for guests) ──────────────────────────────────────
+function hashCode(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash |= 0; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+}
+
+// Simple seeded PRNG (mulberry32)
+function mulberry32(a: number) {
+  return function () {
+    var t = (a += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export function getConsistentAvatar(seedStr: string): AvatarConfig {
+  const rng = mulberry32(hashCode(seedStr) || 12345);
+  const pick = <T,>(arr: T[]) => arr[Math.floor(rng() * arr.length)];
+
+  return {
+    skinTone: pick(SKIN_TONES),
+    eyes: pick(ALL_EYES),
+    eyebrows: pick(ALL_EYEBROWS),
+    mouth: pick(ALL_MOUTHS),
+    hair: pick(HAIRS),
+    hairColor: pick(HAIR_COLORS),
+    facialHair: pick(FACIAL_HAIRS),
+    clothing: pick(CLOTHING),
+    clothingColor: pick(CLOTHING_COLORS),
+    accessory: pick(ACCESSORIES),
+    graphic: pick(GRAPHICS),
+    hat: pick(HATS),
+    hatColor: pick(HAT_COLORS),
+    lipColor: pick(LIP_COLORS),
+    body: pick(BODY_TYPES),
+    circleColor: "blue",
+    lashes: rng() > 0.5,
+  };
+}
+
 // ── Display-only component ───────────────────────────────────────────────────
 export function AvatarDisplay({
   config,
@@ -452,17 +498,19 @@ export default function AvatarBuilder({
           />
         </Section>
 
-        {/* Clothing Color */}
-        <Section label="Clothing Color">
-          <ColorRow
-            options={CLOTHING_COLORS}
-            colorMap={CLOTHING_COLOR_HEX}
-            selected={config.clothingColor!}
-            onSelect={(v) =>
-              update({ clothingColor: v as AvatarConfig["clothingColor"] })
-            }
-          />
-        </Section>
+        {/* Clothing Color - only for options that actually have color */}
+        {config.clothing !== "naked" && (
+          <Section label="Clothing Color">
+            <ColorRow
+              options={CLOTHING_COLORS}
+              colorMap={CLOTHING_COLOR_HEX}
+              selected={config.clothingColor!}
+              onSelect={(v) =>
+                update({ clothingColor: v as AvatarConfig["clothingColor"] })
+              }
+            />
+          </Section>
+        )}
 
         {/* Accessory */}
         <Section label="Accessory">
@@ -475,17 +523,28 @@ export default function AvatarBuilder({
           />
         </Section>
 
-        {/* Hat Color */}
-        <Section label="Hat Color">
-          <ColorRow
-            options={HAT_COLORS}
-            colorMap={CLOTHING_COLOR_HEX}
-            selected={config.hatColor!}
-            onSelect={(v) =>
-              update({ hatColor: v as AvatarConfig["hatColor"] })
-            }
+        {/* Hat */}
+        <Section label="hat">
+          <ChipRow
+            options={HATS.map((a) => ({ value: a!, label: a! }))}
+            selected={config.hat!}
+            onSelect={(v) => update({ hat: v as AvatarConfig["hat"] })}
           />
         </Section>
+
+        {/* Hat Color - only if wearing a colorable hat */}
+        {["beanie", "turban"].includes(config.hat || "") && (
+          <Section label="Hat Color">
+            <ColorRow
+              options={HAT_COLORS}
+              colorMap={CLOTHING_COLOR_HEX}
+              selected={config.hatColor!}
+              onSelect={(v) =>
+                update({ hatColor: v as AvatarConfig["hatColor"] })
+              }
+            />
+          </Section>
+        )}
 
         {/* Facial Hair */}
         <Section label="Facial Hair">
@@ -498,26 +557,32 @@ export default function AvatarBuilder({
           />
         </Section>
 
-        {/* Shirt Graphic */}
-        <Section label="Shirt Logo">
-          <ChipRow
-            options={GRAPHICS.map((g) => ({ value: g!, label: g! }))}
-            selected={config.graphic!}
-            onSelect={(v) => update({ graphic: v as AvatarConfig["graphic"] })}
-          />
-        </Section>
+        {/* Shirt Graphic - only on specific tops */}
+        {["shirt", "vneck", "tankTop"].includes(config.clothing || "") && (
+          <Section label="Shirt Logo">
+            <ChipRow
+              options={GRAPHICS.map((g) => ({ value: g!, label: g! }))}
+              selected={config.graphic!}
+              onSelect={(v) =>
+                update({ graphic: v as AvatarConfig["graphic"] })
+              }
+            />
+          </Section>
+        )}
 
-        {/* Lip Color */}
-        <Section label="Lip Color">
-          <ColorRow
-            options={LIP_COLORS}
-            colorMap={LIP_COLOR_HEX}
-            selected={config.lipColor!}
-            onSelect={(v) =>
-              update({ lipColor: v as AvatarConfig["lipColor"] })
-            }
-          />
-        </Section>
+        {/* Lip Color - only visible if mouth is 'lips' */}
+        {config.mouth === "lips" && (
+          <Section label="Lip Color">
+            <ColorRow
+              options={LIP_COLORS}
+              colorMap={LIP_COLOR_HEX}
+              selected={config.lipColor!}
+              onSelect={(v) =>
+                update({ lipColor: v as AvatarConfig["lipColor"] })
+              }
+            />
+          </Section>
+        )}
 
         {/* Body Type */}
         <Section label="Body">

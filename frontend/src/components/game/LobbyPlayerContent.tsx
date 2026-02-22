@@ -2,7 +2,7 @@
 
 import {
   AvatarDisplay,
-  getRandomAvatar,
+  getConsistentAvatar,
 } from "@/components/avatar/AvatarBuilder";
 import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 
@@ -12,10 +12,23 @@ interface LobbyContentInterface {
   players: any[];
 }
 
+import { useEffect, useState } from "react";
+
 export default function LobbyPlayer({
   nickname,
   players,
 }: LobbyContentInterface) {
+  const [localAvatar, setLocalAvatar] = useState<AvatarConfig | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("guestAvatar");
+    if (stored) {
+      try {
+        setLocalAvatar(JSON.parse(stored));
+      } catch (e) {}
+    }
+  }, []);
+
   const isLocked = false;
 
   return (
@@ -45,7 +58,9 @@ export default function LobbyPlayer({
             {players.map((player, index) => {
               const isMe = player.nickname === nickname;
               const avatarCfg: AvatarConfig =
-                player.avatar ?? getRandomAvatar();
+                player.avatar ??
+                (isMe ? localAvatar : null) ??
+                getConsistentAvatar(player.nickname);
               return (
                 <div
                   key={index}

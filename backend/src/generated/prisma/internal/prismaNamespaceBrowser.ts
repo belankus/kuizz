@@ -143,6 +143,7 @@ export type GameSessionScalarFieldEnum = (typeof GameSessionScalarFieldEnum)[key
 export const GamePlayerScalarFieldEnum = {
   id: 'id',
   sessionId: 'sessionId',
+  userId: 'userId',
   nickname: 'nickname',
   score: 'score',
   joinedAt: 'joinedAt'

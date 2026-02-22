@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { socket } from "@/lib/socket";
 import Countdown from "./Countdown";
 import Question from "./Question";
@@ -13,6 +13,7 @@ import RoomNotFound from "./fallback/RoomNotFound";
 import GameAlreadyStarted from "./fallback/GameAlreadyStarted";
 import RoomLocked from "./fallback/RoomLocked";
 import HostQuestion from "./HostQuestion";
+import { useRouter } from "next/navigation";
 
 type GamePhase =
   | "WAITING"
@@ -36,9 +37,16 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [answerStats, setAnswerStats] = useState<Record<string, number>>({});
   const [players, setPlayers] = useState<any[]>([]);
-  const [correctOptionId, setCorrectOptionId] = useState<string | null>(null);
+  const [correctOptionIds, setCorrectOptionIds] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [rankings, setRankings] = useState<any[]>([]);
+  const prevRankingsRef = useRef<any[]>([]);
+  const playersRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    playersRef.current = players;
+  }, [players]);
+
   const [nickname, setNickname] = useState<string | null>(null);
   const [isHost, setIsHost] = useState<boolean>(false);
   const [hostToken, setHostToken] = useState<string | null>(null);
@@ -47,6 +55,16 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
   );
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [now, setNow] = useState(Date.now());
+  const router = useRouter();
+
+  const handleLeaveGame = () => {
+    localStorage.removeItem("guestAvatar");
+    localStorage.removeItem("playerToken");
+    localStorage.removeItem("hostToken");
+    localStorage.removeItem("roomCode");
+    localStorage.removeItem("hostRoom");
+    router.push("/");
+  };
 
   useEffect(() => {
     const storedNickname = localStorage.getItem("nickname");
@@ -99,7 +117,9 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
       if (data.isLocked !== undefined) setIsLocked(data.isLocked);
       if (data.players) setPlayers(data.players);
       if (data.question) setQuestion(data.question);
-      if (data.correctOptionId) setCorrectOptionId(data.correctOptionId);
+      if (data.correctOptionIds) setCorrectOptionIds(data.correctOptionIds);
+      else if (data.correctOptionId)
+        setCorrectOptionIds([data.correctOptionId]);
       if (data.rankings) setRankings(data.rankings);
     });
 
@@ -130,18 +150,28 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
       setTotalQuestions(data.totalQuestions);
 
       setSelected(null);
-      setCorrectOptionId(null);
+      setCorrectOptionIds([]);
       setAnswerStats({}); // 🔥 reset stats
       setPhase("QUESTION");
     });
 
     socket.on("reveal", (data) => {
-      setCorrectOptionId(data.correctOptionId);
+      setCorrectOptionIds(data.correctOptionIds || []);
       setPhase("REVEAL");
     });
 
     socket.on("leaderboard", (data) => {
-      setRankings(data.rankings);
+      setRankings((prev) => {
+        let oldRankings = prev;
+        if (!oldRankings || oldRankings.length === 0) {
+          oldRankings = playersRef.current.map((p) => ({
+            ...p,
+            score: 0,
+          }));
+        }
+        prevRankingsRef.current = oldRankings;
+        return data.rankings;
+      });
       setPhase("LEADERBOARD");
     });
 
@@ -210,7 +240,8 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
           remainingMs={remainingMs}
           answerStats={answerStats}
           totalPlayers={players.length}
-          correctOptionId={correctOptionId}
+          correctOptionId={correctOptionIds[0] || ""}
+          correctOptionIds={correctOptionIds}
           phase={phase}
           onEndQuestion={() =>
             socket.emit("force_reveal", {
@@ -242,7 +273,8 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
           remainingMs={remainingMs}
           answerStats={answerStats}
           totalPlayers={players.length}
-          correctOptionId={correctOptionId}
+          correctOptionId={correctOptionIds[0] || ""}
+          correctOptionIds={correctOptionIds}
           phase={phase}
           onEndQuestion={() =>
             socket.emit("force_reveal", {
@@ -255,17 +287,28 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
         <Reveal
           question={question?.question}
           options={question?.options || []}
-          correctOptionId={correctOptionId || ""}
+          correctOptionIds={correctOptionIds}
           selectedOptionId={selected}
         />
       );
 
     case "LEADERBOARD":
-      return <Leaderboard players={rankings} myName={nickname} />;
+      return (
+        <Leaderboard
+          players={rankings}
+          prevPlayers={prevRankingsRef.current}
+          myName={nickname}
+        />
+      );
 
     case "FINISHED":
       return (
-        <FinalResult players={rankings} myName={nickname} isHost={false} />
+        <FinalResult
+          players={rankings}
+          myName={nickname}
+          isHost={isHost}
+          onPlayAgain={handleLeaveGame}
+        />
       );
 
     case "ROOM_NOT_FOUND":

@@ -171,4 +171,38 @@ export class GameSessionService {
       where: { id: sessionId },
     });
   }
+
+  async getPlayerDetail(sessionId: string, playerId: string, hostId: string) {
+    const session = await this.prisma.gameSession.findUnique({
+      where: { id: sessionId, hostId },
+      include: {
+        players: {
+          where: { id: playerId },
+          include: {
+            answers: true,
+          },
+        },
+      },
+    });
+
+    if (!session || session.players.length === 0) {
+      throw new NotFoundException('Player or session not found');
+    }
+
+    const player = session.players[0];
+
+    return {
+      id: player.id,
+      nickname: player.nickname,
+      score: player.score,
+      joinedAt: player.joinedAt,
+      session: {
+        title: session.title,
+        createdAt: session.createdAt,
+        questions: session.questions,
+        totalQuestions: session.totalQuestions,
+      },
+      answers: player.answers,
+    };
+  }
 }

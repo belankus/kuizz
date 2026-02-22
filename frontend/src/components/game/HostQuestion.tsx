@@ -11,6 +11,7 @@ interface HostQuestionProps {
   answerStats: Record<string, number>;
   totalPlayers: number;
   correctOptionId?: string | null; // only filled during REVEAL
+  correctOptionIds?: string[];
   phase: "QUESTION" | "REVEAL";
   onEndQuestion: () => void;
 }
@@ -24,6 +25,7 @@ export default function HostQuestion({
   answerStats,
   totalPlayers,
   correctOptionId,
+  correctOptionIds,
   phase,
   onEndQuestion,
 }: HostQuestionProps) {
@@ -76,7 +78,11 @@ export default function HostQuestion({
           const percentage =
             totalPlayers > 0 ? (count / totalPlayers) * 100 : 0;
 
-          const isCorrect = phase === "REVEAL" && opt.id === correctOptionId;
+          const isCorrect =
+            phase === "REVEAL" &&
+            (correctOptionIds
+              ? correctOptionIds.includes(opt.id)
+              : opt.id === correctOptionId);
 
           return (
             <div key={opt.id}>

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import QRCodePlaceholder from "@/components/game/QRCodePlaceholder";
 import {
   AvatarDisplay,
-  getRandomAvatar,
+  getConsistentAvatar,
 } from "@/components/avatar/AvatarBuilder";
 import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 import { Lock, Unlock } from "lucide-react";
@@ -162,7 +162,7 @@ export default function LobbyContent({
             <div className="mt-10 flex flex-wrap items-center justify-center gap-8">
               {players.map((player, index) => {
                 const avatarCfg: AvatarConfig =
-                  player.avatar ?? getRandomAvatar();
+                  player.avatar ?? getConsistentAvatar(player.nickname);
                 return (
                   <div key={index} className="flex flex-col items-center">
                     <div className="animate-[pulse_2s_ease-in-out_infinite] overflow-hidden rounded-full ring-4 ring-white/30">

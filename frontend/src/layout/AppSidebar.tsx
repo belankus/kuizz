@@ -17,6 +17,7 @@ import {
   PlugIcon,
   TableIcon,
   UserCircleIcon,
+  History,
 } from "lucide-react";
 
 type NavItem = {
@@ -31,6 +32,11 @@ const navItems: NavItem[] = [
     icon: <GridIcon />,
     name: "Dashboard",
     path: "/dashboard",
+  },
+  {
+    icon: <History />,
+    name: "Play History",
+    path: "/dashboard/history",
   },
   {
     name: "Library",

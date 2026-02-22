@@ -100,6 +100,7 @@ export class GameGateway {
       nickname: string;
       playerToken?: string;
       avatar?: object | null;
+      authToken?: string;
     },
     @ConnectedSocket() client: CustomSocket,
   ) {
@@ -160,12 +161,28 @@ export class GameGateway {
     const token = randomUUID();
     client.data.playerToken = token;
 
+    let userId: string | null = null;
+    if (data.authToken) {
+      try {
+        const decoded = this.jwtService.verify<{ sub: string }>(
+          data.authToken,
+          {
+            secret: this.configService.get<string>('JWT_SECRET'),
+          },
+        );
+        userId = decoded.sub;
+      } catch {
+        // invalid token, left as guest
+      }
+    }
+
     await this.gameService.addPlayer(
       data.roomCode,
       token,
       client.id,
       data.nickname,
       data.avatar ?? null,
+      userId,
     );
 
     void client.join(data.roomCode);
@@ -342,7 +359,8 @@ export class GameGateway {
       response.startTime = info.questionStartTime;
 
       if (info.phase === 'REVEAL' && question) {
-        response.correctOptionId = question.correctOptionId;
+        response.correctOptionId = question.correctOptionIds[0]; // fallback for single-picker UI compatibility if needed
+        (response as any).correctOptionIds = question.correctOptionIds;
       }
     }
 
@@ -371,7 +389,7 @@ export class GameGateway {
         await this.gameService.updateGameInfo(roomCode, { phase: 'REVEAL' });
 
         this.server.to(roomCode).emit('reveal', {
-          correctOptionId: currentQuestion.correctOptionId,
+          correctOptionIds: currentQuestion.correctOptionIds,
         });
 
         // move to leaderboard after 3 sec
@@ -404,7 +422,7 @@ export class GameGateway {
 
       if (!answer) continue;
 
-      if (answer.selectedOptionId === currentQuestion.correctOptionId) {
+      if (currentQuestion.correctOptionIds.includes(answer.selectedOptionId)) {
         const maxScore = 1000;
 
         const timeFactor =

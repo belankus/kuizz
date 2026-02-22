@@ -1,9 +1,9 @@
 import GameContainer from "@/components/game/GameContainer";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     roomCode: string;
-  };
+  }>;
 }
 
 export default async function GamePage({ params }: PageProps) {

@@ -4,6 +4,7 @@ import {
   Patch,
   Body,
   Req,
+  Param,
   UseGuards,
   BadRequestException,
 } from '@nestjs/common';
@@ -96,5 +97,50 @@ export class ProfileController {
       select: { id: true, avatar: true },
     });
     return updated;
+  }
+
+  @Get('me/history')
+  async getHistory(@Req() req: AuthRequest) {
+    const history = await this.prisma.gamePlayer.findMany({
+      where: { userId: req.user.id },
+      include: {
+        session: {
+          select: {
+            title: true,
+            createdAt: true,
+            totalQuestions: true,
+          },
+        },
+      },
+      orderBy: { joinedAt: 'desc' },
+    });
+    return history;
+  }
+
+  @Get('me/history/:id')
+  async getHistoryDetail(@Req() req: AuthRequest, @Param('id') id: string) {
+    const player = await this.prisma.gamePlayer.findUnique({
+      where: {
+        id,
+        userId: req.user.id,
+      },
+      include: {
+        session: {
+          select: {
+            title: true,
+            createdAt: true,
+            questions: true,
+            totalQuestions: true,
+          },
+        },
+        answers: true,
+      },
+    });
+
+    if (!player) {
+      throw new BadRequestException('History record not found');
+    }
+
+    return player;
   }
 }

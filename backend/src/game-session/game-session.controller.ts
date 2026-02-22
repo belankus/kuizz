@@ -51,4 +51,14 @@ export class GameSessionController {
     await this.gameSessionService.delete(id, hostId);
     return { success: true };
   }
+
+  @Get(':id/players/:playerId')
+  async getPlayerDetail(
+    @Req() req: AuthRequest,
+    @Param('id') id: string,
+    @Param('playerId') playerId: string,
+  ) {
+    const hostId = req.user.id;
+    return await this.gameSessionService.getPlayerDetail(id, playerId, hostId);
+  }
 }

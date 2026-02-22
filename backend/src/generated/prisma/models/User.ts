@@ -219,6 +219,7 @@ export type UserWhereInput = {
   avatar?: Prisma.JsonNullableFilter<"User">
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   quizzes?: Prisma.QuizListRelationFilter
+  gameHistory?: Prisma.GamePlayerListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -233,6 +234,7 @@ export type UserOrderByWithRelationInput = {
   avatar?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   quizzes?: Prisma.QuizOrderByRelationAggregateInput
+  gameHistory?: Prisma.GamePlayerOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -250,6 +252,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   avatar?: Prisma.JsonNullableFilter<"User">
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   quizzes?: Prisma.QuizListRelationFilter
+  gameHistory?: Prisma.GamePlayerListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -296,6 +299,7 @@ export type UserCreateInput = {
   avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   quizzes?: Prisma.QuizCreateNestedManyWithoutOwnerInput
+  gameHistory?: Prisma.GamePlayerCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -310,6 +314,7 @@ export type UserUncheckedCreateInput = {
   avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   quizzes?: Prisma.QuizUncheckedCreateNestedManyWithoutOwnerInput
+  gameHistory?: Prisma.GamePlayerUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -324,6 +329,7 @@ export type UserUpdateInput = {
   avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quizzes?: Prisma.QuizUpdateManyWithoutOwnerNestedInput
+  gameHistory?: Prisma.GamePlayerUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -338,6 +344,7 @@ export type UserUncheckedUpdateInput = {
   avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   quizzes?: Prisma.QuizUncheckedUpdateManyWithoutOwnerNestedInput
+  gameHistory?: Prisma.GamePlayerUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -453,6 +460,22 @@ export type UserUpdateOneWithoutQuizzesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutQuizzesInput, Prisma.UserUpdateWithoutQuizzesInput>, Prisma.UserUncheckedUpdateWithoutQuizzesInput>
 }
 
+export type UserCreateNestedOneWithoutGameHistoryInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGameHistoryInput, Prisma.UserUncheckedCreateWithoutGameHistoryInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGameHistoryInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutGameHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutGameHistoryInput, Prisma.UserUncheckedCreateWithoutGameHistoryInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutGameHistoryInput
+  upsert?: Prisma.UserUpsertWithoutGameHistoryInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutGameHistoryInput, Prisma.UserUpdateWithoutGameHistoryInput>, Prisma.UserUncheckedUpdateWithoutGameHistoryInput>
+}
+
 export type UserCreateWithoutQuizzesInput = {
   id?: string
   email: string
@@ -464,6 +487,7 @@ export type UserCreateWithoutQuizzesInput = {
   refreshToken?: string | null
   avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  gameHistory?: Prisma.GamePlayerCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutQuizzesInput = {
@@ -477,6 +501,7 @@ export type UserUncheckedCreateWithoutQuizzesInput = {
   refreshToken?: string | null
   avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  gameHistory?: Prisma.GamePlayerUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutQuizzesInput = {
@@ -506,6 +531,7 @@ export type UserUpdateWithoutQuizzesInput = {
   refreshToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  gameHistory?: Prisma.GamePlayerUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutQuizzesInput = {
@@ -519,6 +545,79 @@ export type UserUncheckedUpdateWithoutQuizzesInput = {
   refreshToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  gameHistory?: Prisma.GamePlayerUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutGameHistoryInput = {
+  id?: string
+  email: string
+  name?: string | null
+  password?: string | null
+  role?: $Enums.Role
+  provider?: string | null
+  providerId?: string | null
+  refreshToken?: string | null
+  avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  quizzes?: Prisma.QuizCreateNestedManyWithoutOwnerInput
+}
+
+export type UserUncheckedCreateWithoutGameHistoryInput = {
+  id?: string
+  email: string
+  name?: string | null
+  password?: string | null
+  role?: $Enums.Role
+  provider?: string | null
+  providerId?: string | null
+  refreshToken?: string | null
+  avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  quizzes?: Prisma.QuizUncheckedCreateNestedManyWithoutOwnerInput
+}
+
+export type UserCreateOrConnectWithoutGameHistoryInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutGameHistoryInput, Prisma.UserUncheckedCreateWithoutGameHistoryInput>
+}
+
+export type UserUpsertWithoutGameHistoryInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutGameHistoryInput, Prisma.UserUncheckedUpdateWithoutGameHistoryInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutGameHistoryInput, Prisma.UserUncheckedCreateWithoutGameHistoryInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutGameHistoryInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutGameHistoryInput, Prisma.UserUncheckedUpdateWithoutGameHistoryInput>
+}
+
+export type UserUpdateWithoutGameHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  provider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quizzes?: Prisma.QuizUpdateManyWithoutOwnerNestedInput
+}
+
+export type UserUncheckedUpdateWithoutGameHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  provider?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  refreshToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  quizzes?: Prisma.QuizUncheckedUpdateManyWithoutOwnerNestedInput
 }
 
 
@@ -528,10 +627,12 @@ export type UserUncheckedUpdateWithoutQuizzesInput = {
 
 export type UserCountOutputType = {
   quizzes: number
+  gameHistory: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   quizzes?: boolean | UserCountOutputTypeCountQuizzesArgs
+  gameHistory?: boolean | UserCountOutputTypeCountGameHistoryArgs
 }
 
 /**
@@ -551,6 +652,13 @@ export type UserCountOutputTypeCountQuizzesArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.QuizWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountGameHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.GamePlayerWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -564,6 +672,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   avatar?: boolean
   createdAt?: boolean
   quizzes?: boolean | Prisma.User$quizzesArgs<ExtArgs>
+  gameHistory?: boolean | Prisma.User$gameHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -609,6 +718,7 @@ export type UserSelectScalar = {
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "password" | "role" | "provider" | "providerId" | "refreshToken" | "avatar" | "createdAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   quizzes?: boolean | Prisma.User$quizzesArgs<ExtArgs>
+  gameHistory?: boolean | Prisma.User$gameHistoryArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -618,6 +728,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     quizzes: Prisma.$QuizPayload<ExtArgs>[]
+    gameHistory: Prisma.$GamePlayerPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1025,6 +1136,7 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   quizzes<T extends Prisma.User$quizzesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$quizzesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$QuizPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  gameHistory<T extends Prisma.User$gameHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$gameHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GamePlayerPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1473,6 +1585,30 @@ export type User$quizzesArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.QuizScalarFieldEnum | Prisma.QuizScalarFieldEnum[]
+}
+
+/**
+ * User.gameHistory
+ */
+export type User$gameHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the GamePlayer
+   */
+  select?: Prisma.GamePlayerSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the GamePlayer
+   */
+  omit?: Prisma.GamePlayerOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GamePlayerInclude<ExtArgs> | null
+  where?: Prisma.GamePlayerWhereInput
+  orderBy?: Prisma.GamePlayerOrderByWithRelationInput | Prisma.GamePlayerOrderByWithRelationInput[]
+  cursor?: Prisma.GamePlayerWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.GamePlayerScalarFieldEnum | Prisma.GamePlayerScalarFieldEnum[]
 }
 
 /**

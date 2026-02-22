@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
@@ -19,11 +20,13 @@ import {
   ChevronDown,
 } from "lucide-react";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import Link from "next/link";
 
 // Dynamically import ApexCharts to avoid SSR issues
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -320,98 +323,77 @@ export default function GameStatsPage() {
           {playersDetail.length === 0 ? (
             <p className="text-sm text-gray-500">No player data available.</p>
           ) : (
-            <Accordion type="multiple" className="space-y-2">
-              {playersDetail.map((player) => (
-                <AccordionItem
-                  key={player.id}
-                  value={player.id}
-                  className="rounded-xl border border-gray-200 px-4 dark:border-gray-700"
-                >
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex w-full items-center justify-between pr-2">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 font-bold text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
-                          {player.nickname.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="font-semibold text-gray-800 dark:text-gray-100">
-                          {player.nickname}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="text-gray-500">
-                          {player.answers.filter((a) => a.isCorrect).length}/
-                          {player.answers.length} correct
-                        </span>
-                        <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                          {player.totalScore} pts
-                        </Badge>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="mt-1 overflow-hidden rounded-lg border border-gray-100 dark:border-gray-800">
-                      <table className="w-full text-sm">
-                        <thead className="bg-gray-50 dark:bg-gray-800">
-                          <tr>
-                            <th className="px-4 py-2 text-left font-medium text-gray-500">
-                              Question
-                            </th>
-                            <th className="px-4 py-2 text-left font-medium text-gray-500">
-                              Result
-                            </th>
-                            <th className="px-4 py-2 text-left font-medium text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3.5 w-3.5" /> Time
-                              </span>
-                            </th>
-                            <th className="px-4 py-2 text-left font-medium text-gray-500">
-                              Score
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                          {player.answers.map((answer) => (
-                            <tr
-                              key={answer.questionIndex}
-                              className="hover:bg-gray-50 dark:hover:bg-gray-800/50"
+            <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
+              <div className="max-w-full overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
+                    <TableRow>
+                      <TableCell
+                        isHeader
+                        className="px-6 py-4 font-medium text-gray-500"
+                      >
+                        Nickname
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-6 py-4 font-medium text-gray-500"
+                      >
+                        Correctness
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-6 py-4 font-medium text-gray-500"
+                      >
+                        Total Score
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-6 py-4 text-right font-medium text-gray-500"
+                      >
+                        Action
+                      </TableCell>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+                    {playersDetail.map((player) => (
+                      <TableRow
+                        key={player.id}
+                        className="transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      >
+                        <TableCell className="px-6 py-4 font-medium text-gray-800 dark:text-gray-200">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 font-bold text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
+                              {player.nickname.charAt(0).toUpperCase()}
+                            </div>
+                            {player.nickname}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <span className="text-gray-500 dark:text-gray-400">
+                            {player.answers.filter((a) => a.isCorrect).length}/
+                            {session.totalQuestions} correct
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-6 py-4">
+                          <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                            {player.totalScore} pts
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-right">
+                          <Button size="sm" variant="outline" asChild>
+                            <Link
+                              href={`/dashboard/rooms/${gamesessionid}/stats/${player.id}`}
                             >
-                              <td className="px-4 py-2.5 font-medium text-gray-700 dark:text-gray-300">
-                                Q{answer.questionIndex + 1}
-                              </td>
-                              <td className="px-4 py-2.5">
-                                {answer.isCorrect ? (
-                                  <span className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                                    <CheckCircle2 className="h-4 w-4" /> Correct
-                                  </span>
-                                ) : (
-                                  <span className="flex items-center gap-1 text-red-500 dark:text-red-400">
-                                    <XCircle className="h-4 w-4" /> Wrong
-                                  </span>
-                                )}
-                              </td>
-                              <td className="px-4 py-2.5 text-gray-600 dark:text-gray-400">
-                                {(answer.responseTime / 1000).toFixed(2)}s
-                              </td>
-                              <td className="px-4 py-2.5">
-                                <span
-                                  className={`font-semibold ${
-                                    answer.score > 0
-                                      ? "text-indigo-600 dark:text-indigo-400"
-                                      : "text-gray-400"
-                                  }`}
-                                >
-                                  +{answer.score}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+                              View Details
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
           )}
         </div>
       </div>

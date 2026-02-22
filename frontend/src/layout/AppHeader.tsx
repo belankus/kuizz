@@ -166,12 +166,6 @@ const AppHeader: React.FC = () => {
               <Button size="sm">Join</Button>
             </Link>
 
-            <Link href="/lobby?quizId=12345">
-              <Button size="sm" variant="outline">
-                Lobby
-              </Button>
-            </Link>
-
             {/* <!-- Dark Mode Toggler --> */}
             <ThemeToggleButton />
             {/* <!-- Dark Mode Toggler --> */}

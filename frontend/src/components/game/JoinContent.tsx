@@ -98,6 +98,9 @@ export default function JoinContent() {
       localStorage.setItem("nickname", nick);
       localStorage.setItem("roomCode", code);
       localStorage.setItem("playerToken", data.playerToken);
+      if (avatarToSend) {
+        localStorage.setItem("guestAvatar", JSON.stringify(avatarToSend));
+      }
 
       router.push(`/game/${code}`);
     };
@@ -138,6 +141,7 @@ export default function JoinContent() {
       nickname: nick,
       playerToken: existingToken ?? undefined,
       avatar: avatarToSend,
+      authToken: getAccessToken() ?? undefined,
     });
   };
 
