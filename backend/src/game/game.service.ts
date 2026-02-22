@@ -21,7 +21,7 @@ export interface GameInfo {
   createdAt: number;
 }
 
-type SnapshotQuestion = {
+export type SnapshotQuestion = {
   id: string;
   question: string;
   options: { id: string; text: string }[];
@@ -93,7 +93,8 @@ export class GameService {
     // 🔥 CREATE GAME SESSION IN DB
     const session = await this.prisma.gameSession.create({
       data: {
-        hostId, // <= FIX: Add hostId here
+        hostId,
+        roomCode, // <= NEW: Store roomCode
         quizId: quiz.id,
         title: quiz.title,
         questions: snapshotQuestions as Prisma.InputJsonValue,

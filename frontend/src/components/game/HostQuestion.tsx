@@ -14,6 +14,7 @@ interface HostQuestionProps {
   correctOptionIds?: string[];
   phase: "QUESTION" | "REVEAL";
   onEndQuestion: () => void;
+  onSkipQuestion?: () => void;
 }
 
 export default function HostQuestion({
@@ -28,6 +29,7 @@ export default function HostQuestion({
   correctOptionIds,
   phase,
   onEndQuestion,
+  onSkipQuestion,
 }: HostQuestionProps) {
   const totalAnswered = Object.values(answerStats).reduce((a, b) => a + b, 0);
 
@@ -114,12 +116,23 @@ export default function HostQuestion({
       {/* Host Controls */}
       <div className="mt-16 flex justify-center gap-6">
         {phase === "QUESTION" && (
-          <button
-            onClick={onEndQuestion}
-            className="rounded-lg bg-white px-8 py-3 font-semibold text-indigo-800 shadow hover:bg-white/80"
-          >
-            End Question
-          </button>
+          <div className="flex gap-4">
+            {totalAnswered === totalPlayers && onSkipQuestion ? (
+              <button
+                onClick={onSkipQuestion}
+                className="rounded-lg bg-yellow-400 px-8 py-3 font-semibold text-black shadow hover:bg-yellow-300"
+              >
+                Next Question
+              </button>
+            ) : (
+              <button
+                onClick={onEndQuestion}
+                className="rounded-lg bg-white px-8 py-3 font-semibold text-indigo-800 shadow hover:bg-white/80"
+              >
+                End Question
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

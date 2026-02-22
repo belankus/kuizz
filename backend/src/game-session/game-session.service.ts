@@ -38,6 +38,7 @@ export class GameSessionService {
         id: d.id,
         title: d.title,
         status: d.status,
+        roomCode: d.roomCode, // NEW: return roomCode
         createdAt: d.createdAt,
         finishedAt: d.finishedAt,
         totalPlayers: d._count.players,

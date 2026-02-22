@@ -67,6 +67,7 @@ model Option {
 model GameSession {
   id             String       @id @default(uuid())
   hostId         String?
+  roomCode       String? // added for re-entering lobby
   quizId         String?
   quiz           Quiz?        @relation("QuizToGameSessions", fields: [quizId], references: [id], onDelete: SetNull)
   title          String // snapshot quiz title

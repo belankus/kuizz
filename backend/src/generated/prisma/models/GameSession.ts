@@ -37,6 +37,7 @@ export type GameSessionSumAggregateOutputType = {
 export type GameSessionMinAggregateOutputType = {
   id: string | null
   hostId: string | null
+  roomCode: string | null
   quizId: string | null
   title: string | null
   totalQuestions: number | null
@@ -48,6 +49,7 @@ export type GameSessionMinAggregateOutputType = {
 export type GameSessionMaxAggregateOutputType = {
   id: string | null
   hostId: string | null
+  roomCode: string | null
   quizId: string | null
   title: string | null
   totalQuestions: number | null
@@ -59,6 +61,7 @@ export type GameSessionMaxAggregateOutputType = {
 export type GameSessionCountAggregateOutputType = {
   id: number
   hostId: number
+  roomCode: number
   quizId: number
   title: number
   questions: number
@@ -81,6 +84,7 @@ export type GameSessionSumAggregateInputType = {
 export type GameSessionMinAggregateInputType = {
   id?: true
   hostId?: true
+  roomCode?: true
   quizId?: true
   title?: true
   totalQuestions?: true
@@ -92,6 +96,7 @@ export type GameSessionMinAggregateInputType = {
 export type GameSessionMaxAggregateInputType = {
   id?: true
   hostId?: true
+  roomCode?: true
   quizId?: true
   title?: true
   totalQuestions?: true
@@ -103,6 +108,7 @@ export type GameSessionMaxAggregateInputType = {
 export type GameSessionCountAggregateInputType = {
   id?: true
   hostId?: true
+  roomCode?: true
   quizId?: true
   title?: true
   questions?: true
@@ -202,6 +208,7 @@ export type GameSessionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type GameSessionGroupByOutputType = {
   id: string
   hostId: string | null
+  roomCode: string | null
   quizId: string | null
   title: string
   questions: runtime.JsonValue
@@ -237,6 +244,7 @@ export type GameSessionWhereInput = {
   NOT?: Prisma.GameSessionWhereInput | Prisma.GameSessionWhereInput[]
   id?: Prisma.StringFilter<"GameSession"> | string
   hostId?: Prisma.StringNullableFilter<"GameSession"> | string | null
+  roomCode?: Prisma.StringNullableFilter<"GameSession"> | string | null
   quizId?: Prisma.StringNullableFilter<"GameSession"> | string | null
   title?: Prisma.StringFilter<"GameSession"> | string
   questions?: Prisma.JsonFilter<"GameSession">
@@ -251,6 +259,7 @@ export type GameSessionWhereInput = {
 export type GameSessionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   hostId?: Prisma.SortOrderInput | Prisma.SortOrder
+  roomCode?: Prisma.SortOrderInput | Prisma.SortOrder
   quizId?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrder
   questions?: Prisma.SortOrder
@@ -268,6 +277,7 @@ export type GameSessionWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.GameSessionWhereInput[]
   NOT?: Prisma.GameSessionWhereInput | Prisma.GameSessionWhereInput[]
   hostId?: Prisma.StringNullableFilter<"GameSession"> | string | null
+  roomCode?: Prisma.StringNullableFilter<"GameSession"> | string | null
   quizId?: Prisma.StringNullableFilter<"GameSession"> | string | null
   title?: Prisma.StringFilter<"GameSession"> | string
   questions?: Prisma.JsonFilter<"GameSession">
@@ -282,6 +292,7 @@ export type GameSessionWhereUniqueInput = Prisma.AtLeast<{
 export type GameSessionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   hostId?: Prisma.SortOrderInput | Prisma.SortOrder
+  roomCode?: Prisma.SortOrderInput | Prisma.SortOrder
   quizId?: Prisma.SortOrderInput | Prisma.SortOrder
   title?: Prisma.SortOrder
   questions?: Prisma.SortOrder
@@ -302,6 +313,7 @@ export type GameSessionScalarWhereWithAggregatesInput = {
   NOT?: Prisma.GameSessionScalarWhereWithAggregatesInput | Prisma.GameSessionScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"GameSession"> | string
   hostId?: Prisma.StringNullableWithAggregatesFilter<"GameSession"> | string | null
+  roomCode?: Prisma.StringNullableWithAggregatesFilter<"GameSession"> | string | null
   quizId?: Prisma.StringNullableWithAggregatesFilter<"GameSession"> | string | null
   title?: Prisma.StringWithAggregatesFilter<"GameSession"> | string
   questions?: Prisma.JsonWithAggregatesFilter<"GameSession">
@@ -314,6 +326,7 @@ export type GameSessionScalarWhereWithAggregatesInput = {
 export type GameSessionCreateInput = {
   id?: string
   hostId?: string | null
+  roomCode?: string | null
   title: string
   questions: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions: number
@@ -327,6 +340,7 @@ export type GameSessionCreateInput = {
 export type GameSessionUncheckedCreateInput = {
   id?: string
   hostId?: string | null
+  roomCode?: string | null
   quizId?: string | null
   title: string
   questions: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -340,6 +354,7 @@ export type GameSessionUncheckedCreateInput = {
 export type GameSessionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   questions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions?: Prisma.IntFieldUpdateOperationsInput | number
@@ -353,6 +368,7 @@ export type GameSessionUpdateInput = {
 export type GameSessionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quizId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   questions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -366,6 +382,7 @@ export type GameSessionUncheckedUpdateInput = {
 export type GameSessionCreateManyInput = {
   id?: string
   hostId?: string | null
+  roomCode?: string | null
   quizId?: string | null
   title: string
   questions: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -378,6 +395,7 @@ export type GameSessionCreateManyInput = {
 export type GameSessionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   questions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions?: Prisma.IntFieldUpdateOperationsInput | number
@@ -389,6 +407,7 @@ export type GameSessionUpdateManyMutationInput = {
 export type GameSessionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quizId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   questions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -411,6 +430,7 @@ export type GameSessionOrderByRelationAggregateInput = {
 export type GameSessionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
+  roomCode?: Prisma.SortOrder
   quizId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   questions?: Prisma.SortOrder
@@ -427,6 +447,7 @@ export type GameSessionAvgOrderByAggregateInput = {
 export type GameSessionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
+  roomCode?: Prisma.SortOrder
   quizId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   totalQuestions?: Prisma.SortOrder
@@ -438,6 +459,7 @@ export type GameSessionMaxOrderByAggregateInput = {
 export type GameSessionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   hostId?: Prisma.SortOrder
+  roomCode?: Prisma.SortOrder
   quizId?: Prisma.SortOrder
   title?: Prisma.SortOrder
   totalQuestions?: Prisma.SortOrder
@@ -522,6 +544,7 @@ export type GameSessionUpdateOneRequiredWithoutPlayersNestedInput = {
 export type GameSessionCreateWithoutQuizInput = {
   id?: string
   hostId?: string | null
+  roomCode?: string | null
   title: string
   questions: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions: number
@@ -534,6 +557,7 @@ export type GameSessionCreateWithoutQuizInput = {
 export type GameSessionUncheckedCreateWithoutQuizInput = {
   id?: string
   hostId?: string | null
+  roomCode?: string | null
   title: string
   questions: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions: number
@@ -575,6 +599,7 @@ export type GameSessionScalarWhereInput = {
   NOT?: Prisma.GameSessionScalarWhereInput | Prisma.GameSessionScalarWhereInput[]
   id?: Prisma.StringFilter<"GameSession"> | string
   hostId?: Prisma.StringNullableFilter<"GameSession"> | string | null
+  roomCode?: Prisma.StringNullableFilter<"GameSession"> | string | null
   quizId?: Prisma.StringNullableFilter<"GameSession"> | string | null
   title?: Prisma.StringFilter<"GameSession"> | string
   questions?: Prisma.JsonFilter<"GameSession">
@@ -587,6 +612,7 @@ export type GameSessionScalarWhereInput = {
 export type GameSessionCreateWithoutPlayersInput = {
   id?: string
   hostId?: string | null
+  roomCode?: string | null
   title: string
   questions: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions: number
@@ -599,6 +625,7 @@ export type GameSessionCreateWithoutPlayersInput = {
 export type GameSessionUncheckedCreateWithoutPlayersInput = {
   id?: string
   hostId?: string | null
+  roomCode?: string | null
   quizId?: string | null
   title: string
   questions: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -627,6 +654,7 @@ export type GameSessionUpdateToOneWithWhereWithoutPlayersInput = {
 export type GameSessionUpdateWithoutPlayersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   questions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions?: Prisma.IntFieldUpdateOperationsInput | number
@@ -639,6 +667,7 @@ export type GameSessionUpdateWithoutPlayersInput = {
 export type GameSessionUncheckedUpdateWithoutPlayersInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   quizId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   questions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
@@ -651,6 +680,7 @@ export type GameSessionUncheckedUpdateWithoutPlayersInput = {
 export type GameSessionCreateManyQuizInput = {
   id?: string
   hostId?: string | null
+  roomCode?: string | null
   title: string
   questions: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions: number
@@ -662,6 +692,7 @@ export type GameSessionCreateManyQuizInput = {
 export type GameSessionUpdateWithoutQuizInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   questions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions?: Prisma.IntFieldUpdateOperationsInput | number
@@ -674,6 +705,7 @@ export type GameSessionUpdateWithoutQuizInput = {
 export type GameSessionUncheckedUpdateWithoutQuizInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   questions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions?: Prisma.IntFieldUpdateOperationsInput | number
@@ -686,6 +718,7 @@ export type GameSessionUncheckedUpdateWithoutQuizInput = {
 export type GameSessionUncheckedUpdateManyWithoutQuizInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   hostId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  roomCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   title?: Prisma.StringFieldUpdateOperationsInput | string
   questions?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   totalQuestions?: Prisma.IntFieldUpdateOperationsInput | number
@@ -728,6 +761,7 @@ export type GameSessionCountOutputTypeCountPlayersArgs<ExtArgs extends runtime.T
 export type GameSessionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   hostId?: boolean
+  roomCode?: boolean
   quizId?: boolean
   title?: boolean
   questions?: boolean
@@ -743,6 +777,7 @@ export type GameSessionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
 export type GameSessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   hostId?: boolean
+  roomCode?: boolean
   quizId?: boolean
   title?: boolean
   questions?: boolean
@@ -756,6 +791,7 @@ export type GameSessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
 export type GameSessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   hostId?: boolean
+  roomCode?: boolean
   quizId?: boolean
   title?: boolean
   questions?: boolean
@@ -769,6 +805,7 @@ export type GameSessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
 export type GameSessionSelectScalar = {
   id?: boolean
   hostId?: boolean
+  roomCode?: boolean
   quizId?: boolean
   title?: boolean
   questions?: boolean
@@ -778,7 +815,7 @@ export type GameSessionSelectScalar = {
   status?: boolean
 }
 
-export type GameSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "hostId" | "quizId" | "title" | "questions" | "totalQuestions" | "createdAt" | "finishedAt" | "status", ExtArgs["result"]["gameSession"]>
+export type GameSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "hostId" | "roomCode" | "quizId" | "title" | "questions" | "totalQuestions" | "createdAt" | "finishedAt" | "status", ExtArgs["result"]["gameSession"]>
 export type GameSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   quiz?: boolean | Prisma.GameSession$quizArgs<ExtArgs>
   players?: boolean | Prisma.GameSession$playersArgs<ExtArgs>
@@ -800,6 +837,7 @@ export type $GameSessionPayload<ExtArgs extends runtime.Types.Extensions.Interna
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     hostId: string | null
+    roomCode: string | null
     quizId: string | null
     title: string
     questions: runtime.JsonValue
@@ -1234,6 +1272,7 @@ export interface Prisma__GameSessionClient<T, Null = never, ExtArgs extends runt
 export interface GameSessionFieldRefs {
   readonly id: Prisma.FieldRef<"GameSession", 'String'>
   readonly hostId: Prisma.FieldRef<"GameSession", 'String'>
+  readonly roomCode: Prisma.FieldRef<"GameSession", 'String'>
   readonly quizId: Prisma.FieldRef<"GameSession", 'String'>
   readonly title: Prisma.FieldRef<"GameSession", 'String'>
   readonly questions: Prisma.FieldRef<"GameSession", 'Json'>

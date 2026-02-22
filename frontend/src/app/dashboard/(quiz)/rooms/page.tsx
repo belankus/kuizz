@@ -58,6 +58,7 @@ type GameSession = {
   createdAt: string;
   finishedAt: string | null;
   totalPlayers: number;
+  roomCode: string | null;
 };
 
 export default function RoomsPage() {
@@ -233,6 +234,24 @@ export default function RoomsPage() {
                                       <BarChartBig className="mr-2 h-4 w-4" />
                                       Statistics
                                     </DropdownMenuItem>
+                                    {(session.status === "WAITING" ||
+                                      session.status === "STARTED") &&
+                                      session.roomCode && (
+                                        <DropdownMenuItem
+                                          onSelect={() => {
+                                            localStorage.setItem(
+                                              "hostRoom",
+                                              session.roomCode!,
+                                            );
+                                            router.push(
+                                              `/game/${session.roomCode}`,
+                                            );
+                                          }}
+                                        >
+                                          <Gamepad2 className="mr-2 h-4 w-4" />
+                                          Enter Lobby
+                                        </DropdownMenuItem>
+                                      )}
                                   </DropdownMenuGroup>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuGroup>

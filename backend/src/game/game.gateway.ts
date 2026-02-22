@@ -6,7 +6,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { GameService } from './game.service.js';
+import { GameService, SnapshotQuestion } from './game.service.js';
 import { randomUUID } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -342,14 +342,17 @@ export class GameGateway {
       phase: string;
       players: unknown[];
       isLocked: boolean;
-      question?: unknown;
+      sessionId: string; // NEW
+      question?: SnapshotQuestion;
       startTime?: number;
       correctOptionId?: string;
+      correctOptionIds?: string[];
       rankings?: unknown[];
     } = {
       phase: info.phase,
       players: playersList,
       isLocked: info.isLocked,
+      sessionId: info.sessionId, // NEW
     };
 
     if (info.phase === 'QUESTION' || info.phase === 'REVEAL') {
@@ -360,7 +363,7 @@ export class GameGateway {
 
       if (info.phase === 'REVEAL' && question) {
         response.correctOptionId = question.correctOptionIds[0]; // fallback for single-picker UI compatibility if needed
-        (response as any).correctOptionIds = question.correctOptionIds;
+        response.correctOptionIds = question.correctOptionIds;
       }
     }
 
@@ -378,13 +381,20 @@ export class GameGateway {
 
     const questions = await this.gameService.getQuestions(roomCode);
     if (questions.length === 0) return;
-    const currentQuestion = questions[info.currentQuestionIndex];
+    const questionIndex = info.currentQuestionIndex;
+    const currentQuestion = questions[questionIndex];
 
     setTimeout(() => {
       void (async () => {
         const updatedInfo = await this.gameService.getGameInfo(roomCode);
 
-        if (!updatedInfo || updatedInfo.phase !== 'QUESTION') return;
+        // 🔥 GUARD: Only proceed if we are still on the SAME question and in QUESTION phase
+        if (
+          !updatedInfo ||
+          updatedInfo.phase !== 'QUESTION' ||
+          updatedInfo.currentQuestionIndex !== questionIndex
+        )
+          return;
 
         await this.gameService.updateGameInfo(roomCode, { phase: 'REVEAL' });
 
@@ -395,6 +405,13 @@ export class GameGateway {
         // move to leaderboard after 3 sec
         setTimeout(() => {
           void (async () => {
+            const finalInfo = await this.gameService.getGameInfo(roomCode);
+            if (
+              !finalInfo ||
+              finalInfo.phase !== 'REVEAL' ||
+              finalInfo.currentQuestionIndex !== questionIndex
+            )
+              return;
             await this.moveToLeaderboard(roomCode);
           })();
         }, 3000);
@@ -492,5 +509,59 @@ export class GameGateway {
         }
       })();
     }, 3000);
+  }
+
+  @SubscribeMessage('force_reveal')
+  async handleForceReveal(
+    @MessageBody() data: { roomCode: string; hostToken: string },
+  ) {
+    const info = await this.gameService.getGameInfo(data.roomCode);
+    if (!info || info.phase !== 'QUESTION' || info.hostToken !== data.hostToken)
+      return;
+
+    const questions = await this.gameService.getQuestions(data.roomCode);
+    const questionIndex = info.currentQuestionIndex;
+    const currentQuestion = questions[questionIndex];
+
+    await this.gameService.updateGameInfo(data.roomCode, { phase: 'REVEAL' });
+
+    this.server.to(data.roomCode).emit('reveal', {
+      correctOptionIds: currentQuestion.correctOptionIds,
+    });
+
+    // move to leaderboard after 3 sec
+    setTimeout(() => {
+      void (async () => {
+        const updatedInfo = await this.gameService.getGameInfo(data.roomCode);
+        if (
+          !updatedInfo ||
+          updatedInfo.phase !== 'REVEAL' ||
+          updatedInfo.currentQuestionIndex !== questionIndex
+        )
+          return;
+        await this.moveToLeaderboard(data.roomCode);
+      })();
+    }, 3000);
+  }
+
+  @SubscribeMessage('abort_game')
+  async handleAbortGame(
+    @MessageBody() data: { roomCode: string; hostToken: string },
+  ) {
+    const info = await this.gameService.getGameInfo(data.roomCode);
+    if (!info || info.hostToken !== data.hostToken) return;
+
+    await this.gameService.updateGameInfo(data.roomCode, {
+      phase: 'FINISHED',
+    });
+
+    const finalRankings = await this.gameService.getLeaderboard(data.roomCode);
+
+    this.server.to(data.roomCode).emit('game_finished', {
+      finalRankings,
+    });
+
+    // 🔥 PERSIST TO DB + CLEAN REDIS
+    await this.gameService.finalizeGame(data.roomCode);
   }
 }

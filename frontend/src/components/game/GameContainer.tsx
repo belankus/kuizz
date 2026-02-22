@@ -40,6 +40,7 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
   const [correctOptionIds, setCorrectOptionIds] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [rankings, setRankings] = useState<any[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const prevRankingsRef = useRef<any[]>([]);
   const playersRef = useRef<any[]>([]);
 
@@ -64,6 +65,17 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
     localStorage.removeItem("roomCode");
     localStorage.removeItem("hostRoom");
     router.push("/");
+  };
+
+  const handleAbortGame = () => {
+    if (
+      confirm("Are you sure you want to end the game early for all players?")
+    ) {
+      socket.emit("abort_game", {
+        roomCode,
+        hostToken,
+      });
+    }
   };
 
   useEffect(() => {
@@ -117,6 +129,7 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
       if (data.isLocked !== undefined) setIsLocked(data.isLocked);
       if (data.players) setPlayers(data.players);
       if (data.question) setQuestion(data.question);
+      if (data.sessionId) setSessionId(data.sessionId);
       if (data.correctOptionIds) setCorrectOptionIds(data.correctOptionIds);
       else if (data.correctOptionId)
         setCorrectOptionIds([data.correctOptionId]);
@@ -224,115 +237,142 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
     });
   };
 
-  switch (phase) {
-    case "COUNTDOWN":
-      return <Countdown />;
+  return (
+    <div className="relative min-h-screen">
+      {isHost && phase !== "FINISHED" && (
+        <button
+          onClick={handleAbortGame}
+          className="absolute top-4 right-4 z-50 rounded-lg bg-red-600/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm hover:bg-red-600/40"
+        >
+          End Game
+        </button>
+      )}
+      {(() => {
+        switch (phase) {
+          case "COUNTDOWN":
+            return <Countdown />;
 
-    case "QUESTION":
-      if (!question) return null;
+          case "QUESTION":
+            if (!question) return null;
 
-      return isHost ? (
-        <HostQuestion
-          question={question.question}
-          options={question.options}
-          timeLeft={timeLeft}
-          totalTime={question.timeLimit}
-          remainingMs={remainingMs}
-          answerStats={answerStats}
-          totalPlayers={players.length}
-          correctOptionId={correctOptionIds[0] || ""}
-          correctOptionIds={correctOptionIds}
-          phase={phase}
-          onEndQuestion={() =>
-            socket.emit("force_reveal", {
-              roomCode,
-              hostToken,
-            })
-          }
-        />
-      ) : (
-        <Question
-          question={question.question}
-          options={question.options || []}
-          timeLeft={timeLeft}
-          totalTime={question.timeLimit}
-          remainingMs={remainingMs}
-          questionNumber={currentIndex + 1}
-          totalQuestions={totalQuestions}
-          onSelect={handleAnswer}
-        />
-      );
+            return isHost ? (
+              <HostQuestion
+                question={question.question}
+                options={question.options}
+                timeLeft={timeLeft}
+                totalTime={question.timeLimit}
+                remainingMs={remainingMs}
+                answerStats={answerStats}
+                totalPlayers={players.length}
+                correctOptionId={correctOptionIds[0] || ""}
+                correctOptionIds={correctOptionIds}
+                phase={phase}
+                onEndQuestion={() =>
+                  socket.emit("force_reveal", {
+                    roomCode,
+                    hostToken,
+                  })
+                }
+                onSkipQuestion={() =>
+                  socket.emit("force_reveal", {
+                    roomCode,
+                    hostToken,
+                  })
+                }
+              />
+            ) : (
+              <Question
+                question={question.question}
+                options={question.options || []}
+                timeLeft={timeLeft}
+                totalTime={question.timeLimit}
+                remainingMs={remainingMs}
+                questionNumber={currentIndex + 1}
+                totalQuestions={totalQuestions}
+                onSelect={handleAnswer}
+              />
+            );
 
-    case "REVEAL":
-      return isHost ? (
-        <HostQuestion
-          question={question.question}
-          options={question.options}
-          timeLeft={timeLeft}
-          totalTime={question.timeLimit}
-          remainingMs={remainingMs}
-          answerStats={answerStats}
-          totalPlayers={players.length}
-          correctOptionId={correctOptionIds[0] || ""}
-          correctOptionIds={correctOptionIds}
-          phase={phase}
-          onEndQuestion={() =>
-            socket.emit("force_reveal", {
-              roomCode,
-              hostToken,
-            })
-          }
-        />
-      ) : (
-        <Reveal
-          question={question?.question}
-          options={question?.options || []}
-          correctOptionIds={correctOptionIds}
-          selectedOptionId={selected}
-        />
-      );
+          case "REVEAL":
+            return isHost ? (
+              <HostQuestion
+                question={question.question}
+                options={question.options}
+                timeLeft={timeLeft}
+                totalTime={question.timeLimit}
+                remainingMs={remainingMs}
+                answerStats={answerStats}
+                totalPlayers={players.length}
+                correctOptionId={correctOptionIds[0] || ""}
+                correctOptionIds={correctOptionIds}
+                phase={phase}
+                onEndQuestion={() =>
+                  socket.emit("force_reveal", {
+                    roomCode,
+                    hostToken,
+                  })
+                }
+                onSkipQuestion={() =>
+                  socket.emit("force_reveal", {
+                    roomCode,
+                    hostToken,
+                  })
+                }
+              />
+            ) : (
+              <Reveal
+                question={question?.question}
+                options={question?.options || []}
+                correctOptionIds={correctOptionIds}
+                selectedOptionId={selected}
+              />
+            );
 
-    case "LEADERBOARD":
-      return (
-        <Leaderboard
-          players={rankings}
-          prevPlayers={prevRankingsRef.current}
-          myName={nickname}
-        />
-      );
+          case "LEADERBOARD":
+            return (
+              <Leaderboard
+                players={rankings}
+                prevPlayers={prevRankingsRef.current}
+                myName={nickname}
+              />
+            );
 
-    case "FINISHED":
-      return (
-        <FinalResult
-          players={rankings}
-          myName={nickname}
-          isHost={isHost}
-          onPlayAgain={handleLeaveGame}
-        />
-      );
+          case "FINISHED":
+            return (
+              <FinalResult
+                players={rankings}
+                myName={nickname}
+                isHost={isHost}
+                sessionId={sessionId}
+                onPlayAgain={handleLeaveGame}
+              />
+            );
 
-    case "ROOM_NOT_FOUND":
-      return <RoomNotFound />;
+          case "ROOM_NOT_FOUND":
+            return <RoomNotFound />;
 
-    case "GAME_ALREADY_STARTED":
-      return <GameAlreadyStarted />;
+          case "GAME_ALREADY_STARTED":
+            return <GameAlreadyStarted />;
 
-    case "ROOM_LOCKED":
-      return <RoomLocked />;
+          case "ROOM_LOCKED":
+            return <RoomLocked />;
 
-    default:
-      return isHost ? (
-        <LobbyContentHost
-          players={players}
-          joinCode={roomCode}
-          initialIsLocked={isLocked}
-        />
-      ) : (
-        <LobbyContentPlayer
-          players={players}
-          joinCode={roomCode}
-          nickname={nickname}
-        />
-      );
-  }
+          default:
+            return isHost ? (
+              <LobbyContentHost
+                players={players}
+                joinCode={roomCode}
+                initialIsLocked={isLocked}
+              />
+            ) : (
+              <LobbyContentPlayer
+                players={players}
+                joinCode={roomCode}
+                nickname={nickname}
+              />
+            );
+        }
+      })()}
+    </div>
+  );
 }

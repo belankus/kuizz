@@ -128,6 +128,7 @@ export type OptionScalarFieldEnum = (typeof OptionScalarFieldEnum)[keyof typeof 
 export const GameSessionScalarFieldEnum = {
   id: 'id',
   hostId: 'hostId',
+  roomCode: 'roomCode',
   quizId: 'quizId',
   title: 'title',
   questions: 'questions',

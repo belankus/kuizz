@@ -17,6 +17,7 @@ interface FinalResultProps {
   players: Player[];
   myName: string | null;
   isHost: boolean;
+  sessionId?: string | null;
   onPlayAgain?: () => void;
 }
 
@@ -26,6 +27,7 @@ export default function FinalResult({
   players,
   myName,
   isHost,
+  sessionId,
   onPlayAgain,
 }: FinalResultProps) {
   const [localAvatar, setLocalAvatar] = useState<AvatarConfig | null>(null);
@@ -120,14 +122,32 @@ export default function FinalResult({
       </div>
 
       {/* Actions */}
-      <div className="mt-12">
+      <div className="mt-12 flex flex-col items-center gap-4">
         {isHost ? (
-          <button
-            onClick={onPlayAgain}
-            className="rounded-lg bg-white px-6 py-3 font-semibold text-indigo-700 shadow hover:bg-white/80"
-          >
-            Play Again
-          </button>
+          <div className="flex gap-4">
+            {sessionId && (
+              <button
+                onClick={() =>
+                  (window.location.href = `/dashboard/rooms/${sessionId}/stats`)
+                }
+                className="rounded-lg bg-white/10 px-6 py-3 font-semibold text-white shadow hover:bg-white/20"
+              >
+                View Stats
+              </button>
+            )}
+            <button
+              onClick={() => (window.location.href = "/dashboard/quizes")}
+              className="rounded-lg bg-white/10 px-6 py-3 font-semibold text-white shadow hover:bg-white/20"
+            >
+              Start Over
+            </button>
+            <button
+              onClick={onPlayAgain}
+              className="rounded-lg bg-white px-6 py-3 font-semibold text-indigo-700 shadow hover:bg-white/80"
+            >
+              Play Again
+            </button>
+          </div>
         ) : (
           <div className="text-sm opacity-70">Waiting for host...</div>
         )}
