@@ -128,7 +128,7 @@ export default function FinalResult({
             {sessionId && (
               <button
                 onClick={() =>
-                  (window.location.href = `/dashboard/rooms/${sessionId}/stats`)
+                  (window.location.href = `/dashboard/reports/${sessionId}/stats`)
                 }
                 className="rounded-lg bg-white/10 px-6 py-3 font-semibold text-white shadow hover:bg-white/20"
               >

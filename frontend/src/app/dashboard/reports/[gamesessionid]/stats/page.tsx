@@ -155,7 +155,7 @@ export default function GameStatsPage() {
     <div>
       <div className="mb-4">
         <button
-          onClick={() => router.push("/dashboard/rooms")}
+          onClick={() => router.push("/dashboard/reports")}
           className="text-sm text-indigo-600 hover:underline"
         >
           &larr; Back to History
@@ -382,7 +382,7 @@ export default function GameStatsPage() {
                         <TableCell className="px-6 py-4 text-right">
                           <Button size="sm" variant="outline" asChild>
                             <Link
-                              href={`/dashboard/rooms/${gamesessionid}/stats/${player.id}`}
+                              href={`/dashboard/reports/${gamesessionid}/stats/${player.id}`}
                             >
                               View Details
                             </Link>

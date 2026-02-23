@@ -174,7 +174,7 @@ export default function Overview() {
               Recent Games
             </h4>
             <button
-              onClick={() => router.push("/dashboard/rooms")}
+              onClick={() => router.push("/dashboard/reports")}
               className="text-brand-500 hover:text-brand-600 text-sm font-medium"
             >
               View All
