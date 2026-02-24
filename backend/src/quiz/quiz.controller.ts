@@ -83,4 +83,10 @@ export class QuizController {
   async deleteQuiz(@Param('id') id: string) {
     return this.quizService.deleteQuiz(id);
   }
+
+  @Put(':id/favorite')
+  @UseGuards(JwtAuthGuard)
+  async toggleFavorite(@Param('id') id: string) {
+    return await this.quizService.toggleFavorite(id);
+  }
 }

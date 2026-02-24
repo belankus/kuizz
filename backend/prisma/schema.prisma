@@ -38,11 +38,19 @@ model Quiz {
   id           String        @id @default(uuid())
   title        String
   description  String?
+  status       QuizStatus    @default(DRAFT)
   ownerId      String?
   owner        User?         @relation(fields: [ownerId], references: [id])
   questions    Question[]
   createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  isFavorite   Boolean       @default(false)
   gameSessions GameSession[] @relation("QuizToGameSessions") // relation to GameSession
+}
+
+enum QuizStatus {
+  DRAFT
+  PUBLISHED
 }
 
 model Question {

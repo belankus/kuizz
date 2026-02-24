@@ -1,5 +1,7 @@
 export class CreateQuizDto {
   title: string;
+  description?: string;
+  status?: 'DRAFT' | 'PUBLISHED';
   questions: {
     text: string;
     timeLimit: number;
@@ -13,6 +15,7 @@ export class CreateQuizDto {
 export class UpdateQuizDto {
   title: string;
   description?: string;
+  status?: 'DRAFT' | 'PUBLISHED';
   questions: {
     text: string;
     timeLimit: number;

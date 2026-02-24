@@ -44,16 +44,13 @@ import { apiFetch, getAccessToken } from "@/lib/auth";
 type Quiz = {
   id: string;
   title: string;
+  status: "DRAFT" | "PUBLISHED";
+  updatedAt: string;
+  isFavorite: boolean;
+  _count: {
+    gameSessions: number;
+  };
   questions: { id: string }[];
-};
-
-// Mock statuses: "LIVE READY", "SELF-PACED", "DRAFT", "LIVE"
-type QuizStatus = "LIVE READY" | "SELF-PACED" | "DRAFT" | "LIVE";
-
-const getMockStatus = (id: string): QuizStatus => {
-  const hash = id.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const statuses: QuizStatus[] = ["LIVE READY", "SELF-PACED", "DRAFT", "LIVE"];
-  return statuses[hash % statuses.length];
 };
 
 export default function BasicTables() {
@@ -64,6 +61,7 @@ export default function BasicTables() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All Quizzes");
+  const [activeSort, setActiveSort] = useState("Most Recent");
 
   useEffect(() => {
     apiFetch(`/quiz`)
@@ -122,40 +120,90 @@ export default function BasicTables() {
     });
   };
 
-  const renderQuizCard = (quiz: Quiz) => {
-    const status = getMockStatus(quiz.id);
+  const handleToggleFavorite = async (
+    quizId: string,
+    currentStatus: boolean,
+  ) => {
+    try {
+      // Optimistic update
+      setQuizzes((prev) =>
+        prev.map((q) =>
+          q.id === quizId ? { ...q, isFavorite: !currentStatus } : q,
+        ),
+      );
 
-    // Status visual mapping
+      const res = await apiFetch(`/quiz/${quizId}/favorite`, {
+        method: "PUT",
+      });
+
+      if (!res.ok) throw new Error();
+    } catch {
+      toast.error("Failed to update favorite status");
+      // Revert on error
+      setQuizzes((prev) =>
+        prev.map((q) =>
+          q.id === quizId ? { ...q, isFavorite: currentStatus } : q,
+        ),
+      );
+    }
+  };
+
+  const filteredQuizzes = quizzes.filter((q) => {
+    if (activeFilter === "Favorites") return q.isFavorite;
+    if (activeFilter === "Drafts") return q.status === "DRAFT";
+    if (activeFilter === "Shared with me") return false;
+    return true;
+  });
+
+  const sortedQuizzes = [...filteredQuizzes].sort((a, b) => {
+    if (activeSort === "Most Recent") {
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    }
+    if (activeSort === "Oldest") {
+      return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+    }
+    if (activeSort === "Alphabetical (A-Z)") {
+      return a.title.localeCompare(b.title);
+    }
+    return 0;
+  });
+
+  const renderQuizCard = (quiz: Quiz) => {
+    // Determine visual treatment based on status
+    const isPublished = quiz.status === "PUBLISHED";
     let statusBg = "";
-    let statusText = "";
+    let statusText = "text-white";
     let statusBadgeClass = "";
     let cardGraphicClass = "";
 
-    switch (status) {
-      case "LIVE READY":
-        statusBg = "bg-[#2ECC71]";
-        statusText = "text-white";
-        statusBadgeClass = "bg-[#2ECC71] text-white tracking-wider";
-        cardGraphicClass = "bg-[#FFF2E5]";
-        break;
-      case "SELF-PACED":
-        statusBg = "bg-[#2D8CFF]";
-        statusText = "text-white";
-        statusBadgeClass = "bg-[#2D8CFF] text-white tracking-wider";
-        cardGraphicClass = "bg-[#E6F3EF]";
-        break;
-      case "DRAFT":
-        statusBg = "bg-[#8E95A4]";
-        statusText = "text-white";
-        statusBadgeClass = "bg-[#8E95A4] text-white tracking-wider";
-        cardGraphicClass = "bg-[#E5E7EB]";
-        break;
-      case "LIVE":
-        statusBg = "bg-[#A55Eea]";
-        statusText = "text-white";
-        statusBadgeClass = "bg-[#A55Eea] text-white tracking-wider";
-        cardGraphicClass = "bg-[#F4F5F7]";
-        break;
+    if (isPublished) {
+      statusBg = "bg-[#2ECC71]";
+      statusBadgeClass = "bg-[#2ECC71] text-white tracking-wider";
+      cardGraphicClass = "bg-[#E6F3EF]";
+    } else {
+      statusBg = "bg-[#8E95A4]";
+      statusBadgeClass = "bg-[#8E95A4] text-white tracking-wider";
+      cardGraphicClass = "bg-[#E5E7EB]";
+    }
+
+    // Format date relative
+    const updatedDate = new Date(quiz.updatedAt);
+    const now = new Date();
+    const diffHours = Math.floor(
+      (now.getTime() - updatedDate.getTime()) / (1000 * 60 * 60),
+    );
+
+    let timeAgo = "Just now";
+    if (diffHours >= 24) {
+      const days = Math.floor(diffHours / 24);
+      timeAgo = `${days}d ago`;
+    } else if (diffHours > 0) {
+      timeAgo = `${diffHours}h ago`;
+    } else {
+      const diffMins = Math.floor(
+        (now.getTime() - updatedDate.getTime()) / (1000 * 60),
+      );
+      if (diffMins > 0) timeAgo = `${diffMins}m ago`;
     }
 
     return (
@@ -168,20 +216,7 @@ export default function BasicTables() {
           className={`relative h-44 ${cardGraphicClass} w-full overflow-hidden p-4`}
         >
           {/* Abstract graphics based on status */}
-          {status === "LIVE READY" && (
-            <svg
-              className="absolute -top-10 -left-10 h-[180%] w-[180%] text-white opacity-60"
-              viewBox="0 0 200 200"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill="currentColor"
-                d="M47.7,-57.2C59.5,-45.5,65.2,-27.1,64.3,-10.8C63.4,5.4,55.9,19.6,47.1,33.1C38.3,46.6,28.2,59.3,14.6,63.9C0.9,68.4,-16.3,64.8,-30.4,57C-44.5,49.2,-55.6,37.3,-62.4,22.7C-69.2,8.1,-71.8,-9.2,-66.3,-23.4C-60.9,-37.6,-47.5,-48.8,-33.5,-60.1C-19.4,-71.4,-4.8,-82.9,6.7,-81.2C18.2,-79.6,36,-68.9,47.7,-57.2Z"
-                transform="translate(100 100)"
-              />
-            </svg>
-          )}
-          {status === "SELF-PACED" && (
+          {isPublished && (
             <svg
               className="absolute -right-10 -bottom-10 h-[150%] w-[150%] text-[#a8e6cf] opacity-50"
               viewBox="0 0 200 200"
@@ -200,10 +235,23 @@ export default function BasicTables() {
             <span
               className={`rounded-md px-2.5 py-1 text-[10px] font-bold uppercase ${statusBadgeClass}`}
             >
-              {status}
+              {isPublished ? "PUBLISHED" : "DRAFT"}
             </span>
-            <button className="flex h-8 w-8 items-center justify-center rounded-full bg-black/20 text-white backdrop-blur-sm transition-colors hover:bg-black/30">
-              <Heart size={16} />
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleToggleFavorite(quiz.id, quiz.isFavorite);
+              }}
+              className={`flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-colors hover:bg-black/30 ${
+                quiz.isFavorite
+                  ? "bg-red-500/90 text-white"
+                  : "bg-black/20 text-white"
+              }`}
+            >
+              <Heart
+                size={16}
+                className={quiz.isFavorite ? "fill-current" : ""}
+              />
             </button>
           </div>
 
@@ -265,39 +313,24 @@ export default function BasicTables() {
           <div className="mt-auto mb-6 flex items-center gap-4 text-xs font-medium text-gray-500">
             <div className="flex items-center gap-1.5">
               <Clock size={14} />
-              <span className="max-w-[80px] truncate">Updated 2h ago</span>{" "}
-              {/* Mocked time */}
+              <span className="max-w-[80px] truncate">Updated {timeAgo}</span>
             </div>
             <div className="h-1 w-1 rounded-full bg-gray-300"></div>
             <div className="flex items-center gap-1.5">
               <Play size={14} className="fill-gray-400" />
-              <span>{Math.floor(Math.random() * 500)} plays</span>{" "}
-              {/* Mocked plays */}
+              <span>{quiz._count?.gameSessions || 0} plays</span>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="mt-auto grid grid-cols-2 gap-3">
-            {status === "LIVE READY" || status === "LIVE" ? (
+            {isPublished ? (
               <>
                 <Button
                   onClick={() => handleStartGame(quiz.id)}
                   className="h-10 w-full rounded-lg bg-[#46178f] font-bold text-white shadow-sm hover:bg-[#3b127a]"
                 >
-                  Host
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push(`/dashboard/quiz/${quiz.id}`)}
-                  className="h-10 w-full rounded-lg border-gray-200 bg-white font-bold text-gray-700 shadow-sm hover:bg-gray-50"
-                >
-                  Edit
-                </Button>
-              </>
-            ) : status === "SELF-PACED" ? (
-              <>
-                <Button className="h-10 w-full rounded-lg bg-[#0060FF] font-bold text-white shadow-sm hover:bg-[#0050d2]">
-                  Assign
+                  Host Live
                 </Button>
                 <Button
                   variant="outline"
@@ -313,7 +346,7 @@ export default function BasicTables() {
                 onClick={() => router.push(`/dashboard/quiz/${quiz.id}`)}
                 className="col-span-2 h-10 w-full rounded-lg border-dashed border-gray-300 font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               >
-                Continue Editing
+                Continue Editing (Draft)
               </Button>
             )}
           </div>
@@ -354,9 +387,31 @@ export default function BasicTables() {
 
         <div className="flex items-center text-sm font-medium text-gray-500">
           <span className="mr-2">Sort by:</span>
-          <button className="flex items-center rounded-lg px-3 py-1.5 font-bold text-gray-900 transition-colors hover:bg-gray-100">
-            Most Recent <ChevronDown size={16} className="ml-1 opacity-70" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center rounded-lg px-3 py-1.5 font-bold text-gray-900 transition-colors outline-none hover:bg-gray-100">
+                {activeSort}{" "}
+                <ChevronDown size={16} className="ml-1 opacity-70" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {["Most Recent", "Oldest", "Alphabetical (A-Z)"].map(
+                (sortOption) => (
+                  <DropdownMenuItem
+                    key={sortOption}
+                    onClick={() => setActiveSort(sortOption)}
+                    className={
+                      activeSort === sortOption
+                        ? "font-bold text-[#46178f]"
+                        : ""
+                    }
+                  >
+                    {sortOption}
+                  </DropdownMenuItem>
+                ),
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -381,7 +436,7 @@ export default function BasicTables() {
         </div>
 
         {/* Existing Quizzes */}
-        {quizzes.map((quiz) => renderQuizCard(quiz))}
+        {sortedQuizzes.map((quiz) => renderQuizCard(quiz))}
       </div>
 
       {/* Floating Action Button */}

@@ -17,9 +17,12 @@ export class QuizService {
       where: { ownerId },
       include: {
         questions: true,
+        _count: {
+          select: { gameSessions: true },
+        },
       },
       orderBy: {
-        createdAt: 'desc',
+        updatedAt: 'desc',
       },
     });
   }
@@ -54,6 +57,8 @@ export class QuizService {
     return this.prisma.quiz.create({
       data: {
         title: data.title,
+        description: data.description,
+        status: data.status ?? 'DRAFT',
         ownerId,
         questions: {
           create: normalizedQuestions.map((q, index) => ({
@@ -97,6 +102,7 @@ export class QuizService {
         data: {
           title: body.title,
           description: body.description,
+          status: body.status ?? 'DRAFT',
         },
       });
 
@@ -140,6 +146,23 @@ export class QuizService {
     });
 
     return { message: 'Quiz deleted successfully' };
+  }
+
+  async toggleFavorite(id: string) {
+    const existing = await this.prisma.quiz.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Quiz not found');
+    }
+
+    const updated = await this.prisma.quiz.update({
+      where: { id },
+      data: { isFavorite: !existing.isFavorite },
+    });
+
+    return updated;
   }
 
   async exportQuiz(id: string): Promise<Buffer> {
