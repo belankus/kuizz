@@ -19,6 +19,7 @@ export interface GameInfo {
   currentQuestionIndex: number;
   questionStartTime?: number;
   createdAt: number;
+  title: string;
 }
 
 export type SnapshotQuestion = {
@@ -117,6 +118,7 @@ export class GameService {
       phase: 'WAITING',
       currentQuestionIndex: '0',
       createdAt: Date.now().toString(),
+      title: quiz.title,
     });
 
     // Store Questions Snapshot JSON String
@@ -223,6 +225,7 @@ export class GameService {
         ? parseInt(data.questionStartTime, 10)
         : undefined,
       createdAt: parseInt(data.createdAt, 10),
+      title: data.title || 'Untitled Quiz',
     };
   }
 

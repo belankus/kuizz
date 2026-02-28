@@ -14,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
@@ -44,6 +43,7 @@ import { apiFetch, getAccessToken } from "@/lib/auth";
 type Quiz = {
   id: string;
   title: string;
+  description: string;
   status: "DRAFT" | "PUBLISHED";
   updatedAt: string;
   isFavorite: boolean;
@@ -171,17 +171,13 @@ export default function BasicTables() {
   const renderQuizCard = (quiz: Quiz) => {
     // Determine visual treatment based on status
     const isPublished = quiz.status === "PUBLISHED";
-    let statusBg = "";
-    let statusText = "text-white";
     let statusBadgeClass = "";
     let cardGraphicClass = "";
 
     if (isPublished) {
-      statusBg = "bg-[#2ECC71]";
       statusBadgeClass = "bg-[#2ECC71] text-white tracking-wider";
       cardGraphicClass = "bg-[#E6F3EF]";
     } else {
-      statusBg = "bg-[#8E95A4]";
       statusBadgeClass = "bg-[#8E95A4] text-white tracking-wider";
       cardGraphicClass = "bg-[#E5E7EB]";
     }
@@ -309,11 +305,13 @@ export default function BasicTables() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
+          <div className="mb-2">
+            <h4 className="text-sm text-gray-600">{quiz.description}</h4>
+          </div>
           <div className="mt-auto mb-6 flex items-center gap-4 text-xs font-medium text-gray-500">
             <div className="flex items-center gap-1.5">
               <Clock size={14} />
-              <span className="max-w-[80px] truncate">Updated {timeAgo}</span>
+              <span>Updated {timeAgo}</span>
             </div>
             <div className="h-1 w-1 rounded-full bg-gray-300"></div>
             <div className="flex items-center gap-1.5">

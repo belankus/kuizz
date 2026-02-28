@@ -343,6 +343,7 @@ export class GameGateway {
       players: unknown[];
       isLocked: boolean;
       sessionId: string; // NEW
+      title: string;
       question?: SnapshotQuestion;
       startTime?: number;
       correctOptionId?: string;
@@ -353,6 +354,7 @@ export class GameGateway {
       players: playersList,
       isLocked: info.isLocked,
       sessionId: info.sessionId, // NEW
+      title: info.title,
     };
 
     if (info.phase === 'QUESTION' || info.phase === 'REVEAL') {

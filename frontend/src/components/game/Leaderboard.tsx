@@ -1,7 +1,5 @@
-import {
-  AvatarDisplay,
-  getConsistentAvatar,
-} from "@/components/avatar/AvatarBuilder";
+import Avatar from "@/components/avatar/Avatar";
+import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
 import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 
 interface Player {
@@ -81,7 +79,7 @@ export default function Leaderboard({
                 <div
                   className={`overflow-hidden rounded-full ${isMe ? "ring-2 ring-black/30" : "ring-2 ring-white/20"}`}
                 >
-                  <AvatarDisplay config={avatarCfg} size={44} />
+                  <Avatar config={avatarCfg} size={44} />
                 </div>
                 <div className="text-base font-semibold">{player.nickname}</div>
               </div>

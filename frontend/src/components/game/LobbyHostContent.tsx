@@ -2,10 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import QRCodePlaceholder from "@/components/game/QRCodePlaceholder";
-import {
-  AvatarDisplay,
-  getConsistentAvatar,
-} from "@/components/avatar/AvatarBuilder";
+import Avatar from "@/components/avatar/Avatar";
+import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
 import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 import { Lock, Unlock } from "lucide-react";
 import {
@@ -166,7 +164,7 @@ export default function LobbyContent({
                 return (
                   <div key={index} className="flex flex-col items-center">
                     <div className="animate-[pulse_2s_ease-in-out_infinite] overflow-hidden rounded-full ring-4 ring-white/30">
-                      <AvatarDisplay config={avatarCfg} size={64} />
+                      <Avatar config={avatarCfg} size={64} />
                     </div>
                     <h3 className="mt-2 text-sm font-semibold">
                       {player.nickname}

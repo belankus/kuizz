@@ -30,9 +30,15 @@ interface GameContainerProps {
   roomCode: string;
 }
 
+interface CurrentQuestion {
+  question: string;
+  timeLimit: number;
+  options: { id: string; text: string }[];
+}
+
 export default function GameContainer({ roomCode }: GameContainerProps) {
   const [phase, setPhase] = useState<GamePhase>("WAITING");
-  const [question, setQuestion] = useState<any>(null);
+  const [question, setQuestion] = useState<CurrentQuestion | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [answerStats, setAnswerStats] = useState<Record<string, number>>({});
@@ -41,6 +47,7 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [rankings, setRankings] = useState<any[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [quizTitle, setQuizTitle] = useState<string>("Kuizz Game");
   const prevRankingsRef = useRef<any[]>([]);
   const playersRef = useRef<any[]>([]);
 
@@ -130,6 +137,7 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
       if (data.players) setPlayers(data.players);
       if (data.question) setQuestion(data.question);
       if (data.sessionId) setSessionId(data.sessionId);
+      if (data.title) setQuizTitle(data.title);
       if (data.correctOptionIds) setCorrectOptionIds(data.correctOptionIds);
       else if (data.correctOptionId)
         setCorrectOptionIds([data.correctOptionId]);
@@ -215,18 +223,20 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
     return () => clearInterval(interval);
   }, []);
 
-  const timeLeft = questionStartTime
-    ? Math.max(
-        0,
-        Math.ceil(
-          (question.timeLimit * 1000 - (now - questionStartTime)) / 1000,
-        ),
-      )
-    : 0;
+  const timeLeft =
+    questionStartTime && question
+      ? Math.max(
+          0,
+          Math.ceil(
+            (question.timeLimit * 1000 - (now - questionStartTime)) / 1000,
+          ),
+        )
+      : 0;
 
-  const remainingMs = questionStartTime
-    ? Math.max(0, question.timeLimit * 1000 - (now - questionStartTime))
-    : 0;
+  const remainingMs =
+    questionStartTime && question
+      ? Math.max(0, question.timeLimit * 1000 - (now - questionStartTime))
+      : 0;
 
   const handleAnswer = (optionId: string) => {
     setSelected(optionId);
@@ -237,16 +247,26 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
     });
   };
 
+  const rankingsToUse =
+    rankings.length > 0 ? rankings : prevRankingsRef.current;
+  const me = rankingsToUse.find((p) => p.nickname === nickname);
+  const myScore = me ? me.score : 0;
+  const myRankIndex = rankingsToUse.findIndex((p) => p.nickname === nickname);
+  const myRank = myRankIndex >= 0 ? myRankIndex + 1 : 0;
+
   return (
     <div className="relative min-h-screen">
-      {isHost && phase !== "FINISHED" && (
-        <button
-          onClick={handleAbortGame}
-          className="absolute top-4 right-4 z-50 rounded-lg bg-red-600/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm hover:bg-red-600/40"
-        >
-          End Game
-        </button>
-      )}
+      {isHost &&
+        phase !== "FINISHED" &&
+        phase !== "QUESTION" &&
+        phase !== "REVEAL" && (
+          <button
+            onClick={handleAbortGame}
+            className="absolute top-4 right-4 z-50 rounded-lg bg-red-600/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm hover:bg-red-600/40"
+          >
+            End Game
+          </button>
+        )}
       {(() => {
         switch (phase) {
           case "COUNTDOWN":
@@ -267,6 +287,7 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
                 correctOptionId={correctOptionIds[0] || ""}
                 correctOptionIds={correctOptionIds}
                 phase={phase}
+                topic={quizTitle}
                 onEndQuestion={() =>
                   socket.emit("force_reveal", {
                     roomCode,
@@ -279,6 +300,10 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
                     hostToken,
                   })
                 }
+                roomCode={roomCode}
+                currentQuestionIndex={currentIndex}
+                totalQuestions={totalQuestions}
+                onEndGame={handleAbortGame}
               />
             ) : (
               <Question
@@ -290,10 +315,17 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
                 questionNumber={currentIndex + 1}
                 totalQuestions={totalQuestions}
                 onSelect={handleAnswer}
+                topic={quizTitle}
+                score={myScore}
+                rank={myRank}
+                playerName={nickname || "Player"}
+                avatar={me?.avatar}
               />
             );
 
           case "REVEAL":
+            if (!question) return null;
+
             return isHost ? (
               <HostQuestion
                 question={question.question}
@@ -306,6 +338,7 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
                 correctOptionId={correctOptionIds[0] || ""}
                 correctOptionIds={correctOptionIds}
                 phase={phase}
+                topic={quizTitle}
                 onEndQuestion={() =>
                   socket.emit("force_reveal", {
                     roomCode,
@@ -318,11 +351,15 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
                     hostToken,
                   })
                 }
+                roomCode={roomCode}
+                currentQuestionIndex={currentIndex}
+                totalQuestions={totalQuestions}
+                onEndGame={handleAbortGame}
               />
             ) : (
               <Reveal
-                question={question?.question}
-                options={question?.options || []}
+                question={question.question}
+                options={question.options}
                 correctOptionIds={correctOptionIds}
                 selectedOptionId={selected}
               />

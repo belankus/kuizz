@@ -4,7 +4,7 @@ import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { getUserFromToken, logout, User, apiFetch } from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { AvatarDisplay } from "@/components/avatar/AvatarBuilder";
+import Avatar from "@/components/avatar/Avatar";
 import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 
 export default function UserDropdown() {
@@ -53,7 +53,7 @@ export default function UserDropdown() {
         {/* Avatar or initials */}
         <span className="mr-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full">
           {avatar ? (
-            <AvatarDisplay config={avatar} size={44} />
+            <Avatar config={avatar} size={44} />
           ) : (
             <span className="bg-brand-500 flex h-full w-full items-center justify-center text-sm font-semibold text-white">
               {initials}
@@ -92,7 +92,7 @@ export default function UserDropdown() {
         <div className="flex items-center gap-3 border-b border-gray-200 pb-3 dark:border-gray-800">
           <div className="flex-shrink-0 overflow-hidden rounded-full ring-2 ring-indigo-100 dark:ring-indigo-900/40">
             {avatar ? (
-              <AvatarDisplay config={avatar} size={40} />
+              <Avatar config={avatar} size={40} />
             ) : (
               <span className="bg-brand-500 flex h-10 w-10 items-center justify-center text-sm font-semibold text-white">
                 {initials}

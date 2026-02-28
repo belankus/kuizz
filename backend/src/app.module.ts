@@ -8,12 +8,14 @@ import { AuthModule } from './auth/auth.module.js';
 import { UsersModule } from './users/users.module.js';
 import { GameSessionModule } from './game-session/game-session.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
+import { PingModule } from './ping/ping.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PingModule,
     GameModule,
     RedisModule,
     PrismaModule,

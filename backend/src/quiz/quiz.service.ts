@@ -50,15 +50,17 @@ export class QuizService {
   }
 
   async createQuiz(data: CreateQuizDto, ownerId: string): Promise<Quiz> {
+    const status = data.status ?? 'DRAFT';
     const normalizedQuestions = this.normalizeAndValidateQuestions(
       data.questions ?? [],
+      status,
     );
 
     return this.prisma.quiz.create({
       data: {
         title: data.title,
         description: data.description,
-        status: data.status ?? 'DRAFT',
+        status,
         ownerId,
         questions: {
           create: normalizedQuestions.map((q, index) => ({
@@ -90,8 +92,10 @@ export class QuizService {
       throw new NotFoundException('Quiz not found');
     }
 
+    const status = body.status ?? 'DRAFT';
     const normalizedQuestions = this.normalizeAndValidateQuestions(
       body.questions ?? [],
+      status,
     );
 
     // transaction biar atomic
@@ -102,7 +106,7 @@ export class QuizService {
         data: {
           title: body.title,
           description: body.description,
-          status: body.status ?? 'DRAFT',
+          status,
         },
       });
 
@@ -355,13 +359,24 @@ export class QuizService {
 
   private normalizeAndValidateQuestions(
     questions: NonNullable<CreateQuizDto['questions']>,
+    status: 'DRAFT' | 'PUBLISHED',
   ) {
-    if (!Array.isArray(questions) || questions.length === 0) {
+    if (!Array.isArray(questions)) {
+      if (status === 'PUBLISHED') {
+        throw new BadRequestException('At least 1 question is required');
+      }
+      return [];
+    }
+
+    if (status === 'PUBLISHED' && questions.length === 0) {
       throw new BadRequestException('At least 1 question is required');
     }
 
     return questions.map((q, qIndex) => {
-      if (!q.text || !q.text.trim()) {
+      const isPublished = status === 'PUBLISHED';
+      const text = q.text ? q.text.trim() : '';
+
+      if (isPublished && !text) {
         throw new BadRequestException(
           `Question ${qIndex + 1}: Text is required`,
         );
@@ -372,38 +387,46 @@ export class QuizService {
           ? Number(q.timeLimit)
           : 20;
 
-      // 🔥 FILTER OPTION KOSONG
-      const filteredOptions = Array.isArray(q.options)
-        ? q.options
-            .filter((o) => o.text && o.text.trim() !== '')
-            .map((o) => ({
-              text: o.text.trim(),
-              isCorrect: Boolean(o.isCorrect),
-            }))
+      const mappedOptions = Array.isArray(q.options)
+        ? q.options.map((o) => ({
+            text: o.text ? o.text.trim() : '',
+            isCorrect: Boolean(o.isCorrect),
+          }))
         : [];
 
-      if (filteredOptions.length < 2) {
-        throw new BadRequestException(
-          `Question ${qIndex + 1}: Minimum 2 options required`,
-        );
+      if (isPublished) {
+        const strictOptions = mappedOptions.filter((o) => o.text !== '');
+
+        if (strictOptions.length < 2) {
+          throw new BadRequestException(
+            `Question ${qIndex + 1}: Minimum 2 options required`,
+          );
+        }
+
+        if (!strictOptions.some((o) => o.isCorrect)) {
+          throw new BadRequestException(
+            `Question ${qIndex + 1}: At least 1 correct answer required`,
+          );
+        }
+
+        if (strictOptions.length > 8) {
+          throw new BadRequestException(
+            `Question ${qIndex + 1}: Maximum 8 options allowed`,
+          );
+        }
+
+        return {
+          text,
+          timeLimit,
+          options: strictOptions,
+        };
       }
 
-      if (!filteredOptions.some((o) => o.isCorrect)) {
-        throw new BadRequestException(
-          `Question ${qIndex + 1}: At least 1 correct answer required`,
-        );
-      }
-
-      if (filteredOptions.length > 8) {
-        throw new BadRequestException(
-          `Question ${qIndex + 1}: Maximum 8 options allowed`,
-        );
-      }
-
+      // For draft, allow any options as they are
       return {
-        text: q.text.trim(),
+        text,
         timeLimit,
-        options: filteredOptions,
+        options: mappedOptions,
       };
     });
   }

@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  AvatarDisplay,
-  getConsistentAvatar,
-} from "@/components/avatar/AvatarBuilder";
+import Avatar from "@/components/avatar/Avatar";
+import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
 import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 import { motion } from "framer-motion";
 
@@ -111,7 +109,7 @@ export default function FinalResult({
                 <div
                   className={`overflow-hidden rounded-full ${isMe ? "ring-2 ring-black/30" : "ring-2 ring-white/20"}`}
                 >
-                  <AvatarDisplay config={avatarCfg} size={40} />
+                  <Avatar config={avatarCfg} size={40} />
                 </div>
                 <span className="font-semibold">{player.nickname}</span>
               </div>
@@ -193,7 +191,7 @@ function PodiumCard({
               : "ring-amber-600"
         }`}
       >
-        <AvatarDisplay config={avatarCfg} size={position === 1 ? 72 : 56} />
+        <Avatar config={avatarCfg} size={position === 1 ? 72 : 56} />
       </div>
       <div className="mb-1 text-2xl">{medal}</div>
       <div

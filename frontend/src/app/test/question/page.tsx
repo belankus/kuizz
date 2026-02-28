@@ -42,6 +42,10 @@ export default function QuestionPage() {
       questionNumber={currentIndex + 1}
       totalQuestions={totalQuestions}
       onSelect={handleAnswer}
+      topic="World Geography Masters"
+      score={1250}
+      rank={3}
+      playerName="FastCheetah99"
     />
   );
 }

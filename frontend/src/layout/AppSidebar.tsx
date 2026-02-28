@@ -7,7 +7,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
 import { DropdownItem } from "@/components/ui/dropdown/DropdownItem";
 import { getUserFromToken, logout, User, apiFetch } from "@/lib/auth";
-import { AvatarDisplay } from "@/components/avatar/AvatarBuilder";
+import Avatar from "@/components/avatar/Avatar";
 import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 import {
   BarChart2,
@@ -205,7 +205,7 @@ const AppSidebar: React.FC = () => {
         >
           <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-200">
             {avatar ? (
-              <AvatarDisplay config={avatar} size={40} />
+              <Avatar config={avatar} size={40} />
             ) : (
               <span className="flex h-full w-full items-center justify-center bg-[#46178f] text-sm font-semibold text-white">
                 {initials}
@@ -248,7 +248,7 @@ const AppSidebar: React.FC = () => {
           <div className="flex items-center gap-3 border-b border-gray-200 pb-3">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-200">
               {avatar ? (
-                <AvatarDisplay config={avatar} size={40} />
+                <Avatar config={avatar} size={40} />
               ) : (
                 <span className="flex h-full w-full items-center justify-center bg-[#46178f] text-sm font-semibold text-white">
                   {initials}

@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  AvatarDisplay,
-  getConsistentAvatar,
-} from "@/components/avatar/AvatarBuilder";
+import Avatar from "@/components/avatar/Avatar";
+import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
 import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 
 interface LobbyContentInterface {
@@ -75,7 +73,7 @@ export default function LobbyPlayer({
                         : "ring-2 ring-white/20"
                     }`}
                   >
-                    <AvatarDisplay config={avatarCfg} size={64} />
+                    <Avatar config={avatarCfg} size={64} />
                   </div>
                   <h3
                     className={`mt-2 text-sm font-semibold ${
