@@ -1,0 +1,28 @@
+{
+  "name": "kuizz",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "lint-staged": {
+    "frontend/**/*.{js,jsx,ts,tsx}": [
+      "pnpm --filter kuizz-frontend lint",
+      "pnpm --filter kuizz-frontend exec prettier --write"
+    ],
+    "backend/**/*.ts": [
+      "pnpm --filter kuizz-backend lint",
+      "pnpm --filter kuizz-backend exec prettier --write"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.3",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.0"
+  }
+}
