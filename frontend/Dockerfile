@@ -38,6 +38,8 @@ RUN addgroup --system nodejs && adduser --system --ingroup nodejs nextjs
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
 COPY frontend/package.json ./frontend/
 
+COPY frontend/.env.production frontend/.env
+
 # Install ONLY production frontend deps
 # RUN pnpm install --frozen-lockfile --filter kuizz-frontend --prod --ignore-scripts
 

@@ -7,9 +7,9 @@ import { login, register } from "@/lib/auth";
 import { toast } from "sonner";
 import { Fredoka } from "next/font/google";
 import Image from "next/image";
+import { API_URL } from "@/lib/config";
 
 const fredoka = Fredoka({ subsets: ["latin"], weight: ["500", "600", "700"] });
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 interface AuthContainerProps {
   mode: "login" | "register";
