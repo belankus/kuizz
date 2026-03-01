@@ -91,7 +91,7 @@ export default function UserDropdown() {
       >
         {/* User info with avatar */}
         <div className="flex items-center gap-3 border-b border-gray-200 pb-3 dark:border-gray-800">
-          <div className="flex-shrink-0 overflow-hidden rounded-full ring-2 ring-indigo-100 dark:ring-indigo-900/40">
+          <div className="shrink-0 overflow-hidden rounded-full ring-2 ring-indigo-100 dark:ring-indigo-900/40">
             {avatar ? (
               <Avatar config={avatar} size={40} />
             ) : (
