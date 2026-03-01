@@ -1,18 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  AvatarDisplay,
-  AvatarConfig,
-  getConsistentAvatar,
-} from "./AvatarBuilder";
+import { AvatarDisplay, getConsistentAvatar } from "./AvatarBuilder";
 import { getUserFromToken, apiFetch } from "@/lib/auth";
+import { AvatarModel } from "@repo/types";
 
 interface AvatarProps {
   /**
    * Optional manual config. If provided, overrides auto-loading.
    */
-  config?: AvatarConfig | null;
+  config?: AvatarModel | null;
   /**
    * Optional fallback seed to generate a consistent avatar if local storage is empty
    * and no config is provided.
@@ -26,7 +23,7 @@ export default function Avatar({
   fallbackSeed,
   size = 80,
 }: AvatarProps) {
-  const [resolvedConfig, setResolvedConfig] = useState<AvatarConfig | null>(
+  const [resolvedConfig, setResolvedConfig] = useState<AvatarModel | null>(
     null,
   );
 
@@ -46,7 +43,7 @@ export default function Avatar({
           if (res.ok) {
             const data = await res.json();
             if (data?.avatar) {
-              setResolvedConfig(data.avatar as AvatarConfig);
+              setResolvedConfig(data.avatar as AvatarModel);
               return;
             }
           }

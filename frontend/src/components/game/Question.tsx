@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Triangle, Diamond, Circle, Square } from "lucide-react";
 import LiveSync from "./LiveSync";
 import Avatar from "@/components/avatar/Avatar";
-import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
+import type { AvatarModel } from "@repo/types";
 
 interface QuestionProps {
   question: string;
@@ -12,7 +12,7 @@ interface QuestionProps {
   score?: number;
   rank?: number;
   playerName?: string;
-  avatar?: AvatarConfig | null;
+  avatar?: AvatarModel | null;
   options: { id: string; text: string }[];
   questionNumber: number;
   totalQuestions: number;

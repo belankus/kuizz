@@ -2,15 +2,16 @@
 import React, { useState, useEffect } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { getUserFromToken, logout, User, apiFetch } from "@/lib/auth";
+import { getUserFromToken, logout, apiFetch } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Avatar from "@/components/avatar/Avatar";
-import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
+import { AvatarModel } from "@repo/types";
+import { UserModelType } from "@repo/types";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [avatar, setAvatar] = useState<AvatarConfig | null>(null);
+  const [user, setUser] = useState<UserModelType | null>(null);
+  const [avatar, setAvatar] = useState<AvatarModel | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export default function UserDropdown() {
       apiFetch("/users/me")
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
-          if (data?.avatar) setAvatar(data.avatar as AvatarConfig);
+          if (data?.avatar) setAvatar(data.avatar as AvatarModel);
         })
         .catch(() => null);
     }

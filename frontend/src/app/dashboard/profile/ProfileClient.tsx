@@ -5,18 +5,18 @@ import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
 import AvatarBuilder, {
-  AvatarConfig,
   AvatarDisplay,
 } from "@/components/avatar/AvatarBuilder";
 import { Loader2, User2, KeyRound, Palette, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AvatarModel } from "@repo/types";
 
 type UserProfile = {
   id: string;
   email: string;
   name: string | null;
   role: string;
-  avatar: AvatarConfig | null;
+  avatar: AvatarModel | null;
   createdAt: string;
 };
 
@@ -35,7 +35,7 @@ export default function ProfilePage() {
   const [savingPassword, setSavingPassword] = useState(false);
 
   // Avatar state
-  const [avatarConfig, setAvatarConfig] = useState<AvatarConfig | null>(null);
+  const [avatarConfig, setAvatarConfig] = useState<AvatarModel | null>(null);
   const [savingAvatar, setSavingAvatar] = useState(false);
 
   useEffect(() => {

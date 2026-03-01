@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-kuizz
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      POSTGRES_DB: ${POSTGRES_DB:-mydatabase}
+    volumes:
+      - postgres_data_kuizz:/var/lib/postgresql/data
+    networks:
+      - backend-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-kuizz
+    networks:
+      - backend-network
+
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-belankus}/kuizz-backend:main
+    container_name: backend-kuizz
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-secret}@postgres:5432/${POSTGRES_DB:-mydatabase}?schema=public
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+      # Tambahkan env lain yang diperlukan (JWT_SECRET, dll)
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - backend-network
+      - proxy
+
+  frontend:
+    image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-belankus}/kuizz-frontend:main
+    container_name: frontend-kuizz
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - proxy
+
+networks:
+  backend-network:
+  proxy:
+    external: true
+
+volumes:
+  postgres_data_kuizz:

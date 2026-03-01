@@ -5,9 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
 import { DropdownItem } from "@/components/ui/dropdown/DropdownItem";
-import { getUserFromToken, logout, User, apiFetch } from "@/lib/auth";
+import { getUserFromToken, logout, apiFetch } from "@/lib/auth";
 import Avatar from "@/components/avatar/Avatar";
-import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
+import { AvatarModel } from "@repo/types";
+import { UserModelType } from "@repo/types";
 import {
   BarChart2,
   FolderOpen,
@@ -77,8 +78,8 @@ const AppSidebar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [avatar, setAvatar] = useState<AvatarConfig | null>(null);
+  const [user, setUser] = useState<UserModelType | null>(null);
+  const [avatar, setAvatar] = useState<AvatarModel | null>(null);
 
   useEffect(() => {
     const u = getUserFromToken();
@@ -87,7 +88,7 @@ const AppSidebar: React.FC = () => {
       apiFetch("/users/me")
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
-          if (data?.avatar) setAvatar(data.avatar as AvatarConfig);
+          if (data?.avatar) setAvatar(data.avatar as AvatarModel);
         })
         .catch(() => null);
     }

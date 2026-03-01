@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "check": "pnpm lint && pnpm type-check"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

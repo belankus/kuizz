@@ -53,7 +53,11 @@ import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
 import Link from "next/link";
 import ComponentCard from "@/components/common/ComponentCard";
-import { DashboardMetricsType, GameHistory, GameSession } from "@repo/types";
+import {
+  DashboardMetricsType,
+  GameHistoryModel,
+  GameSessionModel,
+} from "@repo/types";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   useQuery,
@@ -91,7 +95,7 @@ export default function ReportsPage() {
 
   // Hosted Games Query
   const { data: hostedData, isLoading: loadingHosted } = useQuery<{
-    data: GameSession[];
+    data: GameSessionModel[];
     meta: { totalPages: number };
   }>({
     queryKey: ["hosted-sessions", page, debouncedSearch],
@@ -114,7 +118,7 @@ export default function ReportsPage() {
     data: playedHistory = [],
     isLoading: loadingPlayed,
     error: playedErrorObj,
-  } = useQuery<GameHistory[]>({
+  } = useQuery<GameHistoryModel[]>({
     queryKey: ["played-history"],
     queryFn: async () => {
       const res = await apiFetch("/users/me/history");
