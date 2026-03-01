@@ -54,7 +54,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-and-push-frontend:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write

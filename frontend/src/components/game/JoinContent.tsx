@@ -9,6 +9,14 @@ import { Fredoka, Nunito } from "next/font/google";
 import Link from "next/link";
 import { AvatarModel } from "@repo/types";
 import Avatar from "../avatar/Avatar";
+import {
+  ArrowRight,
+  CircleUser,
+  Keyboard,
+  Pencil,
+  SquareArrowOutUpRight,
+  SquareMousePointer,
+} from "lucide-react";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -316,9 +324,7 @@ export default function JoinContent() {
         <nav className="flex w-full items-center justify-between p-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 -rotate-12 transform items-center justify-center rounded-lg bg-(--primary-accent) shadow-(--primary-accent)/30 shadow-lg">
-              <span className="material-symbols-outlined text-2xl font-black text-white">
-                bolt
-              </span>
+              <SquareMousePointer className="text-[20px] text-white" />
             </div>
             <span className="header-font text-2xl font-bold tracking-wide text-white">
               Kuizz
@@ -331,9 +337,7 @@ export default function JoinContent() {
                 href="/login"
                 className="flex items-center gap-2 rounded-full border border-white/5 bg-[#2a1b3d] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#34224c]"
               >
-                <span className="material-symbols-outlined text-[18px]">
-                  account_circle
-                </span>
+                <CircleUser className="text-[20px]" />
                 Log in as Host
               </Link>
             ) : (
@@ -349,9 +353,7 @@ export default function JoinContent() {
         <main className="flex flex-1 flex-col items-center justify-center p-4">
           {step === 1 && (
             <div className="floating-icon mb-8 flex h-20 w-20 rotate-3 items-center justify-center rounded-2xl bg-(--primary-accent) shadow-(--primary-accent)/30 shadow-lg">
-              <span className="material-symbols-outlined text-5xl text-white">
-                bolt
-              </span>
+              <SquareMousePointer className="text-white" size={60} />
             </div>
           )}
 
@@ -397,9 +399,7 @@ export default function JoinContent() {
                       className="input-dark header-font w-full rounded-xl px-6 py-4 text-center text-xl font-bold tracking-widest uppercase"
                       autoFocus
                     />
-                    <span className="material-symbols-outlined absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-dim)] opacity-50">
-                      keyboard
-                    </span>
+                    <Keyboard className="absolute top-1/2 right-4 -translate-y-1/2 text-[var(--text-dim)] opacity-50" />
                   </div>
                 )}
 
@@ -416,9 +416,7 @@ export default function JoinContent() {
                       className="input-dark header-font w-full rounded-xl py-4 pr-6 pl-12 text-lg font-bold"
                       autoFocus
                     />
-                    <span className="material-symbols-outlined absolute top-1/2 left-4 -translate-y-1/2 text-[20px] text-(--text-dim)">
-                      edit
-                    </span>
+                    <Pencil className="absolute top-1/2 left-4 -translate-y-1/2 text-[var(--text-dim)] opacity-50" />
                   </div>
                 )}
 
@@ -436,9 +434,7 @@ export default function JoinContent() {
                   >
                     {loading ? "Checking..." : "Join Game"}
                     {!loading && (
-                      <span className="material-symbols-outlined text-[24px]">
-                        arrow_forward
-                      </span>
+                      <ArrowRight className="text-white" size={24} />
                     )}
                   </button>
                 ) : (
@@ -449,9 +445,7 @@ export default function JoinContent() {
                   >
                     {loading ? "Joining..." : "OK, Go!"}
                     {!loading && (
-                      <span className="material-symbols-outlined text-[24px]">
-                        arrow_forward
-                      </span>
+                      <ArrowRight className="text-white" size={24} />
                     )}
                   </button>
                 )}
@@ -468,9 +462,7 @@ export default function JoinContent() {
                   className="flex items-center justify-center gap-1 text-sm font-bold text-[var(--primary-accent)] transition-colors hover:text-[var(--primary-hover)]"
                 >
                   Browse public quizzes
-                  <span className="material-symbols-outlined text-[16px]">
-                    open_in_new
-                  </span>
+                  <SquareArrowOutUpRight size={18} />
                 </Link>
               </div>
             )}

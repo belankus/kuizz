@@ -1,6 +1,22 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Fredoka, Nunito } from "next/font/google";
+import {
+  CircleQuestionMark,
+  Clapperboard,
+  Earth,
+  FilePenLine,
+  Globe,
+  Lectern,
+  Mail,
+  Medal,
+  Microscope,
+  MoveRight,
+  PartyPopper,
+  PawPrint,
+  SquareMousePointer,
+  Timer,
+} from "lucide-react";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -62,9 +78,7 @@ export default function LandingPage() {
       <div className="kuizz-landing flex min-h-screen flex-col">
         <nav className="sticky top-0 z-50 flex items-center justify-between bg-[var(--primary)] px-6 py-4 text-white shadow-md md:px-12">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-accent text-4xl">
-              stadia_controller
-            </span>
+            <SquareMousePointer className="text-accent text-[20px]" />
             <span className="logo-font text-3xl font-bold tracking-wide">
               Kuizz
             </span>
@@ -144,9 +158,7 @@ export default function LandingPage() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="relative w-full max-w-md rotate-3 transform overflow-hidden rounded-[40px] bg-white p-8 text-[var(--text-dark)] shadow-2xl">
                   <div className="absolute top-0 right-0 left-0 flex h-32 items-center justify-center rounded-t-[40px] bg-[var(--secondary)]">
-                    <span className="material-symbols-outlined animate-bounce text-6xl text-white">
-                      emoji_events
-                    </span>
+                    <Medal className="text-white" size={64} />
                   </div>
                   <div className="mt-28 text-center">
                     <h3 className="mb-2 text-2xl font-bold">Weekly Trivia</h3>
@@ -175,10 +187,8 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-              <div className="absolute top-20 right-0 rotate-12 animate-pulse rounded-2xl bg-[var(--accent)] p-4 shadow-lg">
-                <span className="material-symbols-outlined text-4xl text-[var(--primary)]">
-                  timer
-                </span>
+              <div className="absolute top-20 right-0 rotate-12 animate-pulse rounded-xl bg-[var(--accent)] p-2 shadow-lg">
+                <Timer className="text-primary" size={32} />
               </div>
               <div className="absolute bottom-20 left-10 -rotate-6 rounded-2xl bg-white p-4 shadow-lg">
                 <span className="text-xl font-bold text-[var(--primary)]">
@@ -197,9 +207,7 @@ export default function LandingPage() {
             <div className="grid gap-12 md:grid-cols-3">
               <div className="group text-center">
                 <div className="mx-auto mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-purple-100 transition-transform duration-300 group-hover:scale-110">
-                  <span className="material-symbols-outlined text-6xl text-[var(--primary)]">
-                    edit_document
-                  </span>
+                  <FilePenLine className="text-primary" size={64} />
                 </div>
                 <h3 className="mb-3 text-2xl font-bold text-gray-800">
                   1. Create
@@ -211,9 +219,7 @@ export default function LandingPage() {
               </div>
               <div className="group text-center">
                 <div className="mx-auto mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-blue-100 transition-transform duration-300 group-hover:scale-110">
-                  <span className="material-symbols-outlined text-6xl text-[var(--secondary)]">
-                    podium
-                  </span>
+                  <Lectern className="text-primary" size={64} />
                 </div>
                 <h3 className="mb-3 text-2xl font-bold text-gray-800">
                   2. Host
@@ -225,9 +231,7 @@ export default function LandingPage() {
               </div>
               <div className="group text-center">
                 <div className="mx-auto mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-yellow-100 transition-transform duration-300 group-hover:scale-110">
-                  <span className="material-symbols-outlined text-6xl text-yellow-600">
-                    celebration
-                  </span>
+                  <PartyPopper className="text-primary" size={64} />
                 </div>
                 <h3 className="mb-3 text-2xl font-bold text-gray-800">
                   3. Play
@@ -253,11 +257,11 @@ export default function LandingPage() {
                 </p>
               </div>
               <Link
-                className="hidden items-center gap-1 font-bold text-[var(--secondary)] hover:underline md:flex"
+                className="text-secondary hidden items-center gap-1 font-bold hover:underline md:flex"
                 href="#"
               >
                 See all
-                <span className="material-symbols-outlined">arrow_forward</span>
+                <MoveRight className="text-secondary" />
               </Link>
             </div>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -266,7 +270,7 @@ export default function LandingPage() {
                   id: 1,
                   subject: "Science",
                   subjectColorClass: "text-purple-600 bg-purple-100",
-                  icon: "science",
+                  icon: <Microscope size={64} className="text-white" />,
                   questions: 15,
                   title: "General Science Trivia",
                   desc: "Test your knowledge on physics, biology and more.",
@@ -279,7 +283,7 @@ export default function LandingPage() {
                   id: 2,
                   subject: "Movies",
                   subjectColorClass: "text-pink-600 bg-pink-100",
-                  icon: "movie",
+                  icon: <Clapperboard size={64} className="text-white" />,
                   questions: 10,
                   title: "90s Cinema Classics",
                   desc: "How well do you remember the golden era of film?",
@@ -292,7 +296,7 @@ export default function LandingPage() {
                   id: 3,
                   subject: "Geography",
                   subjectColorClass: "text-teal-600 bg-teal-100",
-                  icon: "public",
+                  icon: <Earth size={64} className="text-white" />,
                   questions: 20,
                   title: "World Capitals",
                   desc: "Can you name the capital of every country?",
@@ -305,7 +309,7 @@ export default function LandingPage() {
                   id: 4,
                   subject: "Animals",
                   subjectColorClass: "text-orange-600 bg-orange-100",
-                  icon: "pets",
+                  icon: <PawPrint size={64} className="text-white" />,
                   questions: 8,
                   title: "Cute Animals 101",
                   desc: "Identify these adorable creatures.",
@@ -322,9 +326,7 @@ export default function LandingPage() {
                   <div
                     className={`h-40 bg-gradient-to-br ${quiz.bgGradient} flex items-center justify-center transition-transform duration-500 group-hover:scale-105`}
                   >
-                    <span className="material-symbols-outlined text-6xl text-white opacity-50">
-                      {quiz.icon}
-                    </span>
+                    {quiz.icon}
                   </div>
                   <div className="p-5">
                     <div className="mb-2 flex items-start justify-between">
@@ -333,10 +335,11 @@ export default function LandingPage() {
                       >
                         {quiz.subject}
                       </span>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <span className="material-symbols-outlined mr-1 text-base">
-                          help
-                        </span>{" "}
+                      <div className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm text-gray-500">
+                        <CircleQuestionMark
+                          className="mr-1 text-base"
+                          size={16}
+                        />{" "}
                         {quiz.questions}
                       </div>
                     </div>
@@ -400,9 +403,7 @@ export default function LandingPage() {
             <div className="mb-12 grid grid-cols-2 gap-8 md:grid-cols-4">
               <div className="col-span-2 md:col-span-1">
                 <div className="mb-4 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-3xl text-[var(--accent)]">
-                    stadia_controller
-                  </span>
+                  <SquareMousePointer className="text-accent text-[20px]" />
                   <span className="logo-font text-2xl font-bold">Kuizz</span>
                 </div>
                 <p className="text-sm leading-relaxed text-purple-300">
@@ -504,10 +505,10 @@ export default function LandingPage() {
               </p>
               <div className="flex gap-4">
                 <Link className="hover:text-white" href="#">
-                  <i className="material-symbols-outlined">public</i>
+                  <Globe size={24} />
                 </Link>
                 <Link className="hover:text-white" href="#">
-                  <i className="material-symbols-outlined">mail</i>
+                  <Mail size={24} />
                 </Link>
               </div>
             </div>

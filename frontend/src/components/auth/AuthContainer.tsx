@@ -7,6 +7,15 @@ import { login, register } from "@/lib/auth";
 import { toast } from "sonner";
 import { Fredoka } from "next/font/google";
 import Image from "next/image";
+import {
+  ArrowRightIcon,
+  Eye,
+  EyeOff,
+  Heart,
+  Lightbulb,
+  Lock,
+  User2Icon,
+} from "lucide-react";
 
 const fredoka = Fredoka({ subsets: ["latin"], weight: ["500", "600", "700"] });
 
@@ -70,14 +79,10 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
             <div className="bg-brand-400/20 relative mb-8 flex h-56 w-56 items-center justify-center rounded-full border-[6px] border-[#5a2ab3]">
               {/* Decorative elements */}
               <div className="absolute -top-4 -right-4 flex h-12 w-12 rotate-12 items-center justify-center rounded-xl bg-[#FFC000] shadow-lg">
-                <span className="material-symbols-outlined text-2xl text-white">
-                  lightbulb
-                </span>
+                <Lightbulb className="text-[20px] text-white" />
               </div>
               <div className="absolute -bottom-6 -left-6 flex h-14 w-14 -rotate-12 items-center justify-center rounded-2xl bg-[#FF2B5E] shadow-lg">
-                <span className="material-symbols-outlined text-3xl text-white">
-                  favorite
-                </span>
+                <Heart className="text-[20px] text-white" />
               </div>
 
               {/* Character placeholder */}
@@ -145,9 +150,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                     Name (optional)
                   </label>
                   <div className="relative flex items-center">
-                    <span className="material-symbols-outlined absolute left-4 text-[20px] text-gray-400">
-                      person
-                    </span>
+                    <User2Icon className="absolute left-4 text-[20px] text-gray-400" />
                     <input
                       type="text"
                       value={name}
@@ -164,9 +167,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                   {isLogin ? "Username or Email" : "Email"}
                 </label>
                 <div className="relative flex items-center">
-                  <span className="material-symbols-outlined absolute left-4 text-[20px] text-gray-400">
-                    person
-                  </span>
+                  <User2Icon className="absolute left-4 text-[20px] text-gray-400" />
                   <input
                     type={isLogin ? "text" : "email"}
                     required
@@ -183,9 +184,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                   Password
                 </label>
                 <div className="relative flex items-center">
-                  <span className="material-symbols-outlined absolute left-4 text-[20px] text-gray-400">
-                    lock
-                  </span>
+                  <Lock className="absolute left-4 text-[20px] text-gray-400" />
                   <input
                     type={showPassword ? "text" : "password"}
                     required
@@ -201,9 +200,11 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                     className="absolute right-4 flex items-center text-gray-400 transition-colors hover:text-gray-600"
                     tabIndex={-1}
                   >
-                    <span className="material-symbols-outlined text-[20px]">
-                      {showPassword ? "visibility_off" : "visibility"}
-                    </span>
+                    {showPassword ? (
+                      <Eye className="text-[20px]" />
+                    ) : (
+                      <EyeOff className="text-[20px]" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -231,11 +232,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                   : isLogin
                     ? "Let's Play"
                     : "Sign Up"}
-                {!loading && (
-                  <span className="material-symbols-outlined text-[20px]">
-                    arrow_forward
-                  </span>
-                )}
+                {!loading && <ArrowRightIcon className="h-5 w-5" />}
               </button>
             </form>
 
@@ -249,7 +246,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <a
+              <Link
                 href={`${apiUrl}/auth/google`}
                 className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
               >
@@ -272,8 +269,8 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                   />
                 </svg>
                 Google
-              </a>
-              <a
+              </Link>
+              <Link
                 href={`${apiUrl}/auth/github`}
                 className="flex items-center justify-center gap-2 rounded-xl bg-[#24292F] px-4 py-3 text-sm font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.2)] transition-colors hover:translate-y-[1px] hover:bg-[#1f2328] hover:shadow-[0_3px_0_rgba(0,0,0,0.2)] active:translate-y-[4px] active:shadow-none"
               >
@@ -285,7 +282,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                   <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                 </svg>
                 GitHub
-              </a>
+              </Link>
             </div>
 
             <p className="mt-8 text-center text-[11px] font-medium text-gray-400">
