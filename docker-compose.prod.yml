@@ -36,8 +36,8 @@ services:
     image: ghcr.io/${GITHUB_REPOSITORY_OWNER:-belankus}/kuizz-frontend:main
     container_name: frontend-kuizz
     environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-      - NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}
+      - API_URL=${API_URL}
+      - SOCKET_URL=${SOCKET_URL}
       - NODE_ENV=production
     depends_on:
       - backend
