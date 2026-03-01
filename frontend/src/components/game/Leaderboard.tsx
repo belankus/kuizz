@@ -1,29 +1,18 @@
 import Avatar from "@/components/avatar/Avatar";
 import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
-import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
-
-interface Player {
-  nickname: string;
-  score: number;
-  avatar?: AvatarConfig | null;
-}
-
-interface LeaderboardProps {
-  players: Player[];
-  prevPlayers?: Player[];
-  myName: string | null;
-}
+import { AvatarModel, LeaderboardProps, PlayerModel } from "@repo/types";
 
 import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
+import { toast } from "sonner";
 
 export default function Leaderboard({
   players,
   prevPlayers,
   myName,
 }: LeaderboardProps) {
-  const [localAvatar, setLocalAvatar] = useState<AvatarConfig | null>(null);
-  const [displayPlayers, setDisplayPlayers] = useState<Player[]>(
+  const [localAvatar, setLocalAvatar] = useState<AvatarModel | null>(null);
+  const [displayPlayers, setDisplayPlayers] = useState<PlayerModel[]>(
     prevPlayers && prevPlayers.length > 0 ? prevPlayers : players,
   );
 
@@ -32,7 +21,11 @@ export default function Leaderboard({
     if (stored) {
       try {
         setLocalAvatar(JSON.parse(stored));
-      } catch (e) {}
+      } catch (e) {
+        toast.error("Failed to load avatar", {
+          description: e instanceof Error ? e.message : "Please try again.",
+        });
+      }
     }
   }, []);
 
@@ -54,7 +47,7 @@ export default function Leaderboard({
       <motion.div layout className="w-full max-w-3xl space-y-3">
         {displayPlayers.map((player, index) => {
           const isMe = player.nickname === myName;
-          const avatarCfg: AvatarConfig =
+          const avatarCfg: AvatarModel =
             player.avatar ??
             (isMe ? localAvatar : null) ??
             getConsistentAvatar(player.nickname);

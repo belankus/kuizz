@@ -6,6 +6,7 @@ import Link from "next/link";
 import { login, register } from "@/lib/auth";
 import { toast } from "sonner";
 import { Fredoka } from "next/font/google";
+import Image from "next/image";
 
 const fredoka = Fredoka({ subsets: ["latin"], weight: ["500", "600", "700"] });
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -27,7 +28,7 @@ export default function AuthContainer({ mode }: AuthContainerProps) {
   const redirectTo = searchParams.get("redirect") || "/dashboard";
   const isLogin = mode === "login";
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
 
     if (!isLogin && password.length < 6) {
@@ -46,9 +47,13 @@ export default function AuthContainer({ mode }: AuthContainerProps) {
         toast.success("Akun berhasil dibuat!");
         router.push("/dashboard");
       }
-    } catch (err: any) {
+    } catch (err) {
       toast.error(
-        err.message || (isLogin ? "Login gagal" : "Registrasi gagal"),
+        err instanceof Error
+          ? err.message
+          : isLogin
+            ? "Login gagal"
+            : "Registrasi gagal",
       );
     } finally {
       setLoading(false);
@@ -76,10 +81,12 @@ export default function AuthContainer({ mode }: AuthContainerProps) {
               </div>
 
               {/* Character placeholder */}
-              <img
+              <Image
                 src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=transparent"
                 alt="Illustration"
-                className="h-40 w-40 object-cover"
+                width={160}
+                height={160}
+                className="object-cover"
               />
             </div>
 
@@ -89,7 +96,7 @@ export default function AuthContainer({ mode }: AuthContainerProps) {
               Ready for a challenge?
             </h2>
             <p className="mb-8 max-w-[250px] text-sm leading-relaxed text-[#D6C5F3] md:text-base">
-              Join the world's most engaging learning game community!
+              Join the world&apos;s most engaging learning game community!
             </p>
 
             <div className="flex gap-2">

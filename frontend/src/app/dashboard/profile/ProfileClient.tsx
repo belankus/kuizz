@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
@@ -93,8 +93,10 @@ export default function ProfilePage() {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (err: any) {
-      toast.error(err.message ?? "Failed to change password");
+    } catch (err) {
+      toast.error("Failed to change password", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
     } finally {
       setSavingPassword(false);
     }

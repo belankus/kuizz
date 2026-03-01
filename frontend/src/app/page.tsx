@@ -20,10 +20,6 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet"
-      />
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -66,7 +62,7 @@ export default function LandingPage() {
       <div className="kuizz-landing flex min-h-screen flex-col">
         <nav className="sticky top-0 z-50 flex items-center justify-between bg-[var(--primary)] px-6 py-4 text-white shadow-md md:px-12">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-4xl text-[var(--accent)]">
+            <span className="material-symbols-outlined text-accent text-4xl">
               stadia_controller
             </span>
             <span className="logo-font text-3xl font-bold tracking-wide">

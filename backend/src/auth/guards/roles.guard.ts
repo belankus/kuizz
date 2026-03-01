@@ -7,6 +7,15 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Role } from '../../generated/prisma/client.js';
 import { ROLES_KEY } from '../decorators/roles.decorator.js';
+import { Request } from 'express';
+
+export interface RequestWithUser extends Request {
+  user: {
+    id: string;
+    email: string;
+    role: Role;
+  };
+}
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -22,9 +31,9 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const { user } = context.switchToHttp().getRequest<RequestWithUser>();
 
-    if (!requiredRoles.includes(user?.role)) {
+    if (!requiredRoles.includes(user.role)) {
       throw new ForbiddenException(
         'You do not have permission to access this resource',
       );

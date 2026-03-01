@@ -8,6 +8,8 @@ import dynamic from "next/dynamic";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { DashboardMetricsType } from "@repo/types";
+import { ApexOptions } from "apexcharts";
 
 // Dynamically import ReactApexChart to avoid SSR issues
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -15,7 +17,7 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 export default function Overview() {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DashboardMetricsType | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -31,8 +33,10 @@ export default function Overview() {
       }
       const json = await res.json();
       setData(json);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to load dashboard");
+    } catch (err) {
+      toast.error("Failed to load dashboard", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
     } finally {
       setLoading(false);
     }
@@ -48,7 +52,7 @@ export default function Overview() {
 
   if (!data) return null;
 
-  const chartOptions: any = {
+  const chartOptions: ApexOptions = {
     chart: {
       type: "area",
       fontFamily: "inherit",
@@ -58,7 +62,7 @@ export default function Overview() {
     dataLabels: { enabled: false },
     stroke: { curve: "smooth", width: 2 },
     xaxis: {
-      categories: data.gamesPerDay.map((d: any) => d.date),
+      categories: data.gamesPerDay.map((d) => d.date),
       tooltip: { enabled: false },
       labels: {
         style: { colors: "#64748b" },
@@ -76,7 +80,7 @@ export default function Overview() {
   const chartSeries = [
     {
       name: "Games Hosted",
-      data: data.gamesPerDay.map((d: any) => d.count),
+      data: data.gamesPerDay.map((d) => d.count),
     },
   ];
 
@@ -185,7 +189,7 @@ export default function Overview() {
             {data.recentGames.length === 0 ? (
               <p className="text-sm text-gray-500">No games hosted yet.</p>
             ) : (
-              data.recentGames.map((game: any) => (
+              data.recentGames.map((game) => (
                 <div
                   key={game.id}
                   className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800"

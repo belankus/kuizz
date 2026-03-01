@@ -1,7 +1,6 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
@@ -18,6 +17,7 @@ import {
   Users,
   ChevronDownIcon,
   Download,
+  Gamepad2,
 } from "lucide-react";
 
 type NavItem = {
@@ -29,6 +29,11 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     icon: <Grid size={20} />,
+    name: "Dashboard",
+    path: "/dashboard",
+  },
+  {
+    icon: <Gamepad2 size={20} />,
     name: "My Quizzes",
     path: "/dashboard/quizes",
   },
@@ -136,12 +141,7 @@ const AppSidebar: React.FC = () => {
     </ul>
   );
 
-  const isActive = useCallback(
-    (path: string) =>
-      path === pathname ||
-      (path === "/dashboard/quizes" && pathname === "/dashboard"),
-    [pathname],
-  );
+  const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
   return (
     <aside
@@ -203,7 +203,7 @@ const AppSidebar: React.FC = () => {
             !isExpanded && !isHovered ? "justify-center" : "text-left"
           }`}
         >
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-200">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-200">
             {avatar ? (
               <Avatar config={avatar} size={40} />
             ) : (
@@ -246,7 +246,7 @@ const AppSidebar: React.FC = () => {
           }`}
         >
           <div className="flex items-center gap-3 border-b border-gray-200 pb-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-200">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-200">
               {avatar ? (
                 <Avatar config={avatar} size={40} />
               ) : (

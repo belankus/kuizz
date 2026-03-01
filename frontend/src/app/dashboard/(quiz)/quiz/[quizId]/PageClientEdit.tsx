@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/auth";
 import { nanoid } from "nanoid";
 import { SharedQuizEditor } from "@/components/quiz/SharedQuizEditor";
+import { OptionModelType, QuestionModelType, QuizModelType } from "@repo/types";
 
 const colorPalette = [
   { color: "bg-red-600", icon: "triangle" },
@@ -14,16 +15,33 @@ const colorPalette = [
   { color: "bg-green-600", icon: "square" },
 ];
 
+interface Question extends QuestionModelType {
+  id: string;
+  text: string;
+  type: "Quiz" | "True/False";
+  timeLimit: number;
+  points: number;
+  answerOptions: "Single Select" | "Multi Select";
+  options: {
+    id: string;
+    text: string;
+    isCorrect: boolean;
+    color: string;
+    shape: string;
+  }[];
+  order?: number;
+  quizId?: string;
+}
+
+interface QuizModel extends QuizModelType {
+  questions: Question[];
+}
+
 export default function EditPage() {
   const { quizId } = useParams();
   const router = useRouter();
 
-  const [initialData, setInitialData] = useState<{
-    title: string;
-    description: string;
-    status: string;
-    questions: any[];
-  } | null>(null);
+  const [initialData, setInitialData] = useState<QuizModel | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -32,10 +50,8 @@ export default function EditPage() {
       .then((res) => res.json())
       .then((data) => {
         setInitialData({
-          title: data.title,
-          description: data.description || "",
-          status: data.status || "DRAFT",
-          questions: data.questions.map((q: any) => ({
+          ...data,
+          questions: data.questions.map((q: QuestionModelType) => ({
             id: nanoid(),
             text: q.text,
             type:
@@ -46,13 +62,13 @@ export default function EditPage() {
             timeLimit: q.timeLimit,
             points: 1000,
             answerOptions:
-              q.options.filter((o: any) => o.isCorrect).length > 1
+              q.options.filter((o: OptionModelType) => o.isCorrect).length > 1
                 ? "Multi Select"
                 : "Single Select",
-            answers: q.options.map((o: any, index: number) => ({
+            options: q.options.map((o: OptionModelType, index: number) => ({
               id: nanoid(),
               text: o.text,
-              correct: o.isCorrect,
+              isCorrect: o.isCorrect,
               color: colorPalette[index % colorPalette.length].color,
               shape: colorPalette[index % colorPalette.length].icon,
             })),
@@ -64,7 +80,10 @@ export default function EditPage() {
       });
   }, [quizId]);
 
-  async function handleSaveQuiz(payload: any, status: "DRAFT" | "PUBLISHED") {
+  async function handleSaveQuiz(
+    payload: QuizModelType,
+    status: "DRAFT" | "PUBLISHED",
+  ) {
     setIsSaving(true);
     try {
       const res = await apiFetch(`/quiz/${quizId}`, {
@@ -88,7 +107,9 @@ export default function EditPage() {
       );
       router.push("/dashboard/quizes");
     } catch (err) {
-      toast.error("Failed to update quiz");
+      toast.error("Failed to update quiz", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
       setIsSaving(false);
     }
   }

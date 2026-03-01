@@ -1,0 +1,18 @@
+{
+  "name": "@repo/types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "pnpm run build"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "license": "ISC"
+}

@@ -9,16 +9,7 @@ import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
-import {
-  Users,
-  Target,
-  Trophy,
-  HelpCircle,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  ChevronDown,
-} from "lucide-react";
+import { Users, Target, Trophy, HelpCircle } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -79,7 +70,9 @@ export default function GameStatsPage() {
         const json = await res.json();
         setData(json);
       } catch (err) {
-        toast.error("Could not load game session statistics");
+        toast.error("Could not load game session statistics", {
+          description: err instanceof Error ? err.message : "Unknown error",
+        });
       } finally {
         setLoading(false);
       }

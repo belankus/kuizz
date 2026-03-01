@@ -2,28 +2,33 @@
 
 import Avatar from "@/components/avatar/Avatar";
 import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
-import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
+import type { AvatarModel, PlayerModel } from "@repo/types";
 
 interface LobbyContentInterface {
   joinCode: string;
   nickname: string | null;
-  players: any[];
+  players: PlayerModel[];
 }
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function LobbyPlayer({
   nickname,
   players,
 }: LobbyContentInterface) {
-  const [localAvatar, setLocalAvatar] = useState<AvatarConfig | null>(null);
+  const [localAvatar, setLocalAvatar] = useState<AvatarModel | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("guestAvatar");
     if (stored) {
       try {
         setLocalAvatar(JSON.parse(stored));
-      } catch (e) {}
+      } catch (e) {
+        toast.error("Failed to load avatar", {
+          description: e instanceof Error ? e.message : "Unknown error",
+        });
+      }
     }
   }, []);
 
@@ -55,7 +60,7 @@ export default function LobbyPlayer({
           <div className="mt-8 flex flex-wrap justify-center gap-6">
             {players.map((player, index) => {
               const isMe = player.nickname === nickname;
-              const avatarCfg: AvatarConfig =
+              const avatarCfg: AvatarModel =
                 player.avatar ??
                 (isMe ? localAvatar : null) ??
                 getConsistentAvatar(player.nickname);

@@ -21,13 +21,19 @@ type QuestionPreview = {
   options: Option[];
 };
 
+type ExcelRow = {
+  Question: string;
+  TimeLimit: number;
+  Correct: string;
+} & Record<`Option${number}`, string>;
+
 export default function ImportPage() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [preview, setPreview] = useState<QuestionPreview[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  function parseRows(rows: any[]) {
+  function parseRows(rows: ExcelRow[]) {
     const questions: QuestionPreview[] = [];
     const errors: string[] = [];
 
@@ -101,13 +107,15 @@ export default function ImportPage() {
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+      const rows = XLSX.utils.sheet_to_json<ExcelRow>(sheet, { defval: "" });
 
       const parsed = parseRows(rows);
       setPreview(parsed.questions);
       setErrors(parsed.errors);
     } catch (err) {
-      toast.error("Failed to read file");
+      toast.error("Failed to read file", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
     }
   };
 
@@ -135,7 +143,9 @@ export default function ImportPage() {
       setPreview([]);
       setErrors([]);
     } catch (err) {
-      toast.error("Import failed");
+      toast.error("Import failed", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
     } finally {
       setLoading(false);
     }
@@ -190,8 +200,9 @@ export default function ImportPage() {
             {/* Upload Area */}
             <div
               {...getRootProps()}
-              className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition ${isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
-                }`}
+              className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition ${
+                isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+              }`}
             >
               <input {...getInputProps()} />
               <p className="text-gray-600">

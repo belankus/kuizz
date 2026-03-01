@@ -2,13 +2,13 @@
 
 import Avatar from "@/components/avatar/Avatar";
 import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
-import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 import { motion } from "framer-motion";
+import { AvatarModel } from "@repo/types";
 
 interface Player {
   nickname: string;
   score: number;
-  avatar?: AvatarConfig | null;
+  avatar?: AvatarModel | null;
 }
 
 interface FinalResultProps {
@@ -20,6 +20,7 @@ interface FinalResultProps {
 }
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function FinalResult({
   players,
@@ -28,14 +29,18 @@ export default function FinalResult({
   sessionId,
   onPlayAgain,
 }: FinalResultProps) {
-  const [localAvatar, setLocalAvatar] = useState<AvatarConfig | null>(null);
+  const [localAvatar, setLocalAvatar] = useState<AvatarModel | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("guestAvatar");
     if (stored) {
       try {
         setLocalAvatar(JSON.parse(stored));
-      } catch (e) {}
+      } catch (e) {
+        toast.error("Failed to parse avatar", {
+          description: e instanceof Error ? e.message : "Please try again",
+        });
+      }
     }
   }, []);
 
@@ -90,7 +95,7 @@ export default function FinalResult({
       <div className="mt-10 w-full max-w-3xl space-y-3">
         {sorted.map((player, index) => {
           const isMe = player.nickname === myName;
-          const avatarCfg: AvatarConfig =
+          const avatarCfg: AvatarModel =
             player.avatar ??
             (isMe ? localAvatar : null) ??
             getConsistentAvatar(player.nickname);
@@ -165,11 +170,11 @@ function PodiumCard({
   position: number;
   delay: number;
   isMe: boolean;
-  localAvatar: AvatarConfig | null;
+  localAvatar: AvatarModel | null;
 }) {
   const height = position === 1 ? "h-40" : position === 2 ? "h-32" : "h-28";
   const medal = position === 1 ? "🥇" : position === 2 ? "🥈" : "🥉";
-  const avatarCfg: AvatarConfig =
+  const avatarCfg: AvatarModel =
     player.avatar ??
     (isMe ? localAvatar : null) ??
     getConsistentAvatar(player.nickname);

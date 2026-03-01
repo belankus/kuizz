@@ -1,6 +1,6 @@
 {
   "name": "kuizz-frontend",
-  "version": "2.0.2",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -20,6 +20,7 @@
     "@fullcalendar/timegrid": "^6.1.15",
     "@tailwindcss/forms": "^0.5.9",
     "@tailwindcss/postcss": "^4.0.9",
+    "@tanstack/react-query": "^5.90.21",
     "apexcharts": "^4.3.0",
     "autoprefixer": "^10.4.20",
     "beanheads": "^0.3.3",
@@ -50,6 +51,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.58.2",
+    "@repo/types": "workspace:*",
     "@svgr/webpack": "^8.1.0",
     "@types/node": "^20",
     "@types/react": "^19",

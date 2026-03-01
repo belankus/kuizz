@@ -14,6 +14,7 @@ import GameAlreadyStarted from "./fallback/GameAlreadyStarted";
 import RoomLocked from "./fallback/RoomLocked";
 import HostQuestion from "./HostQuestion";
 import { useRouter } from "next/navigation";
+import { PlayerModel } from "@repo/types";
 
 type GamePhase =
   | "WAITING"
@@ -42,14 +43,14 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [answerStats, setAnswerStats] = useState<Record<string, number>>({});
-  const [players, setPlayers] = useState<any[]>([]);
+  const [players, setPlayers] = useState<PlayerModel[]>([]);
   const [correctOptionIds, setCorrectOptionIds] = useState<string[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
-  const [rankings, setRankings] = useState<any[]>([]);
+  const [rankings, setRankings] = useState<PlayerModel[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [quizTitle, setQuizTitle] = useState<string>("Kuizz Game");
-  const prevRankingsRef = useRef<any[]>([]);
-  const playersRef = useRef<any[]>([]);
+  const prevRankingsRef = useRef<PlayerModel[]>([]);
+  const playersRef = useRef<PlayerModel[]>([]);
 
   useEffect(() => {
     playersRef.current = players;

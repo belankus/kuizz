@@ -1,13 +1,7 @@
+import { UserModelType } from "@repo/types";
 import { jwtDecode } from "jwt-decode";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-export interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  role: "USER" | "SUPERADMIN";
-}
 
 // ─── Storage helpers (access token in memory / sessionStorage) ───────────────
 
@@ -26,16 +20,18 @@ export function removeAccessToken() {
   sessionStorage.removeItem(TOKEN_KEY);
 }
 
-export function getUserFromToken(): User | null {
+export function getUserFromToken(): UserModelType | null {
   const token = getAccessToken();
   if (!token) return null;
   try {
-    const decoded = jwtDecode<any>(token);
+    const decoded = jwtDecode<UserModelType>(token);
     return {
-      id: decoded.sub,
+      id: decoded.id,
       email: decoded.email,
       name: decoded.name || null,
       role: decoded.role,
+      provider: decoded.provider,
+      createdAt: decoded.createdAt,
     };
   } catch {
     return null;
@@ -71,7 +67,7 @@ export async function register(email: string, password: string, name?: string) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Registration failed");
   setAccessToken(data.accessToken);
-  return data as { user: User; accessToken: string };
+  return data as { user: UserModelType; accessToken: string };
 }
 
 export async function login(email: string, password: string) {
@@ -84,7 +80,7 @@ export async function login(email: string, password: string) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Login failed");
   setAccessToken(data.accessToken);
-  return data as { user: User; accessToken: string };
+  return data as { user: UserModelType; accessToken: string };
 }
 
 export async function logout() {
@@ -106,7 +102,7 @@ export async function refreshAccessToken(): Promise<string | null> {
   return data.accessToken;
 }
 
-export async function fetchMe(): Promise<User | null> {
+export async function fetchMe(): Promise<UserModelType | null> {
   const res = await authFetch("/auth/me");
   if (!res.ok) return null;
   return res.json();

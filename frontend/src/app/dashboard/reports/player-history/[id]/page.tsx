@@ -62,8 +62,10 @@ export default function HistoryDetailPage({
         if (!res.ok) throw new Error("Failed to fetch game details");
         const data = await res.json();
         setDetail(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch game details",
+        );
       } finally {
         setLoading(false);
       }
@@ -228,9 +230,9 @@ export default function HistoryDetailPage({
                   {q.options.map((opt) => {
                     const isUserChoice =
                       userAnswer?.selectedOptionId === opt.id;
-                    const isCorrectOption =
-                      q.correctOptionIds?.includes(opt.id) ||
-                      (q as any).correctOptionId === opt.id;
+                    const isCorrectOption = q.correctOptionIds?.includes(
+                      opt.id,
+                    );
 
                     let variantClass =
                       "bg-gray-50 dark:bg-gray-800/30 border-gray-100 dark:border-gray-700";

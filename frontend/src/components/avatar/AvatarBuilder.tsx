@@ -1,58 +1,10 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { BeanHead } from "beanheads";
-
-// ── Types extracted from beanheads AvatarProps ──────────────────────────────
-export type AvatarConfig = {
-  skinTone?: "light" | "yellow" | "brown" | "dark" | "red" | "black";
-  eyes?:
-    | "normal"
-    | "leftTwitch"
-    | "happy"
-    | "content"
-    | "squint"
-    | "simple"
-    | "dizzy"
-    | "wink"
-    | "heart";
-  eyebrows?: "raised" | "leftLowered" | "serious" | "angry" | "concerned";
-  mouth?: "grin" | "sad" | "openSmile" | "lips" | "open" | "serious" | "tongue";
-  hair?:
-    | "none"
-    | "long"
-    | "bun"
-    | "short"
-    | "pixie"
-    | "balding"
-    | "buzz"
-    | "afro"
-    | "bob";
-  hairColor?:
-    | "blonde"
-    | "orange"
-    | "black"
-    | "white"
-    | "brown"
-    | "blue"
-    | "pink";
-  facialHair?: "none" | "none2" | "none3" | "stubble" | "mediumBeard";
-  clothing?: "naked" | "shirt" | "dressShirt" | "vneck" | "tankTop" | "dress";
-  clothingColor?: "white" | "blue" | "black" | "green" | "red";
-  accessory?: "none" | "roundGlasses" | "tinyGlasses" | "shades";
-  graphic?: "none" | "redwood" | "gatsby" | "vue" | "react" | "graphQL";
-  hat?: "none" | "none2" | "none3" | "none4" | "none5" | "beanie" | "turban";
-  hatColor?: "white" | "blue" | "black" | "green" | "red";
-  lipColor?: "red" | "purple" | "pink" | "turqoise" | "green";
-  faceMaskColor?: "white" | "blue" | "black" | "green" | "red";
-  body?: "chest" | "breasts";
-  circleColor?: "blue";
-  lashes?: boolean;
-  mask?: boolean;
-  faceMask?: boolean;
-};
+import { AvatarModel } from "@repo/types";
 
 // ── Options ──────────────────────────────────────────────────────────────────
-const SKIN_TONES: AvatarConfig["skinTone"][] = [
+const SKIN_TONES: AvatarModel["skinTone"][] = [
   "light",
   "yellow",
   "brown",
@@ -69,7 +21,7 @@ const SKIN_COLORS: Record<string, string> = {
   black: "#2B1B17",
 };
 
-const EYES: AvatarConfig["eyes"][] = [
+const EYES: AvatarModel["eyes"][] = [
   "normal",
   "leftTwitch",
   "happy",
@@ -80,14 +32,14 @@ const EYES: AvatarConfig["eyes"][] = [
   "wink",
   "heart",
 ];
-const EYEBROWS: AvatarConfig["eyebrows"][] = [
+const EYEBROWS: AvatarModel["eyebrows"][] = [
   "raised",
   "leftLowered",
   "serious",
   "angry",
   "concerned",
 ];
-const MOUTHS: AvatarConfig["mouth"][] = [
+const MOUTHS: AvatarModel["mouth"][] = [
   "grin",
   "sad",
   "openSmile",
@@ -96,7 +48,7 @@ const MOUTHS: AvatarConfig["mouth"][] = [
   "serious",
   "tongue",
 ];
-const HAIRS: AvatarConfig["hair"][] = [
+const HAIRS: AvatarModel["hair"][] = [
   "none",
   "long",
   "bun",
@@ -107,7 +59,7 @@ const HAIRS: AvatarConfig["hair"][] = [
   "afro",
   "bob",
 ];
-const HAIR_COLORS: AvatarConfig["hairColor"][] = [
+const HAIR_COLORS: AvatarModel["hairColor"][] = [
   "blonde",
   "orange",
   "black",
@@ -125,7 +77,7 @@ const HAIR_COLOR_HEX: Record<string, string> = {
   blue: "#4169E1",
   pink: "#FF69B4",
 };
-const CLOTHING: AvatarConfig["clothing"][] = [
+const CLOTHING: AvatarModel["clothing"][] = [
   "shirt",
   "dressShirt",
   "vneck",
@@ -133,7 +85,7 @@ const CLOTHING: AvatarConfig["clothing"][] = [
   "dress",
   "naked",
 ];
-const CLOTHING_COLORS: AvatarConfig["clothingColor"][] = [
+const CLOTHING_COLORS: AvatarModel["clothingColor"][] = [
   "white",
   "blue",
   "black",
@@ -147,26 +99,26 @@ const CLOTHING_COLOR_HEX: Record<string, string> = {
   green: "#228B22",
   red: "#DC143C",
 };
-const ACCESSORIES: AvatarConfig["accessory"][] = [
+const ACCESSORIES: AvatarModel["accessory"][] = [
   "none",
   "roundGlasses",
   "tinyGlasses",
   "shades",
 ];
-const HATS: AvatarConfig["hat"][] = ["none", "beanie", "turban"];
-const HAT_COLORS: AvatarConfig["hatColor"][] = [
+const HATS: AvatarModel["hat"][] = ["none", "beanie", "turban"];
+const HAT_COLORS: AvatarModel["hatColor"][] = [
   "white",
   "blue",
   "black",
   "green",
   "red",
 ];
-const FACIAL_HAIRS: AvatarConfig["facialHair"][] = [
+const FACIAL_HAIRS: AvatarModel["facialHair"][] = [
   "none",
   "stubble",
   "mediumBeard",
 ];
-const GRAPHICS: AvatarConfig["graphic"][] = [
+const GRAPHICS: AvatarModel["graphic"][] = [
   "none",
   "redwood",
   "gatsby",
@@ -174,7 +126,7 @@ const GRAPHICS: AvatarConfig["graphic"][] = [
   "react",
   "graphQL",
 ];
-const LIP_COLORS: AvatarConfig["lipColor"][] = [
+const LIP_COLORS: AvatarModel["lipColor"][] = [
   "red",
   "purple",
   "pink",
@@ -188,14 +140,14 @@ const LIP_COLOR_HEX: Record<string, string> = {
   turqoise: "#40E0D0",
   green: "#228B22",
 };
-const BODY_TYPES: AvatarConfig["body"][] = ["chest", "breasts"];
+const BODY_TYPES: AvatarModel["body"][] = ["chest", "breasts"];
 
 const ALL_EYES = EYES;
 const ALL_EYEBROWS = EYEBROWS;
 const ALL_MOUTHS = MOUTHS;
 
 // ── Random avatar util ───────────────────────────────────────────────────────
-export function getRandomAvatar(): AvatarConfig {
+export function getRandomAvatar(): AvatarModel {
   const pick = <T,>(arr: T[]) => arr[Math.floor(Math.random() * arr.length)];
   return {
     skinTone: pick(SKIN_TONES),
@@ -232,14 +184,14 @@ function hashCode(str: string) {
 // Simple seeded PRNG (mulberry32)
 function mulberry32(a: number) {
   return function () {
-    var t = (a += 0x6d2b79f5);
+    let t = (a += 0x6d2b79f5);
     t = Math.imul(t ^ (t >>> 15), t | 1);
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
 
-export function getConsistentAvatar(seedStr: string): AvatarConfig {
+export function getConsistentAvatar(seedStr: string): AvatarModel {
   const rng = mulberry32(hashCode(seedStr) || 12345);
   const pick = <T,>(arr: T[]) => arr[Math.floor(rng() * arr.length)];
 
@@ -269,7 +221,7 @@ export function AvatarDisplay({
   config,
   size = 80,
 }: {
-  config: AvatarConfig;
+  config: AvatarModel;
   size?: number;
 }) {
   // Explicitly pick only known BeanHead props so old/unknown fields
@@ -338,11 +290,11 @@ export function AvatarDisplay({
 
 // ── Builder component ────────────────────────────────────────────────────────
 interface AvatarBuilderProps {
-  initial?: AvatarConfig | null;
-  onChange: (config: AvatarConfig) => void;
+  initial?: AvatarModel | null;
+  onChange: (config: AvatarModel) => void;
 }
 
-const DEFAULT_CONFIG: AvatarConfig = {
+const DEFAULT_CONFIG: AvatarModel = {
   skinTone: "light",
   eyes: "normal",
   eyebrows: "raised",
@@ -368,13 +320,13 @@ export default function AvatarBuilder({
   initial,
   onChange,
 }: AvatarBuilderProps) {
-  const [config, setConfig] = useState<AvatarConfig>(initial ?? DEFAULT_CONFIG);
+  const [config, setConfig] = useState<AvatarModel>(initial ?? DEFAULT_CONFIG);
 
   useEffect(() => {
     onChange(config);
-  }, [config]);
+  }, [config, onChange]);
 
-  const update = useCallback((partial: Partial<AvatarConfig>) => {
+  const update = useCallback((partial: Partial<AvatarModel>) => {
     setConfig((prev) => ({ ...prev, ...partial }));
   }, []);
 
@@ -431,9 +383,7 @@ export default function AvatarBuilder({
             options={SKIN_TONES}
             colorMap={SKIN_COLORS}
             selected={config.skinTone!}
-            onSelect={(v) =>
-              update({ skinTone: v as AvatarConfig["skinTone"] })
-            }
+            onSelect={(v) => update({ skinTone: v as AvatarModel["skinTone"] })}
           />
         </Section>
 
@@ -442,7 +392,7 @@ export default function AvatarBuilder({
           <ChipRow
             options={HAIRS.map((h) => ({ value: h!, label: h! }))}
             selected={config.hair!}
-            onSelect={(v) => update({ hair: v as AvatarConfig["hair"] })}
+            onSelect={(v) => update({ hair: v as AvatarModel["hair"] })}
           />
         </Section>
 
@@ -453,7 +403,7 @@ export default function AvatarBuilder({
             colorMap={HAIR_COLOR_HEX}
             selected={config.hairColor!}
             onSelect={(v) =>
-              update({ hairColor: v as AvatarConfig["hairColor"] })
+              update({ hairColor: v as AvatarModel["hairColor"] })
             }
           />
         </Section>
@@ -463,7 +413,7 @@ export default function AvatarBuilder({
           <ChipRow
             options={EYES.map((e) => ({ value: e!, label: e! }))}
             selected={config.eyes!}
-            onSelect={(v) => update({ eyes: v as AvatarConfig["eyes"] })}
+            onSelect={(v) => update({ eyes: v as AvatarModel["eyes"] })}
           />
         </Section>
 
@@ -472,9 +422,7 @@ export default function AvatarBuilder({
           <ChipRow
             options={EYEBROWS.map((e) => ({ value: e!, label: e! }))}
             selected={config.eyebrows!}
-            onSelect={(v) =>
-              update({ eyebrows: v as AvatarConfig["eyebrows"] })
-            }
+            onSelect={(v) => update({ eyebrows: v as AvatarModel["eyebrows"] })}
           />
         </Section>
 
@@ -483,7 +431,7 @@ export default function AvatarBuilder({
           <ChipRow
             options={MOUTHS.map((m) => ({ value: m!, label: m! }))}
             selected={config.mouth!}
-            onSelect={(v) => update({ mouth: v as AvatarConfig["mouth"] })}
+            onSelect={(v) => update({ mouth: v as AvatarModel["mouth"] })}
           />
         </Section>
 
@@ -492,9 +440,7 @@ export default function AvatarBuilder({
           <ChipRow
             options={CLOTHING.map((c) => ({ value: c!, label: c! }))}
             selected={config.clothing!}
-            onSelect={(v) =>
-              update({ clothing: v as AvatarConfig["clothing"] })
-            }
+            onSelect={(v) => update({ clothing: v as AvatarModel["clothing"] })}
           />
         </Section>
 
@@ -506,7 +452,7 @@ export default function AvatarBuilder({
               colorMap={CLOTHING_COLOR_HEX}
               selected={config.clothingColor!}
               onSelect={(v) =>
-                update({ clothingColor: v as AvatarConfig["clothingColor"] })
+                update({ clothingColor: v as AvatarModel["clothingColor"] })
               }
             />
           </Section>
@@ -518,7 +464,7 @@ export default function AvatarBuilder({
             options={ACCESSORIES.map((a) => ({ value: a!, label: a! }))}
             selected={config.accessory!}
             onSelect={(v) =>
-              update({ accessory: v as AvatarConfig["accessory"] })
+              update({ accessory: v as AvatarModel["accessory"] })
             }
           />
         </Section>
@@ -528,7 +474,7 @@ export default function AvatarBuilder({
           <ChipRow
             options={HATS.map((a) => ({ value: a!, label: a! }))}
             selected={config.hat!}
-            onSelect={(v) => update({ hat: v as AvatarConfig["hat"] })}
+            onSelect={(v) => update({ hat: v as AvatarModel["hat"] })}
           />
         </Section>
 
@@ -540,7 +486,7 @@ export default function AvatarBuilder({
               colorMap={CLOTHING_COLOR_HEX}
               selected={config.hatColor!}
               onSelect={(v) =>
-                update({ hatColor: v as AvatarConfig["hatColor"] })
+                update({ hatColor: v as AvatarModel["hatColor"] })
               }
             />
           </Section>
@@ -552,7 +498,7 @@ export default function AvatarBuilder({
             options={FACIAL_HAIRS.map((f) => ({ value: f!, label: f! }))}
             selected={config.facialHair!}
             onSelect={(v) =>
-              update({ facialHair: v as AvatarConfig["facialHair"] })
+              update({ facialHair: v as AvatarModel["facialHair"] })
             }
           />
         </Section>
@@ -563,9 +509,7 @@ export default function AvatarBuilder({
             <ChipRow
               options={GRAPHICS.map((g) => ({ value: g!, label: g! }))}
               selected={config.graphic!}
-              onSelect={(v) =>
-                update({ graphic: v as AvatarConfig["graphic"] })
-              }
+              onSelect={(v) => update({ graphic: v as AvatarModel["graphic"] })}
             />
           </Section>
         )}
@@ -578,7 +522,7 @@ export default function AvatarBuilder({
               colorMap={LIP_COLOR_HEX}
               selected={config.lipColor!}
               onSelect={(v) =>
-                update({ lipColor: v as AvatarConfig["lipColor"] })
+                update({ lipColor: v as AvatarModel["lipColor"] })
               }
             />
           </Section>
@@ -589,7 +533,7 @@ export default function AvatarBuilder({
           <ChipRow
             options={BODY_TYPES.map((b) => ({ value: b!, label: b! }))}
             selected={config.body!}
-            onSelect={(v) => update({ body: v as AvatarConfig["body"] })}
+            onSelect={(v) => update({ body: v as AvatarModel["body"] })}
           />
         </Section>
 

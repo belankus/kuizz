@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import QRCodePlaceholder from "@/components/game/QRCodePlaceholder";
 import Avatar from "@/components/avatar/Avatar";
 import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
-import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 import { Lock, Unlock } from "lucide-react";
 import {
   Tooltip,
@@ -13,10 +12,11 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "../ui/button";
 import { socket } from "@/lib/socket";
+import { AvatarModel, PlayerModel } from "@repo/types";
 
 interface LobbyContentInterface {
   joinCode: string;
-  players: any[];
+  players: PlayerModel[];
   initialIsLocked?: boolean;
 }
 
@@ -159,7 +159,7 @@ export default function LobbyContent({
 
             <div className="mt-10 flex flex-wrap items-center justify-center gap-8">
               {players.map((player, index) => {
-                const avatarCfg: AvatarConfig =
+                const avatarCfg: AvatarModel =
                   player.avatar ?? getConsistentAvatar(player.nickname);
                 return (
                   <div key={index} className="flex flex-col items-center">

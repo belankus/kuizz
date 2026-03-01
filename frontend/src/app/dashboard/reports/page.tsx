@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -53,125 +53,79 @@ import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
 import Link from "next/link";
 import ComponentCard from "@/components/common/ComponentCard";
-
-type DashboardSummary = {
-  metrics: {
-    totalQuizzes: number;
-    totalGamesHosted: number;
-    totalPlayers: number;
-    averageAccuracy: number;
-  };
-  gamesPerDay: { date: string; count: number }[];
-  recentGames: any[];
-};
-
-type GameSession = {
-  id: string;
-  title: string;
-  status: string;
-  createdAt: string;
-  finishedAt: string | null;
-  totalPlayers: number;
-  roomCode: string | null;
-};
-
-type GameHistory = {
-  id: string;
-  sessionId: string;
-  nickname: string;
-  score: number;
-  joinedAt: string;
-  session: {
-    title: string;
-    createdAt: string;
-    totalQuestions: number;
-  };
-};
+import { DashboardMetricsType, GameHistory, GameSession } from "@repo/types";
+import { useDebounce } from "@/hooks/useDebounce";
+import {
+  useQuery,
+  keepPreviousData,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 export default function ReportsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // Tabs State
   const [activeTab, setActiveTab] = useState<"HOSTED" | "PLAYED">("HOSTED");
 
-  // Summary State
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [loadingSummary, setLoadingSummary] = useState(true);
-
-  // Hosted Games State (Original rooms/page.tsx)
-  const [hostedSessions, setHostedSessions] = useState<GameSession[]>([]);
-  const [loadingHosted, setLoadingHosted] = useState(true);
+  // Hosted Games Params
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 500);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const limit = 10;
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Played Games State (Original history/page.tsx)
-  const [playedHistory, setPlayedHistory] = useState<GameHistory[]>([]);
-  const [loadingPlayed, setLoadingPlayed] = useState(true);
-  const [playedError, setPlayedError] = useState<string | null>(null);
+  // Summary Query
+  const { data: summary, isLoading: loadingSummary } =
+    useQuery<DashboardMetricsType>({
+      queryKey: ["dashboard-summary"],
+      queryFn: async () => {
+        const res = await apiFetch(`/dashboard/summary`);
+        if (!res.ok) throw new Error("Failed to load summary");
+        return res.json();
+      },
+    });
 
-  useEffect(() => {
-    fetchSummary();
-    fetchPlayedHistory();
-  }, []);
-
-  useEffect(() => {
-    if (activeTab === "HOSTED") {
-      fetchHostedSessions();
-    }
-  }, [page, search, activeTab]);
-
-  const fetchSummary = async () => {
-    setLoadingSummary(true);
-    try {
-      const res = await apiFetch(`/dashboard/summary`);
-      if (res.ok) {
-        const data = await res.json();
-        setSummary(data);
-      }
-    } catch {
-      console.error("Failed to load dashboard summary");
-    } finally {
-      setLoadingSummary(false);
-    }
-  };
-
-  const fetchHostedSessions = async () => {
-    setLoadingHosted(true);
-    try {
+  // Hosted Games Query
+  const { data: hostedData, isLoading: loadingHosted } = useQuery<{
+    data: GameSession[];
+    meta: { totalPages: number };
+  }>({
+    queryKey: ["hosted-sessions", page, debouncedSearch],
+    queryFn: async () => {
       const res = await apiFetch(
-        `/game-session?page=${page}&limit=${limit}&search=${search}`,
+        `/game-session?page=${page}&limit=${limit}&search=${debouncedSearch}`,
       );
-      if (res.ok) {
-        const data = await res.json();
-        setHostedSessions(data.data);
-        setTotalPages(data.meta.totalPages);
-      }
-    } catch {
-      toast.error("Failed to load hosted game sessions");
-    } finally {
-      setLoadingHosted(false);
-    }
-  };
+      if (!res.ok) throw new Error("Failed to load sessions");
+      return res.json();
+    },
+    placeholderData: keepPreviousData,
+    enabled: activeTab === "HOSTED",
+  });
 
-  const fetchPlayedHistory = async () => {
-    setLoadingPlayed(true);
-    try {
+  const hostedSessions = hostedData?.data || [];
+  const totalPages = hostedData?.meta?.totalPages || 1;
+
+  // Played Games Query
+  const {
+    data: playedHistory = [],
+    isLoading: loadingPlayed,
+    error: playedErrorObj,
+  } = useQuery<GameHistory[]>({
+    queryKey: ["played-history"],
+    queryFn: async () => {
       const res = await apiFetch("/users/me/history");
       if (!res.ok) throw new Error("Failed to fetch history");
-      const data = await res.json();
-      setPlayedHistory(data);
-    } catch (err: any) {
-      setPlayedError(err.message);
-    } finally {
-      setLoadingPlayed(false);
-    }
-  };
+      return res.json();
+    },
+    enabled: activeTab === "PLAYED" || !summary, // Load history if tab is active or as initial load
+  });
+
+  const playedError =
+    playedErrorObj instanceof Error ? playedErrorObj.message : null;
 
   const handleDelete = async () => {
     if (!deleteId || isDeleting) return;
@@ -185,8 +139,9 @@ export default function ReportsPage() {
       toast.success("Game session deleted");
       setOpenModal(false);
       setDeleteId(null);
-      fetchHostedSessions();
-      fetchSummary(); // Refresh summary after delete
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ["hosted-sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
     } catch {
       toast.error("Failed to delete game session");
     } finally {
@@ -338,8 +293,8 @@ export default function ReportsPage() {
                   </EmptyMedia>
                   <EmptyTitle>No Hosted Games</EmptyTitle>
                   <EmptyDescription>
-                    You haven't hosted any games yet. Start a quiz to see its
-                    history here!
+                    You haven&apos;t hosted any games yet. Start a quiz to see
+                    its history here!
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -553,8 +508,8 @@ export default function ReportsPage() {
                   </EmptyMedia>
                   <EmptyTitle>No Gameplay History</EmptyTitle>
                   <EmptyDescription>
-                    You haven't played any games yet. Join a room and complete a
-                    quiz to track your score here!
+                    You haven&apos;t played any games yet. Join a room and
+                    complete a quiz to track your score here!
                   </EmptyDescription>
                 </EmptyHeader>
                 <Button

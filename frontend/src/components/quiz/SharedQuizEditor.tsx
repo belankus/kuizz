@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "@/lib/auth";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -27,42 +26,11 @@ import {
   Plus,
   GripVertical,
   LogOut,
-  HelpCircle,
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-
-const initialAnswers = [
-  {
-    id: nanoid(),
-    text: "",
-    correct: true,
-    color: "bg-red-600",
-    shape: "triangle",
-  },
-  {
-    id: nanoid(),
-    text: "",
-    correct: false,
-    color: "bg-blue-600",
-    shape: "diamond",
-  },
-  {
-    id: nanoid(),
-    text: "",
-    correct: false,
-    color: "bg-yellow-500",
-    shape: "circle",
-  },
-  {
-    id: nanoid(),
-    text: "",
-    correct: false,
-    color: "bg-green-600",
-    shape: "square",
-  },
-];
+import { QuestionModelType, QuizModelType } from "@repo/types";
 
 const colorPalette = [
   { color: "bg-red-600", icon: "triangle" },
@@ -71,6 +39,63 @@ const colorPalette = [
   { color: "bg-green-600", icon: "square" },
 ];
 
+const initialAnswers = [
+  {
+    id: nanoid(),
+    text: "",
+    isCorrect: true,
+    color: "bg-red-600",
+    shape: "triangle",
+  },
+  {
+    id: nanoid(),
+    text: "",
+    isCorrect: false,
+    color: "bg-blue-600",
+    shape: "diamond",
+  },
+  {
+    id: nanoid(),
+    text: "",
+    isCorrect: false,
+    color: "bg-yellow-500",
+    shape: "circle",
+  },
+  {
+    id: nanoid(),
+    text: "",
+    isCorrect: false,
+    color: "bg-green-600",
+    shape: "square",
+  },
+];
+
+interface Question extends QuestionModelType {
+  id: string;
+  text: string;
+  type: "Quiz" | "True/False";
+  timeLimit: number;
+  points: number;
+  answerOptions: string;
+  options: {
+    id: string;
+    text: string;
+    isCorrect: boolean;
+    color: string;
+    shape: string;
+  }[];
+  order?: number;
+  quizId?: string;
+}
+interface SortableItemProps {
+  q: Question;
+  index: number;
+  activeIndex: number;
+  setActiveIndex: (index: number) => void;
+  duplicateQuestion: (index: number) => void;
+  deleteQuestion: (index: number) => void;
+}
+
 function SortableItem({
   q,
   index,
@@ -78,7 +103,7 @@ function SortableItem({
   setActiveIndex,
   duplicateQuestion,
   deleteQuestion,
-}: any) {
+}: SortableItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: q.id });
 
@@ -169,9 +194,12 @@ function SortableItem({
 export interface SharedQuizEditorProps {
   initialTitle?: string;
   initialDescription?: string;
-  initialQuestions?: any[];
+  initialQuestions?: Question[];
   isSaving: boolean;
-  onSave: (payload: any, status: "DRAFT" | "PUBLISHED") => Promise<void>;
+  onSave: (
+    payload: QuizModelType,
+    status: "DRAFT" | "PUBLISHED",
+  ) => Promise<void>;
 }
 
 export function SharedQuizEditor({
@@ -184,23 +212,25 @@ export function SharedQuizEditor({
   const router = useRouter();
   const [quizTitle, setQuizTitle] = useState(initialTitle);
   const [quizDescription, setQuizDescription] = useState(initialDescription);
-  const [lastSaved, setLastSaved] = useState<string>("All changes saved");
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const [questions, setQuestions] = useState(
-    initialQuestions && initialQuestions.length > 0
-      ? initialQuestions
-      : [
-          {
-            id: nanoid(),
-            text: "",
-            type: "Quiz", // "Quiz" or "True/False"
-            timeLimit: 20,
-            points: 1000,
-            answerOptions: "Single Select", // "Single Select" or "Multi Select"
-            answers: structuredClone(initialAnswers),
-          },
-        ],
+  const [questions, setQuestions] = useState<Question[]>(
+    initialQuestions || [
+      {
+        id: nanoid(),
+        text: "",
+        type: "Quiz",
+        timeLimit: 20,
+        points: 1000,
+        answerOptions: "Single Select",
+        options: structuredClone(initialAnswers).map((a) => ({
+          ...a,
+          id: nanoid(),
+          isCorrect: a.shape === "triangle",
+          text: "",
+        })),
+      },
+    ],
   );
 
   const currentQuestion = questions[activeIndex] || questions[0];
@@ -212,10 +242,6 @@ export function SharedQuizEditor({
       setQuestions(initialQuestions);
     }
   }, [initialTitle, initialDescription, initialQuestions]);
-
-  const handleContentChange = () => {
-    setLastSaved("Unsaved changes");
-  };
 
   function renderIcon(type: string) {
     const size = 32;
@@ -233,25 +259,27 @@ export function SharedQuizEditor({
     }
   }
 
-  function updateQuestionField(field: string, value: any) {
-    handleContentChange();
+  function updateQuestionField<K extends keyof Question>(
+    field: K,
+    value: Question[K],
+  ) {
     const updated = structuredClone(questions);
     if (!updated[activeIndex]) return;
-    (updated[activeIndex] as any)[field] = value;
+    updated[activeIndex][field] = value;
 
     if (field === "type" && value === "True/False") {
-      updated[activeIndex].answers = [
+      updated[activeIndex].options = [
         {
           id: nanoid(),
           text: "True",
-          correct: true,
+          isCorrect: true,
           color: "bg-blue-600",
           shape: "diamond",
         },
         {
           id: nanoid(),
           text: "False",
-          correct: false,
+          isCorrect: false,
           color: "bg-red-600",
           shape: "triangle",
         },
@@ -259,43 +287,41 @@ export function SharedQuizEditor({
     } else if (
       field === "type" &&
       value === "Quiz" &&
-      updated[activeIndex].answers.length === 2 &&
-      updated[activeIndex].answers[0].text === "True"
+      updated[activeIndex].options.length === 2 &&
+      updated[activeIndex].options[0].text === "True"
     ) {
-      updated[activeIndex].answers = structuredClone(initialAnswers).map(
+      updated[activeIndex].options = structuredClone(initialAnswers).map(
         (a) => ({
           ...a,
           id: nanoid(),
           text: "",
-          correct: false,
+          isCorrect: false,
         }),
       );
-      updated[activeIndex].answers[0].correct = true;
+      updated[activeIndex].options[0].isCorrect = true;
     }
 
     setQuestions(updated);
   }
 
   function updateAnswer(id: string, text: string) {
-    handleContentChange();
     const updated = structuredClone(questions);
-    updated[activeIndex].answers = updated[activeIndex].answers.map((a: any) =>
-      a.id === id ? { ...a, text } : a,
+    updated[activeIndex].options = updated[activeIndex].options.map(
+      (a: (typeof initialAnswers)[0]) => (a.id === id ? { ...a, text } : a),
     );
     setQuestions(updated);
   }
 
   function toggleCorrect(id: string) {
-    handleContentChange();
     const updated = structuredClone(questions);
     const isMultiSelect = updated[activeIndex].answerOptions === "Multi Select";
 
-    updated[activeIndex].answers = updated[activeIndex].answers.map(
-      (a: any) => {
+    updated[activeIndex].options = updated[activeIndex].options.map(
+      (a: (typeof initialAnswers)[0]) => {
         if (a.id === id) {
-          return { ...a, correct: isMultiSelect ? !a.correct : true };
+          return { ...a, isCorrect: isMultiSelect ? !a.isCorrect : true };
         }
-        return isMultiSelect ? a : { ...a, correct: false };
+        return isMultiSelect ? a : { ...a, isCorrect: false };
       },
     );
 
@@ -303,9 +329,8 @@ export function SharedQuizEditor({
   }
 
   function addAnswer() {
-    handleContentChange();
     const updated = structuredClone(questions);
-    const answers = updated[activeIndex].answers;
+    const answers = updated[activeIndex].options;
 
     if (answers.length >= 6) {
       toast.error("Maximum 6 answers allowed");
@@ -317,7 +342,7 @@ export function SharedQuizEditor({
     answers.push({
       id: nanoid(),
       text: "",
-      correct: false,
+      isCorrect: false,
       color: paletteItem.color,
       shape: paletteItem.icon,
     });
@@ -326,23 +351,21 @@ export function SharedQuizEditor({
   }
 
   function removeAnswer(id: string) {
-    handleContentChange();
     const updated = structuredClone(questions);
 
-    if (updated[activeIndex].answers.length <= 2) {
+    if (updated[activeIndex].options.length <= 2) {
       toast.error("Minimum 2 answers required");
       return;
     }
 
-    updated[activeIndex].answers = updated[activeIndex].answers.filter(
-      (a: any) => a.id !== id,
+    updated[activeIndex].options = updated[activeIndex].options.filter(
+      (a: (typeof initialAnswers)[0]) => a.id !== id,
     );
 
     setQuestions(updated);
   }
 
   function addQuestion() {
-    handleContentChange();
     setQuestions([
       ...questions,
       {
@@ -352,10 +375,10 @@ export function SharedQuizEditor({
         timeLimit: 20,
         points: 1000,
         answerOptions: "Single Select",
-        answers: structuredClone(initialAnswers).map((a) => ({
+        options: structuredClone(initialAnswers).map((a) => ({
           ...a,
           id: nanoid(),
-          correct: a.shape === "triangle",
+          isCorrect: a.shape === "triangle",
           text: "",
         })),
       },
@@ -364,13 +387,14 @@ export function SharedQuizEditor({
   }
 
   function duplicateQuestion(indexToDuplicate: number = activeIndex) {
-    handleContentChange();
     const duplicated = structuredClone(questions[indexToDuplicate]);
     duplicated.id = nanoid();
-    duplicated.answers = duplicated.answers.map((a: any) => ({
-      ...a,
-      id: nanoid(),
-    }));
+    duplicated.options = duplicated.options.map(
+      (a: (typeof initialAnswers)[0]) => ({
+        ...a,
+        id: nanoid(),
+      }),
+    );
 
     const newQuestions = [...questions];
     newQuestions.splice(indexToDuplicate + 1, 0, duplicated);
@@ -379,7 +403,6 @@ export function SharedQuizEditor({
   }
 
   function deleteQuestion(index: number) {
-    handleContentChange();
     if (questions.length <= 1) {
       toast.error("At least one question required");
       return;
@@ -401,14 +424,18 @@ export function SharedQuizEditor({
           return;
         }
 
-        const validAnswers = q.answers.filter((a: any) => a.text.trim() !== "");
+        const validAnswers = q.options.filter(
+          (a: (typeof initialAnswers)[0]) => a.text.trim() !== "",
+        );
 
         if (validAnswers.length < 2) {
           toast.error("Each question must have at least 2 answers to publish");
           return;
         }
 
-        if (!validAnswers.some((a: any) => a.correct)) {
+        if (
+          !validAnswers.some((a: (typeof initialAnswers)[0]) => a.isCorrect)
+        ) {
           toast.error("Each question must have at least 1 correct answer");
           return;
         }
@@ -420,23 +447,18 @@ export function SharedQuizEditor({
       description: quizDescription,
       status: status,
       questions: questions.map((q, index) => ({
+        ...q,
         text: q.text,
         timeLimit: q.timeLimit,
         order: index,
-        options: q.answers.map((a: any) => ({
+        options: q.options.map((a: (typeof initialAnswers)[0]) => ({
           text: a.text,
-          isCorrect: a.correct,
+          isCorrect: a.isCorrect,
         })),
       })),
     };
 
-    setLastSaved("Saving...");
-    try {
-      await onSave(payload, status);
-      setLastSaved("All changes saved");
-    } catch {
-      setLastSaved("Error saving");
-    }
+    await onSave(payload, status);
   };
 
   return (
@@ -459,7 +481,6 @@ export function SharedQuizEditor({
               value={quizTitle}
               onChange={(e) => {
                 setQuizTitle(e.target.value);
-                handleContentChange();
               }}
               placeholder="Enter quiz title..."
               className="rounded bg-transparent px-1 text-sm font-bold transition placeholder:text-gray-500 focus:ring-1 focus:ring-purple-500/50 focus:outline-none"
@@ -468,15 +489,11 @@ export function SharedQuizEditor({
               value={quizDescription}
               onChange={(e) => {
                 setQuizDescription(e.target.value);
-                handleContentChange();
               }}
               placeholder="Add a description..."
               className="rounded bg-transparent px-1 text-[11px] text-gray-400 transition placeholder:text-gray-600 focus:ring-1 focus:ring-purple-500/50 focus:outline-none"
             />
           </div>
-          <span className="ml-2 text-[10px] whitespace-nowrap text-gray-500">
-            {lastSaved}
-          </span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -616,7 +633,7 @@ export function SharedQuizEditor({
             <div
               className={`grid gap-4 ${currentQuestion.type === "True/False" ? "mx-auto w-full max-w-3xl grid-cols-2" : "grid-cols-2"}`}
             >
-              {currentQuestion.answers.map((a: any) => (
+              {currentQuestion.options.map((a: (typeof initialAnswers)[0]) => (
                 <div key={a.id} className="group relative">
                   <div
                     className={`flex min-h-[72px] items-center overflow-hidden rounded-full ${a.color} border-b-4 border-black/20 shadow-[0_4px_0_0_rgba(0,0,0,0.2)] focus-within:ring-4 focus-within:ring-white`}
@@ -636,18 +653,18 @@ export function SharedQuizEditor({
                       <button
                         onClick={() => toggleCorrect(a.id)}
                         className={`flex h-10 w-10 items-center justify-center rounded-full border-4 transition-all focus:outline-none ${
-                          a.correct
+                          a.isCorrect
                             ? "scale-110 border-green-400 bg-green-500 text-white/90"
                             : "border-white/30 bg-transparent hover:border-white/50"
                         }`}
                       >
-                        {a.correct && (
-                          <Check size={20} className="stroke-[3]" />
+                        {a.isCorrect && (
+                          <Check size={20} className="stroke-3" />
                         )}
                       </button>
                     </div>
                   </div>
-                  {currentQuestion.answers.length > 2 &&
+                  {currentQuestion.options.length > 2 &&
                     currentQuestion.type !== "True/False" && (
                       <button
                         onClick={() => removeAnswer(a.id)}
@@ -660,7 +677,7 @@ export function SharedQuizEditor({
               ))}
 
               {currentQuestion.type !== "True/False" &&
-                currentQuestion.answers.length < 6 && (
+                currentQuestion.options.length < 6 && (
                   <button
                     onClick={addAnswer}
                     className="flex min-h-[72px] items-center justify-center gap-2 rounded-full border-2 border-dashed border-gray-700 bg-[#1c1228]/30 font-bold text-gray-500 transition-colors hover:border-gray-500 hover:bg-[#1c1228]/50 hover:text-gray-400"

@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { socket } from "@/lib/socket";
 import { apiFetch, getAccessToken } from "@/lib/auth";
 import { getRandomAvatar } from "@/components/avatar/AvatarBuilder";
-import type { AvatarConfig } from "@/components/avatar/AvatarBuilder";
 import { Fredoka, Nunito } from "next/font/google";
 import Link from "next/link";
-import Image from "next/image";
+import { AvatarModel } from "@repo/types";
+import Avatar from "../avatar/Avatar";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
@@ -28,7 +28,7 @@ export default function JoinContent() {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [avatar, setAvatar] = useState<AvatarConfig | null>(null);
+  const [avatar, setAvatar] = useState<AvatarModel | null>(null);
 
   useEffect(() => {
     if (!socket.connected) {
@@ -65,7 +65,7 @@ export default function JoinContent() {
     setError(null);
 
     // One-time listeners for step 1
-    const onRoomValid = (data: { roomCode: string }) => {
+    const onRoomValid = () => {
       cleanupStep1Listeners();
       setLoading(false);
       setStep(2); // Proceed to nickname phase
@@ -159,26 +159,9 @@ export default function JoinContent() {
 
   // Convert standard avatar ID syntax to URL if needed (e.g. dicebear)
   const renderAvatarPreview = () => {
-    if (!avatar) return null;
-
-    // Use user-configured dicebear URL, otherwise default if format not supported inline
-    let avatarUrl =
-      "https://api.dicebear.com/7.x/notionists/svg?seed=Felix&backgroundColor=transparent";
-
-    // cast to any temporarily since AvatarConfig might not have seed/style
-    const av = avatar as any;
-    if (av && av.seed && av.style) {
-      avatarUrl = `https://api.dicebear.com/7.x/${av.style}/svg?seed=${av.seed}&backgroundColor=transparent`;
-    }
-
     return (
       <div className="absolute -top-10 left-1/2 z-20 flex h-20 w-20 -translate-x-1/2 items-center justify-center overflow-hidden rounded-full border-4 border-[#1a1025] bg-white shadow-xl">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={avatarUrl}
-          alt="Avatar"
-          className="h-full w-full object-cover"
-        />
+        <Avatar config={avatar} size={80} />
       </div>
     );
   };
@@ -390,7 +373,7 @@ export default function JoinContent() {
                     "Join the fun! Enter the PIN provided by your host."
                   ) : (
                     <span>
-                      You're connecting to Game PIN:{" "}
+                      You&apos;re connecting to Game PIN:{" "}
                       <span className="font-bold text-[var(--primary-accent)]">
                         {code}
                       </span>
@@ -433,7 +416,7 @@ export default function JoinContent() {
                       className="input-dark header-font w-full rounded-xl py-4 pr-6 pl-12 text-lg font-bold"
                       autoFocus
                     />
-                    <span className="material-symbols-outlined absolute top-1/2 left-4 -translate-y-1/2 text-[20px] text-[var(--text-dim)]">
+                    <span className="material-symbols-outlined absolute top-1/2 left-4 -translate-y-1/2 text-[20px] text-(--text-dim)">
                       edit
                     </span>
                   </div>
@@ -478,7 +461,7 @@ export default function JoinContent() {
             {step === 1 && (
               <div className="mt-8 rounded-3xl border border-white/5 bg-[#130a1c] p-6 text-center opacity-80 transition-opacity hover:opacity-100">
                 <p className="mb-2 text-sm font-bold text-[var(--text-light)]">
-                  Don't have a PIN?
+                  Don&apos;t have a PIN?
                 </p>
                 <Link
                   href="/"

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GameSessionController } from './game-session.controller';
+import { GameSessionController } from './game-session.controller.js';
 
 describe('GameSessionController', () => {
   let controller: GameSessionController;

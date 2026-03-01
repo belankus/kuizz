@@ -64,8 +64,8 @@ export default function HostPlayerReviewPage({
         if (!res.ok) throw new Error("Failed to fetch player details");
         const data = await res.json();
         setDetail(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
         setLoading(false);
       }
@@ -231,12 +231,12 @@ export default function HostPlayerReviewPage({
               </div>
               <div className="px-6 pb-6">
                 <div className="mb-4 grid gap-3 sm:grid-cols-2">
-                  {(q.options as any[]).map((opt, oIdx) => {
+                  {q.options.map((opt, oIdx) => {
                     const isUserChoice =
                       userAnswer?.selectedOptionId === opt.id;
-                    const isCorrectOption =
-                      (q.correctOptionIds || []).includes(opt.id) ||
-                      (q as any).correctOptionId === opt.id;
+                    const isCorrectOption = (q.correctOptionIds || []).includes(
+                      opt.id,
+                    );
 
                     let variantClass =
                       "bg-gray-50 dark:bg-gray-800/30 border-gray-100 dark:border-gray-700";
