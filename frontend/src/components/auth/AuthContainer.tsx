@@ -7,15 +7,15 @@ import { login, register } from "@/lib/auth";
 import { toast } from "sonner";
 import { Fredoka } from "next/font/google";
 import Image from "next/image";
-import { API_URL } from "@/lib/config";
 
 const fredoka = Fredoka({ subsets: ["latin"], weight: ["500", "600", "700"] });
 
 interface AuthContainerProps {
   mode: "login" | "register";
+  apiUrl: string;
 }
 
-export default function AuthContainer({ mode }: AuthContainerProps) {
+export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -250,7 +250,7 @@ export default function AuthContainer({ mode }: AuthContainerProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <a
-                href={`${API_URL}/auth/google`}
+                href={`${apiUrl}/auth/google`}
                 className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none">
@@ -274,7 +274,7 @@ export default function AuthContainer({ mode }: AuthContainerProps) {
                 Google
               </a>
               <a
-                href={`${API_URL}/auth/github`}
+                href={`${apiUrl}/auth/github`}
                 className="flex items-center justify-center gap-2 rounded-xl bg-[#24292F] px-4 py-3 text-sm font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.2)] transition-colors hover:translate-y-[1px] hover:bg-[#1f2328] hover:shadow-[0_3px_0_rgba(0,0,0,0.2)] active:translate-y-[4px] active:shadow-none"
               >
                 <svg
