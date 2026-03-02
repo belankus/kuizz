@@ -21,10 +21,9 @@ COPY --from=deps /app /app
 COPY . .
 
 WORKDIR /app/frontend
-ARG API_URL
-ARG SOCKET_URL
-ENV API_URL=$API_URL
-ENV SOCKET_URL=$SOCKET_URL
+
+# Copy production env for build-time (ensures client-side NEXT_PUBLIC_* vars)
+COPY frontend/.env.production .
 
 RUN pnpm build
 
