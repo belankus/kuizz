@@ -24,7 +24,7 @@
     "prisma:studio": "prisma studio",
     "prisma:generate": "prisma generate",
     "migrate": "prisma migrate deploy",
-    "seed": "ts-node --transpile-only prisma/seed.ts"
+    "seed": "node dist/prisma/seed.js"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -40,6 +40,7 @@
     "@socket.io/redis-adapter": "^8.3.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
+    "dotenv": "^17.3.1",
     "exceljs": "^4.4.0",
     "ioredis": "^5.9.3",
     "multer": "^2.0.2",
@@ -48,6 +49,7 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.18.0",
+    "prisma": "^7.4.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "socket.io": "^4.8.3"
@@ -69,14 +71,12 @@
     "@types/passport-google-oauth20": "^2.0.17",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
-    "dotenv": "^17.3.1",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
-    "prisma": "^7.4.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",

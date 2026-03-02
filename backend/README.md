@@ -49,20 +49,23 @@ Ensure you have installed dependencies from the repository root via `pnpm instal
    npx prisma migrate dev
    ```
 
-   If you're running the Docker container, startup will automatically run `prisma migrate deploy` and seed the superadmin from environment variables (see `entrypoint.sh`).
+   If running via Docker (production build), migrations and seeding must be done via `docker-compose exec` or equivalent commands **after** the database service is up:
 
-> **Note:** if you mount a host volume over `/app/backend` (common in development docker-compose setups) you may hide the `prisma` directory copied into the image. In that case migrations will fail with the "Prisma Schema not found" error. Either avoid mounting that path or mount a folder that includes `prisma` as well.
-
-> **Permission note:** during migrations the process needs write access to `node_modules` (Prisma may compile engines there). the Dockerfile now chowns that directory to the `nestjs` user so migrations can run without permission errors.
->
-> **Schema location:** the Prisma schema and migration files are copied into the image (`backend/prisma`) so that `pnpm prisma migrate deploy` can locate them; removing that directory will break the entrypoint.
-
-   You can also manually seed outside Docker with:
    ```bash
-   pnpm run seed
+   # Ensure database is running first
+   docker-compose up postgres
+
+   # Then in another terminal, apply migrations
+   docker-compose exec backend pnpm prisma migrate deploy
+
+   # Seed the superadmin (optional, after migrations)
+   docker-compose exec backend pnpm run seed
    ```
 
-3. **Start Development Server**:
+> **Permission note:** during migrations the process needs write access to `node_modules` (Prisma may compile engines there). the Dockerfile chowns that directory to the `nestjs` user so migrations can run without permission errors.
+>
+> **Schema location:** the Prisma schema and migration files are copied into the image (`backend/prisma`) so that `pnpm prisma migrate deploy` can locate them.
+>
 
    ```bash
    pnpm run start:dev
