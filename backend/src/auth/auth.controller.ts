@@ -29,11 +29,12 @@ interface OAuthRequest extends Request {
   user: OAuthUser;
 }
 
+const isProd = process.env.NODE_ENV === 'production';
 const REFRESH_COOKIE = 'refreshToken';
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: false, // set true in production (HTTPS)
+  sameSite: isProd ? ('none' as const) : ('lax' as const),
+  secure: isProd, // set true in production (HTTPS)
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
