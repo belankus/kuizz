@@ -31,6 +31,11 @@ ENV NODE_ENV=production
 RUN addgroup --system nodejs && adduser --system --ingroup nodejs nestjs
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y \
+    netcat-openbsd \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
 # copy only needed files
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
