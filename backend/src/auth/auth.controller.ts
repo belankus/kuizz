@@ -30,12 +30,13 @@ interface OAuthRequest extends Request {
 }
 
 const isProd = process.env.NODE_ENV === 'production';
+const ACCESS_COOKIE = 'accessToken';
 const REFRESH_COOKIE = 'refreshToken';
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
   sameSite: isProd ? ('none' as const) : ('lax' as const),
   secure: isProd, // set true in production (HTTPS)
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
 @Controller('auth')
@@ -44,6 +45,17 @@ export class AuthController {
     private authService: AuthService,
     private config: ConfigService,
   ) {}
+
+  private setCookies(res: Response, accessToken: string, refreshToken: string) {
+    res.cookie(ACCESS_COOKIE, accessToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+    res.cookie(REFRESH_COOKIE, refreshToken, {
+      ...COOKIE_OPTIONS,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+  }
 
   // ─── Email/Password ──────────────────────────────────────────────────────────
 
@@ -57,7 +69,7 @@ export class AuthController {
       body.password,
       body.name,
     );
-    res.cookie(REFRESH_COOKIE, refreshToken, COOKIE_OPTIONS);
+    this.setCookies(res, accessToken, refreshToken);
     return { user, accessToken };
   }
 
@@ -71,7 +83,7 @@ export class AuthController {
       body.email,
       body.password,
     );
-    res.cookie(REFRESH_COOKIE, refreshToken, COOKIE_OPTIONS);
+    this.setCookies(res, accessToken, refreshToken);
     return { user, accessToken };
   }
 
@@ -83,6 +95,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.logout(user.id);
+    res.clearCookie(ACCESS_COOKIE);
     res.clearCookie(REFRESH_COOKIE);
     return { message: 'Logged out successfully' };
   }
@@ -111,7 +124,7 @@ export class AuthController {
       userId,
       token,
     );
-    res.cookie(REFRESH_COOKIE, refreshToken, COOKIE_OPTIONS);
+    this.setCookies(res, accessToken, refreshToken);
     return { accessToken };
   }
 
