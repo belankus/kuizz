@@ -1,81 +1,75 @@
 services:
   postgres:
     image: postgres:17-alpine
-    container_name: postgres-kuizz
+    container_name: postgres_kuizz
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: mydatabase
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      POSTGRES_DB: ${POSTGRES_DB:-mydatabase}
     volumes:
       - postgres_data_kuizz:/var/lib/postgresql/data
+    networks:
+      - backend_network
 
   redis:
     image: redis:7-alpine
-    container_name: redis-kuizz
-    ports:
-      - "6379:6379"
-
-  redisinsight:
-    image: redis/redisinsight:latest
-    container_name: redis-insight
-    volumes:
-      - redisinsight:/data
-    ports:
-      - "5540:5540"
-    depends_on:
-      - redis
+    container_name: redis_kuizz
+    networks:
+      - backend_network
 
   backend:
-    image: node:22-alpine
-    container_name: backend-kuizz
-    working_dir: /app
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: test-backend:v1
+    container_name: backend_kuizz
     environment:
-      - DATABASE_URL=postgresql://postgres:secret@postgres:5432/kuizz?schema=public
-      - REDIS_HOST=redis
-      - NODE_ENV=development
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:secret@postgres:5432/kuizz?schema=public}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your_jwt_refresh_secret}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-your_google_client_id}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-your_google_client_secret}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:3001/auth/google}
+
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-your_github_client_id}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-your_github_client_secret}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL:-http://localhost:3001/auth/github}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-admin@kuizz.com}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-Admin@123456}
+
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     ports:
       - "3001:3001"
-    command: sh -c "corepack enable pnpm && pnpm install && pnpm --filter kuizz-backend prisma:generate && pnpm --filter kuizz-backend start:dev"
     depends_on:
       - postgres
       - redis
-
-  prisma-studio:
-    image: node:22-alpine
-    container_name: prisma-studio-kuizz
-    working_dir: /app
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    environment:
-      - DATABASE_URL=postgresql://postgres:secret@postgres:5432/kuizz?schema=public
-    ports:
-      - "51212:51212"
-    command: sh -c "corepack enable pnpm && pnpm i && pnpm --filter kuizz-backend prisma:studio --port 51212 --browser none"
-    depends_on:
-      - postgres
+    networks:
+      - backend_network
 
   frontend:
-    image: node:22-alpine
-    container_name: frontend-kuizz
-    working_dir: /app
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: test-frontend:v1
+    container_name: frontend_kuizz
     environment:
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
-      - NODE_ENV=development
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
     ports:
       - "3000:3000"
-    command: sh -c "corepack enable pnpm && pnpm i && pnpm --filter kuizz-frontend dev"
     depends_on:
       - backend
+    networks:
+      - backend_network
+
+networks:
+  backend_network:
+    driver: bridge
+    internal: true
 
 volumes:
-  redisinsight:
   postgres_data_kuizz:
-  node_modules:

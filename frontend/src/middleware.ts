@@ -10,6 +10,13 @@ const AUTH_ROUTES = ["/login", "/register"];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Debug logs
+  console.log(`[Middleware] Path: ${pathname}`);
+  console.log(
+    `[Middleware] Cookies:`,
+    request.cookies.getAll().map((c) => c.name),
+  );
+
   const isProtected = PROTECTED_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(p + "/"),
   );
