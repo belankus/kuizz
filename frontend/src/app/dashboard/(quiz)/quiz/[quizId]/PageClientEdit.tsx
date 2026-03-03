@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/auth";
 import { nanoid } from "nanoid";
 import { SharedQuizEditor } from "@/components/quiz/SharedQuizEditor";
-import { OptionModelType, QuestionModelType, QuizModelType } from "@repo/types";
+import { OptionModelType, QuestionModelType, QuizModelType } from "@/types";
 
 const colorPalette = [
   { color: "bg-red-600", icon: "triangle" },

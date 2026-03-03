@@ -1,7 +1,7 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { BeanHead } from "beanheads";
-import { AvatarModel } from "@repo/types";
+import { AvatarModel } from "@/types";
 
 // ── Options ──────────────────────────────────────────────────────────────────
 const SKIN_TONES: AvatarModel["skinTone"][] = [

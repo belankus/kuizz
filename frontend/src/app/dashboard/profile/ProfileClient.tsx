@@ -9,7 +9,7 @@ import AvatarBuilder, {
 } from "@/components/avatar/AvatarBuilder";
 import { Loader2, User2, KeyRound, Palette, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { AvatarModel } from "@repo/types";
+import { AvatarModel } from "@/types";
 
 type UserProfile = {
   id: string;

@@ -2,7 +2,7 @@
 
 import Avatar from "@/components/avatar/Avatar";
 import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
-import type { AvatarModel, PlayerModel } from "@repo/types";
+import type { AvatarModel, PlayerModel } from "@/types";
 
 interface LobbyContentInterface {
   joinCode: string;

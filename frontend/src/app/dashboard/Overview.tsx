@@ -8,7 +8,7 @@ import dynamic from "next/dynamic";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { DashboardMetricsType } from "@repo/types";
+import { DashboardMetricsType } from "@/types";
 import { ApexOptions } from "apexcharts";
 
 // Dynamically import ReactApexChart to avoid SSR issues

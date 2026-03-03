@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AvatarDisplay, getConsistentAvatar } from "./AvatarBuilder";
 import { getUserFromToken, apiFetch } from "@/lib/auth";
-import { AvatarModel } from "@repo/types";
+import { AvatarModel } from "@/types";
 
 interface AvatarProps {
   /**

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "../ui/button";
 import { socket } from "@/lib/socket";
-import { AvatarModel, PlayerModel } from "@repo/types";
+import { AvatarModel, PlayerModel } from "@/types";
 
 interface LobbyContentInterface {
   joinCode: string;

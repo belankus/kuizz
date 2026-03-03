@@ -14,7 +14,7 @@ import GameAlreadyStarted from "./fallback/GameAlreadyStarted";
 import RoomLocked from "./fallback/RoomLocked";
 import HostQuestion from "./HostQuestion";
 import { useRouter } from "next/navigation";
-import { PlayerModel } from "@repo/types";
+import { PlayerModel } from "@/types";
 
 type GamePhase =
   | "WAITING"

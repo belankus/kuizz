@@ -7,7 +7,7 @@ import { apiFetch, getAccessToken } from "@/lib/auth";
 import { getRandomAvatar } from "@/components/avatar/AvatarBuilder";
 import { Fredoka, Nunito } from "next/font/google";
 import Link from "next/link";
-import { AvatarModel } from "@repo/types";
+import { AvatarModel } from "@/types";
 import Avatar from "../avatar/Avatar";
 import {
   ArrowRight,

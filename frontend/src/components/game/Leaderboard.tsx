@@ -1,6 +1,6 @@
 import Avatar from "@/components/avatar/Avatar";
 import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
-import { AvatarModel, LeaderboardProps, PlayerModel } from "@repo/types";
+import { AvatarModel, LeaderboardProps, PlayerModel } from "@/types";
 
 import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";

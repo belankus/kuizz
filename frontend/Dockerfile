@@ -7,49 +7,30 @@ WORKDIR /app
 
 # ---------- Dependencies ----------
 FROM base AS deps
-
-# Copy workspace files
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY frontend/package.json ./frontend/
-
-# Install only frontend deps
-RUN pnpm install --frozen-lockfile --filter kuizz-frontend
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile
 
 # ---------- Builder ----------
 FROM base AS builder
-COPY --from=deps /app /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-WORKDIR /app/frontend
-
-# Copy production env for build-time (ensures client-side NEXT_PUBLIC_* vars)
-COPY frontend/.env.production .
-
+ENV NODE_ENV=production
 RUN pnpm build
 
-# ---------- Production ----------
+# ---------- Runner ----------
 FROM node:22-slim AS runner
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
 WORKDIR /app
 ENV NODE_ENV=production
 
 RUN addgroup --system nodejs && adduser --system --ingroup nodejs nextjs
 
-# Copy workspace files
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY frontend/package.json ./frontend/
-
-# Install ONLY production frontend deps
-# RUN pnpm install --frozen-lockfile --filter kuizz-frontend --prod --ignore-scripts
-
-# Copy standalone output (Next 13+)
-COPY --from=builder /app/frontend/.next/standalone frontend/.next/standalone
-COPY --from=builder /app/frontend/public frontend/.next/standalone/frontend/public
-COPY --from=builder /app/frontend/.next/static frontend/.next/standalone/frontend/.next/static
+# Copy standalone output
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
 USER nextjs
 
 EXPOSE 3000
-CMD ["node", "frontend/.next/standalone/frontend/server.js"]
+CMD ["node", "server.js"]

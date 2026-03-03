@@ -57,7 +57,7 @@ import {
   DashboardMetricsType,
   GameHistoryModel,
   GameSessionModel,
-} from "@repo/types";
+} from "@/types";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   useQuery,

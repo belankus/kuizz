@@ -7,8 +7,8 @@ import { Dropdown } from "@/components/ui/dropdown/Dropdown";
 import { DropdownItem } from "@/components/ui/dropdown/DropdownItem";
 import { getUserFromToken, logout, apiFetch } from "@/lib/auth";
 import Avatar from "@/components/avatar/Avatar";
-import { AvatarModel } from "@repo/types";
-import { UserModelType } from "@repo/types";
+import { AvatarModel } from "@/types";
+import { UserModelType } from "@/types";
 import {
   BarChart2,
   FolderOpen,

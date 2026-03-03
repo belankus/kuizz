@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Triangle, Diamond, Circle, Square } from "lucide-react";
 import LiveSync from "./LiveSync";
 import Avatar from "@/components/avatar/Avatar";
-import type { AvatarModel } from "@repo/types";
+import type { AvatarModel } from "@/types";
 
 interface QuestionProps {
   question: string;

@@ -30,7 +30,7 @@ import {
 import { nanoid } from "nanoid";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { QuestionModelType, QuizModelType } from "@repo/types";
+import { QuestionModelType, QuizModelType } from "@/types";
 
 const colorPalette = [
   { color: "bg-red-600", icon: "triangle" },

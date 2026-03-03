@@ -5,8 +5,8 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { getUserFromToken, logout, apiFetch } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Avatar from "@/components/avatar/Avatar";
-import { AvatarModel } from "@repo/types";
-import { UserModelType } from "@repo/types";
+import { AvatarModel } from "@/types";
+import { UserModelType } from "@/types";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);

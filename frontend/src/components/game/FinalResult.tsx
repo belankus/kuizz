@@ -3,7 +3,7 @@
 import Avatar from "@/components/avatar/Avatar";
 import { getConsistentAvatar } from "@/components/avatar/AvatarBuilder";
 import { motion } from "framer-motion";
-import { AvatarModel } from "@repo/types";
+import { AvatarModel } from "@/types";
 
 interface Player {
   nickname: string;

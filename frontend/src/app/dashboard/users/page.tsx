@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { apiFetch } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { UserModelType } from "@repo/types";
+import { UserModelType } from "@/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function UsersPage() {

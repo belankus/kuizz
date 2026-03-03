@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/auth";
 import { SharedQuizEditor } from "@/components/quiz/SharedQuizEditor";
-import { QuizModelType } from "@repo/types";
+import { QuizModelType } from "@/types";
 
 export default function CreatePage() {
   const router = useRouter();
