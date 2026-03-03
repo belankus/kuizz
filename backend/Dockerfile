@@ -12,13 +12,12 @@ FROM base AS builder
 RUN apt-get update && apt-get install -y python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY backend/package.json ./backend/
+COPY package.json ./
 
-RUN pnpm install --frozen-lockfile --filter kuizz-backend...
+RUN pnpm install --frozen-lockfile
 
 COPY . .
-WORKDIR /app/backend
+
 
 # dummy env supaya prisma generate tidak error
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
@@ -39,21 +38,19 @@ RUN apt-get update && apt-get install -y \
     openssl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-COPY backend/package.json ./backend/
+COPY package.json ./
 
-RUN pnpm install --frozen-lockfile --prod --filter kuizz-backend... --ignore-scripts
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
-COPY --from=builder /app/backend/dist ./backend/dist
-COPY --from=builder /app/backend/prisma ./backend/prisma
-COPY --from=builder /app/backend/prisma.config.ts ./backend/prisma.config.ts
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
-COPY backend/docker-entrypoint.sh ./backend/
-RUN chmod +x ./backend/docker-entrypoint.sh
+COPY docker-entrypoint.sh ./
+RUN chmod +x ./docker-entrypoint.sh
 
 RUN chown -R nestjs:nodejs /app
 
-WORKDIR /app/backend
 USER nestjs
 
 EXPOSE 3001
