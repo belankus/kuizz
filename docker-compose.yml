@@ -8,14 +8,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-mydatabase}
     volumes:
       - postgres_data_kuizz:/var/lib/postgresql/data
-    networks:
-      - backend_network
 
   redis:
     image: redis:7-alpine
     container_name: redis_kuizz
-    networks:
-      - backend_network
 
   backend:
     build:
@@ -46,13 +42,14 @@ services:
     depends_on:
       - postgres
       - redis
-    networks:
-      - backend_network
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+        - API_URL=${API_URL:-http://localhost:3001}
     image: test-frontend:v1
     container_name: frontend_kuizz
     environment:
@@ -63,13 +60,6 @@ services:
       - "3000:3000"
     depends_on:
       - backend
-    networks:
-      - backend_network
-
-networks:
-  backend_network:
-    driver: bridge
-    internal: true
 
 volumes:
   postgres_data_kuizz:

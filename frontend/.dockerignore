@@ -51,7 +51,7 @@ playwright.config.*
 
 # Environment variables (only commit template files)
 .env
-.env*.local
+# .env*.local
 .env.development
 .env.test
 .env.production.local

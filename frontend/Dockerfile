@@ -44,6 +44,11 @@ COPY --from=dependencies /app/node_modules ./node_modules
 # Copy application source code
 COPY . .
 
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG API_URL
+ENV API_URL=$API_URL
+
 ENV NODE_ENV=production
 
 # Next.js collects completely anonymous telemetry data about general usage.
