@@ -28,17 +28,18 @@ services:
   backend:
     image: node:22-alpine
     container_name: backend-kuizz
-    working_dir: /app
+    working_dir: /app/backend
     volumes:
       - .:/app
-      - node_modules:/app/node_modules
+      - backend_node_modules:/app/backend/node_modules
+      - backend_pnpm_store:/.pnpm-store
     environment:
       - DATABASE_URL=postgresql://postgres:secret@postgres:5432/kuizz?schema=public
       - REDIS_HOST=redis
       - NODE_ENV=development
     ports:
       - "3001:3001"
-    command: sh -c "corepack enable pnpm && pnpm install && pnpm --filter kuizz-backend prisma:generate && pnpm --filter kuizz-backend start:dev"
+    command: sh -c "corepack enable pnpm && pnpm config set store-dir /.pnpm-store && pnpm config set package-import-method copy && pnpm config set side-effects-cache false && pnpm i --prefer-offline && pnpm prisma:generate && pnpm start:dev"
     depends_on:
       - postgres
       - redis
@@ -46,36 +47,42 @@ services:
   prisma-studio:
     image: node:22-alpine
     container_name: prisma-studio-kuizz
-    working_dir: /app
+    working_dir: /app/backend
     volumes:
       - .:/app
-      - node_modules:/app/node_modules
+      - backend_node_modules:/app/backend/node_modules
+      - backend_pnpm_store:/.pnpm-store
     environment:
       - DATABASE_URL=postgresql://postgres:secret@postgres:5432/kuizz?schema=public
     ports:
       - "51212:51212"
-    command: sh -c "corepack enable pnpm && pnpm i && pnpm --filter kuizz-backend prisma:studio --port 51212 --browser none"
+    command: sh -c "corepack enable pnpm && pnpm config set store-dir /.pnpm-store && pnpm config set package-import-method copy && pnpm i --prefer-offline && pnpm prisma:studio --port 51212 --browser none"
     depends_on:
       - postgres
 
   frontend:
     image: node:22-alpine
     container_name: frontend-kuizz
-    working_dir: /app
+    working_dir: /app/frontend
     volumes:
       - .:/app
-      - node_modules:/app/node_modules
+      - frontend_node_modules:/app/frontend/node_modules
+      - frontend_pnpm_store:/.pnpm-store
     environment:
-      - NEXT_PUBLIC_APP_URL=http://localhost:3000
-      - NEXT_PUBLIC_SOCKET_URL=http://localhost:3001
+      - NEXT_PUBLIC_APP_URL=http://${HOST_IP:-localhost}:3000
+      - NEXT_PUBLIC_SOCKET_URL=http://${HOST_IP:-localhost}:3001
       - NODE_ENV=development
+      - WATCHPACK_POLLING=true
     ports:
       - "3000:3000"
-    command: sh -c "corepack enable pnpm && pnpm i && pnpm --filter kuizz-frontend dev"
+    command: sh -c "corepack enable pnpm && pnpm config set store-dir /.pnpm-store && pnpm config set package-import-method copy && pnpm config set side-effects-cache false && pnpm i --prefer-offline && pnpm dev"
     depends_on:
       - backend
 
 volumes:
   redisinsight:
   postgres_data_kuizz:
-  node_modules:
+  backend_node_modules:
+  frontend_node_modules:
+  backend_pnpm_store:
+  frontend_pnpm_store:
