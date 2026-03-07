@@ -1,0 +1,91 @@
+---
+title: Create Your First Quiz
+description: Learn how to create, configure, and host your first interactive quiz on Kuizz.
+---
+
+# Create Your First Quiz
+
+In this guide, you'll create a simple quiz and host your first live session — from quiz creation to seeing participants compete in real time.
+
+## Step 1: Log In to the Dashboard
+
+Navigate to [kuizz.my.id](https://kuizz.my.id) and log in with your account. If you don't have an account yet, click **Sign Up** to create one.
+
+## Step 2: Create a New Quiz
+
+<Steps>
+  <Step>
+    Click **New Quiz** from the dashboard home page.
+  </Step>
+  <Step>
+    Enter a **title** and optional **description** for your quiz.
+  </Step>
+  <Step>
+    Choose a **cover image** or leave the default.
+  </Step>
+  <Step>
+    Click **Create** to open the quiz editor.
+  </Step>
+</Steps>
+
+## Step 3: Add Questions
+
+In the quiz editor, you can add different types of questions:
+
+| Type | Description |
+|------|-------------|
+| Multiple Choice | 2–4 answer options, one correct answer |
+| True/False | Binary question with true or false answer |
+| Open Ended | Free-text response (manual grading) |
+
+### Adding a Multiple Choice Question
+
+1. Click **Add Question**
+2. Select **Multiple Choice**
+3. Enter your question text
+4. Add answer options (minimum 2, maximum 4)
+5. Mark the correct answer by clicking the checkmark
+6. Set the **time limit** (default: 30 seconds)
+7. Set the **points** value
+
+```json title="Example Question (JSON format)"
+{
+  "type": "multiple_choice",
+  "question": "What is the capital of Indonesia?",
+  "answers": [
+    { "text": "Surabaya", "isCorrect": false },
+    { "text": "Jakarta", "isCorrect": true },
+    { "text": "Bandung", "isCorrect": false },
+    { "text": "Medan", "isCorrect": false }
+  ],
+  "timeLimit": 30,
+  "points": 1000
+}
+```
+
+## Step 4: Publish Your Quiz
+
+Once you've added all your questions:
+
+1. Click **Publish** in the top-right corner
+2. Review the quiz summary
+3. Click **Confirm Publish**
+
+<Callout variant="info" title="Draft Mode">
+  You can save your quiz as a **Draft** at any time and come back to edit it later. Drafts won't appear in your public quiz list.
+</Callout>
+
+## Step 5: Host a Live Session
+
+1. From your quiz page, click **Host Session**
+2. A unique **Game PIN** will be generated
+3. Share the PIN with your participants — they can join at [kuizz.my.id/join](https://kuizz.my.id/join)
+4. Wait for participants to join, then click **Start Game**
+
+The host screen shows a real-time leaderboard and the current question being displayed on participant devices.
+
+## What's Next?
+
+- Learn about [Collections](/docs/core/collections) to organize your quizzes
+- Explore [Analytics](/docs/core/analytics) to review session performance
+- Check the [API Overview](/docs/developer/api-overview) to integrate Kuizz programmatically

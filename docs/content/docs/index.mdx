@@ -1,0 +1,58 @@
+---
+title: Introduction
+description: Welcome to the Kuizz documentation — the interactive quiz platform for teams, classrooms, and events.
+---
+
+# Welcome to Kuizz
+
+**Kuizz** is a real-time interactive quiz platform designed for teams, classrooms, and live events — similar to Kahoot, but built with extensibility and developer experience in mind.
+
+<Callout title="Quick Start" variant="tip">
+  New here? Head straight to the [Installation guide](/docs/getting-started/installation) to get your first quiz running in minutes.
+</Callout>
+
+## What is Kuizz?
+
+Kuizz lets you:
+
+- **Create quizzes** with multiple question types (multiple choice, true/false, open-ended)
+- **Host live sessions** where participants join in real time using a game PIN
+- **Track analytics** on responses, scores, and participant engagement
+- **Manage collections** to organize quizzes into reusable groups
+
+## Platform Overview
+
+| Feature | Description |
+|---------|-------------|
+| Live Sessions | Real-time quiz gameplay with WebSocket-powered sync |
+| Dashboard | Web-based admin interface to create and manage quizzes |
+| Analytics | Detailed reports on session performance and player data |
+| REST API | Programmatic access to all quiz and session resources |
+| Webhooks | Event-based notifications on session lifecycle events |
+
+## Architecture
+
+The Kuizz platform is split into three main services:
+
+```
+kuizz/
+ ├─ frontend/    # Next.js dashboard (kuizz.my.id)
+ ├─ backend/     # NestJS API service (api.kuizz.my.id)
+ └─ docs/        # This documentation site (docs.kuizz.my.id)
+```
+
+All services are containerized with Docker and served behind a Caddy reverse proxy.
+
+## Next Steps
+
+<Steps>
+  <Step>
+    **[Installation](/docs/getting-started/installation)** — Set up your local development environment
+  </Step>
+  <Step>
+    **[Create Your First Quiz](/docs/getting-started/first-quiz)** — Build and host your first quiz
+  </Step>
+  <Step>
+    **[API Overview](/docs/developer/api-overview)** — Integrate Kuizz into your own application
+  </Step>
+</Steps>

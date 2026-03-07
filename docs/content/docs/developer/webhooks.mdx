@@ -1,0 +1,117 @@
+---
+title: Webhooks
+description: Receive real-time event notifications from Kuizz sessions using webhooks.
+---
+
+# Webhooks
+
+Webhooks allow your application to receive real-time notifications when events occur in Kuizz — such as a session starting, a player joining, or a session ending.
+
+## How Webhooks Work
+
+1. You register a webhook URL in your Kuizz account settings
+2. When an event occurs, Kuizz sends an HTTP `POST` request to your URL
+3. Your server processes the event payload and returns a `200 OK` response
+
+```
+Kuizz Event → POST https://yourapp.com/webhooks/kuizz
+```
+
+## Registering a Webhook
+
+```bash
+POST /api/v1/webhooks
+Authorization: Bearer {token}
+Content-Type: application/json
+
+{
+  "url": "https://yourapp.com/webhooks/kuizz",
+  "events": ["session.started", "session.ended", "player.joined"],
+  "secret": "your-webhook-secret"
+}
+```
+
+## Event Types
+
+| Event | Trigger |
+|-------|---------|
+| `session.created` | A new game session is created |
+| `session.started` | The host starts the game |
+| `session.ended` | The game session ends |
+| `player.joined` | A player joins the session |
+| `player.left` | A player disconnects |
+| `question.started` | A new question begins |
+| `question.ended` | A question's time expires |
+
+## Payload Format
+
+All webhook payloads share a common envelope:
+
+```json
+{
+  "event": "session.ended",
+  "timestamp": "2024-03-07T15:30:00.000Z",
+  "data": { ... }
+}
+```
+
+### `session.ended` Payload
+
+```json
+{
+  "event": "session.ended",
+  "timestamp": "2024-03-07T15:30:00.000Z",
+  "data": {
+    "sessionId": "ses_xyz789",
+    "quizId": "quiz_abc123",
+    "quizTitle": "World Capitals Quiz",
+    "duration": 423,
+    "playerCount": 28,
+    "winner": {
+      "name": "Alice",
+      "score": 9800
+    }
+  }
+}
+```
+
+## Verifying Webhook Signatures
+
+Kuizz signs every webhook request with an `X-Kuizz-Signature` header using HMAC-SHA256.
+
+```ts title="Verify signature in Node.js"
+import crypto from 'crypto';
+
+function verifyWebhook(payload: string, signature: string, secret: string) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(`sha256=${expected}`)
+  );
+}
+```
+
+<Callout variant="danger" title="Always Verify Signatures">
+  Always validate the webhook signature before processing the payload. Failing to do so exposes your application to spoofed events.
+</Callout>
+
+## Retry Policy
+
+If your endpoint returns a non-`2xx` response, Kuizz will retry delivery:
+
+| Attempt | Delay |
+|---------|-------|
+| 1st retry | 1 minute |
+| 2nd retry | 5 minutes |
+| 3rd retry | 30 minutes |
+| 4th retry | 2 hours |
+
+After 4 failed retries, the event is marked as **permanently failed** and you'll receive an alert email.
+
+## Testing Webhooks
+
+Use the **Webhook Tester** in the Kuizz dashboard to send sample events to your endpoint. You can also use tools like [webhook.site](https://webhook.site) for local development testing.

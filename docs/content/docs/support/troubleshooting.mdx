@@ -1,0 +1,137 @@
+---
+title: Troubleshooting
+description: Solutions to common issues with local development, Docker deployment, and authentication.
+---
+
+# Troubleshooting
+
+## Local Development
+
+### `pnpm dev` fails with module not found
+
+**Symptom:** `Cannot find module 'fumadocs-mdx:collections/server'`
+
+**Cause:** The `.source/` directory hasn't been generated yet.
+
+**Fix:** Run `pnpm dev` once to trigger the code generation, then retry.
+
+```bash
+cd docs
+pnpm dev
+```
+
+The `.source/` folder is created automatically the first time Next.js runs.
+
+---
+
+### Port already in use
+
+**Symptom:** `Error: listen EADDRINUSE :::3000`
+
+**Fix:** Kill the existing process or use a different port:
+
+```bash
+# Kill process on port 3000
+lsof -ti:3000 | xargs kill
+
+# Or run on a different port
+pnpm dev --port 3002
+```
+
+---
+
+### TypeScript errors after adding a new MDX page
+
+**Symptom:** Red underlines in `lib/source.ts` or page components.
+
+**Fix:** Restart the TypeScript server in your IDE. The `.source/` types are regenerated on each dev server start.
+
+In VS Code: `Ctrl+Shift+P` → **TypeScript: Restart TS Server**
+
+---
+
+## Docker
+
+### Container exits immediately after starting
+
+**Fix:** Check the container logs:
+
+```bash
+docker logs kuizz-docs
+```
+
+The most common cause is a missing environment variable. Verify your `.env` file is correctly mounted.
+
+---
+
+### Build fails with `COPY .next/standalone` not found
+
+**Symptom:** Docker build error on the runner stage.
+
+**Cause:** `output: 'standalone'` is not enabled in `next.config.mjs`.
+
+**Fix:** Ensure `next.config.mjs` includes:
+
+```js
+const config = {
+  output: 'standalone',
+};
+```
+
+---
+
+### Caddy returns 502 Bad Gateway
+
+**Cause:** The docs container isn't running or is not reachable by Caddy.
+
+**Troubleshooting steps:**
+
+1. Check if the container is running:
+   ```bash
+   docker compose ps
+   ```
+2. Verify the container name matches your `Caddyfile`:
+   ```
+   reverse_proxy docs:3000
+   ```
+3. Check internal connectivity:
+   ```bash
+   docker exec caddy curl http://docs:3000
+   ```
+
+---
+
+## Authentication
+
+### Login redirects back to the login page
+
+**Cause:** Cookies are not being set correctly across subdomains.
+
+**Fix:** Ensure your backend sets cookies with the correct domain:
+
+```ts
+// In your NestJS auth service
+response.cookie('access_token', token, {
+  httpOnly: true,
+  secure: true,
+  domain: '.kuizz.my.id',
+  sameSite: 'lax',
+});
+```
+
+---
+
+### `401 Unauthorized` on all API requests
+
+**Fix:** Check that:
+1. Your access token hasn't expired (15-minute TTL)
+2. You're including the `Authorization: Bearer {token}` header correctly
+3. Refresh the token using the `/auth/refresh` endpoint
+
+---
+
+## Still Stuck?
+
+- Search existing [GitHub Issues](https://github.com/username/kuizz/issues)
+- Open a new issue with your error message and steps to reproduce
+- Check the [FAQ](/docs/support/faq) for common questions
