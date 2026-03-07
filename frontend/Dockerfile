@@ -44,8 +44,12 @@ COPY --from=dependencies /app/node_modules ./node_modules
 # Copy application source code
 COPY . .
 
-ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_API_URL=APP_API_URL_PLACEHOLDER
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_APP_URL=APP_APP_URL_PLACEHOLDER
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
+ARG NEXT_PUBLIC_SOCKET_URL=APP_SOCKET_URL_PLACEHOLDER
+ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
 ARG API_URL
 ENV API_URL=$API_URL
 
@@ -110,8 +114,16 @@ COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 # Switch to non-root user for security best practices
 USER node
 
+# Copy entrypoint script
+COPY entrypoint.sh ./entrypoint.sh
+USER root
+RUN chmod +x ./entrypoint.sh
+USER node
+
 # Expose port 3000 to allow HTTP traffic
 EXPOSE 3000
+
+ENTRYPOINT ["./entrypoint.sh"]
 
 # Start Next.js standalone server
 CMD ["node", "server.js"]
