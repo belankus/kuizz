@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/context/SidebarContext";
 import { Bell, Search } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef } from "react";
 
@@ -61,9 +62,12 @@ const AppHeader: React.FC = () => {
           </button>
 
           <Link href="/">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#46178f] text-xl leading-none font-bold text-white">
-              K
-            </div>
+            <Image
+              src="/images/logo/logo.svg"
+              alt="Logo"
+              width={32}
+              height={32}
+            />
           </Link>
         </div>
 
@@ -75,7 +79,7 @@ const AppHeader: React.FC = () => {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Find a quiz..."
+                placeholder="Search quizzes, collections, players... ⌘K"
                 className="h-11 w-full rounded-full border-transparent bg-gray-50 pr-4 pl-11 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-gray-200 focus:bg-white focus:ring-4 focus:ring-[#46178f]/5"
               />
             </div>
@@ -90,10 +94,12 @@ const AppHeader: React.FC = () => {
             <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full border-2 border-white bg-red-500"></span>
           </button>
 
-          {/* Upgrade Button */}
-          <Button className="rounded-full bg-[#46178f] px-6 font-semibold text-white shadow-sm transition-all hover:bg-[#3b127a] hover:shadow-lg hover:shadow-[#46178f]/20">
-            Upgrade
-          </Button>
+          {/* Create Quiz Button */}
+          <Link href="/dashboard/create">
+            <Button className="rounded-full bg-[#46178f] px-6 font-semibold text-white shadow-sm transition-all hover:bg-[#3b127a] hover:shadow-lg hover:shadow-[#46178f]/20">
+              Create Quiz
+            </Button>
+          </Link>
         </div>
       </div>
     </header>

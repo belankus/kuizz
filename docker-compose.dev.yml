@@ -6,6 +6,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: secret
       POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data_kuizz:/var/lib/postgresql/data
 
@@ -25,81 +27,6 @@ services:
     depends_on:
       - redis
 
-  backend:
-    image: node:22-alpine
-    container_name: backend-kuizz
-    working_dir: /app/backend
-    volumes:
-      - .:/app
-      - backend_node_modules:/app/backend/node_modules
-      - backend_pnpm_store:/.pnpm-store
-    environment:
-      - DATABASE_URL=postgresql://postgres:secret@postgres:5432/kuizz?schema=public
-      - REDIS_HOST=redis
-      - NODE_ENV=development
-    ports:
-      - "3001:3001"
-    command: sh -c "corepack enable pnpm && pnpm config set store-dir /.pnpm-store && pnpm config set package-import-method copy && pnpm config set side-effects-cache false && pnpm i --prefer-offline && pnpm prisma:generate && pnpm start:dev"
-    depends_on:
-      - postgres
-      - redis
-
-  prisma-studio:
-    image: node:22-alpine
-    container_name: prisma-studio-kuizz
-    working_dir: /app/backend
-    volumes:
-      - .:/app
-      - backend_node_modules:/app/backend/node_modules
-      - backend_pnpm_store:/.pnpm-store
-    environment:
-      - DATABASE_URL=postgresql://postgres:secret@postgres:5432/kuizz?schema=public
-    ports:
-      - "51212:51212"
-    command: sh -c "corepack enable pnpm && pnpm config set store-dir /.pnpm-store && pnpm config set package-import-method copy && pnpm i --prefer-offline && pnpm prisma:studio --port 51212 --browser none"
-    depends_on:
-      - postgres
-
-  frontend:
-    image: node:22-alpine
-    container_name: frontend-kuizz
-    working_dir: /app/frontend
-    volumes:
-      - .:/app
-      - frontend_node_modules:/app/frontend/node_modules
-      - frontend_pnpm_store:/.pnpm-store
-    environment:
-      - NEXT_PUBLIC_APP_URL=http://${HOST_IP:-localhost}:3000
-      - NEXT_PUBLIC_SOCKET_URL=http://${HOST_IP:-localhost}:3001
-      - NODE_ENV=development
-      - WATCHPACK_POLLING=true
-    ports:
-      - "3000:3000"
-    command: sh -c "corepack enable pnpm && pnpm config set store-dir /.pnpm-store && pnpm config set package-import-method copy && pnpm config set side-effects-cache false && pnpm i --prefer-offline && pnpm dev"
-    depends_on:
-      - backend
-
-  docs:
-    image: node:22-alpine
-    container_name: docs-kuizz
-    working_dir: /app/docs
-    volumes:
-      - .:/app
-      - docs_node_modules:/app/docs/node_modules
-      - docs_pnpm_store:/.pnpm-store
-    environment:
-      - NODE_ENV=development
-      - WATCHPACK_POLLING=true
-    ports:
-      - "3002:3000"
-    command: sh -c "corepack enable pnpm && pnpm config set store-dir /.pnpm-store && pnpm config set package-import-method copy && pnpm config set side-effects-cache false && pnpm i --prefer-offline && pnpm dev"
-
 volumes:
   redisinsight:
   postgres_data_kuizz:
-  backend_node_modules:
-  frontend_node_modules:
-  docs_node_modules:
-  backend_pnpm_store:
-  frontend_pnpm_store:
-  docs_pnpm_store:

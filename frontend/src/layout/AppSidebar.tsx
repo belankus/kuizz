@@ -20,6 +20,7 @@ import {
   Download,
   Gamepad2,
 } from "lucide-react";
+import Image from "next/image";
 
 type NavItem = {
   name: string;
@@ -27,49 +28,76 @@ type NavItem = {
   path?: string;
 };
 
-const navItems: NavItem[] = [
-  {
-    icon: <Grid size={20} />,
-    name: "Dashboard",
-    path: "/dashboard",
-  },
-  {
-    icon: <Gamepad2 size={20} />,
-    name: "My Quizzes",
-    path: "/dashboard/quizes",
-  },
-  {
-    icon: <BarChart2 size={20} />,
-    name: "Reports",
-    path: "/dashboard/reports",
-  },
-  {
-    name: "Collections",
-    icon: <FolderOpen size={20} />,
-    path: "/dashboard/collections",
-  },
-  {
-    name: "Team Space",
-    icon: <Users size={20} />,
-    path: "/dashboard/team",
-  },
-  {
-    icon: <Download size={20} />,
-    name: "Import",
-    path: "/dashboard/import",
-  },
-];
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
 
-const resourcesItems: NavItem[] = [
+const navGroups: NavGroup[] = [
   {
-    icon: <GraduationCap size={20} />,
-    name: "Academy",
-    path: "/academy",
+    label: "Dashboard",
+    items: [
+      {
+        icon: <Grid size={20} />,
+        name: "Dashboard",
+        path: "/dashboard",
+      },
+    ],
   },
   {
-    icon: <HelpCircle size={20} />,
-    name: "Help Center",
-    path: "/help",
+    label: "Quiz",
+    items: [
+      {
+        icon: <Gamepad2 size={20} />,
+        name: "My Quizzes",
+        path: "/dashboard/quizes",
+      },
+      {
+        name: "Collections",
+        icon: <FolderOpen size={20} />,
+        path: "/dashboard/collections",
+      },
+      {
+        icon: <Download size={20} />,
+        name: "Import",
+        path: "/dashboard/import",
+      },
+    ],
+  },
+  {
+    label: "Analytics",
+    items: [
+      {
+        icon: <BarChart2 size={20} />,
+        name: "Reports",
+        path: "/dashboard/reports",
+      },
+    ],
+  },
+  {
+    label: "Team",
+    items: [
+      {
+        name: "Team Space",
+        icon: <Users size={20} />,
+        path: "/dashboard/team",
+      },
+    ],
+  },
+  {
+    label: "Resources",
+    items: [
+      {
+        icon: <GraduationCap size={20} />,
+        name: "Academy",
+        path: "/academy",
+      },
+      {
+        icon: <HelpCircle size={20} />,
+        name: "Help Center",
+        path: "/help",
+      },
+    ],
   },
 ];
 
@@ -160,17 +188,23 @@ const AppSidebar: React.FC = () => {
         <Link href="/" className="flex items-center gap-2">
           {isExpanded || isHovered || isMobileOpen ? (
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#46178f] text-xl leading-none font-bold text-white">
-                K
-              </div>
+              <Image
+                src="/images/logo/logo.svg"
+                alt="Logo"
+                width={32}
+                height={32}
+              />
               <span className="text-2xl font-bold tracking-tight text-[#46178f]">
                 Kuizz
               </span>
             </div>
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#46178f] text-xl leading-none font-bold text-white">
-              K
-            </div>
+            <Image
+              src="/images/logo/logo.svg"
+              alt="Logo"
+              width={32}
+              height={32}
+            />
           )}
         </Link>
       </div>
@@ -178,20 +212,22 @@ const AppSidebar: React.FC = () => {
       <div className="no-scrollbar flex flex-1 flex-col overflow-y-auto px-4 py-6">
         <nav className="mb-8">
           <div className="flex flex-col gap-8">
-            <div>{renderMenuItems(navItems)}</div>
-
-            <div>
-              <h2
-                className={`mb-3 flex px-4 text-[11px] font-bold tracking-wider text-gray-400 uppercase ${
-                  !isExpanded && !isHovered
-                    ? "px-0 lg:justify-center"
-                    : "justify-start"
-                }`}
-              >
-                {isExpanded || isHovered || isMobileOpen ? "RESOURCES" : "•••"}
-              </h2>
-              {renderMenuItems(resourcesItems)}
-            </div>
+            {navGroups.map((group, index) => (
+              <div key={index}>
+                <h2
+                  className={`mb-3 flex px-4 text-[11px] font-bold tracking-wider text-gray-400 uppercase ${
+                    !isExpanded && !isHovered
+                      ? "px-0 lg:justify-center"
+                      : "justify-start"
+                  }`}
+                >
+                  {isExpanded || isHovered || isMobileOpen
+                    ? group.label
+                    : "•••"}
+                </h2>
+                {renderMenuItems(group.items)}
+              </div>
+            ))}
           </div>
         </nav>
       </div>

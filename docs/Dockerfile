@@ -30,6 +30,7 @@ WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/docs/node_modules ./docs/node_modules
+COPY --from=pruner /app/out/full/ ./
 
 # Copy isolated source code
 COPY --from=pruner /app/out/full/ ./

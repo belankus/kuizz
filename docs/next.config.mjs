@@ -4,8 +4,7 @@ import { createMDX } from "fumadocs-mdx/next";
 const config = {
   reactStrictMode: true,
   output: "standalone",
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+  outputFileTracingRoot: process.cwd().replace('/docs', ''), // Support turborepo pruning correctly
 };
 
 const withMDX = createMDX();
