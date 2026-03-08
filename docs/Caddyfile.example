@@ -1,6 +1,0 @@
-# Example Caddyfile for deploying docs.kuizz.my.id
-# Place this inside the main Caddyfile or include it in your Caddy config.
-
-docs.kuizz.my.id {
-	reverse_proxy docs:3000
-}

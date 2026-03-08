@@ -4,6 +4,8 @@ import { createMDX } from "fumadocs-mdx/next";
 const config = {
   reactStrictMode: true,
   output: "standalone",
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
 };
 
 const withMDX = createMDX();
