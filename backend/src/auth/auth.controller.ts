@@ -37,7 +37,7 @@ const COOKIE_OPTIONS = {
   httpOnly: true,
   sameSite: isProd ? ('none' as const) : ('lax' as const),
   secure: isProd, // set true in production (HTTPS)
-  domain: isProd ? '.bellawan.my.id' : undefined,
+  domain: isProd ? '.kuizz.my.id' : undefined,
 };
 
 @Controller('auth')
