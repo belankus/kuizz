@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         },
         {
           text: "GitHub",
-          url: "https://github.com/username/kuizz",
+          url: "https://github.com/belankus/kuizz",
           external: true,
         },
       ]}

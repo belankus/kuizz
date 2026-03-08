@@ -53,13 +53,26 @@ services:
     image: test-frontend:v1
     container_name: frontend_kuizz
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       HOSTNAME: 0.0.0.0
       PORT: 3000
     ports:
       - "3000:3000"
     depends_on:
       - backend
+
+  docs:
+    build:
+      context: ./docs
+      dockerfile: Dockerfile
+    image: test-docs:v1
+    container_name: docs_kuizz
+    environment:
+      NODE_ENV: development
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "3002:3000"
 
 volumes:
   postgres_data_kuizz:

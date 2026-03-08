@@ -1,10 +1,4 @@
 {
   "title": "Kuizz Docs",
-  "pages": [
-    "index",
-    "getting-started",
-    "core",
-    "developer",
-    "support"
-  ]
+  "pages": ["index", "getting-started", "core", "game", "developer", "support"]
 }

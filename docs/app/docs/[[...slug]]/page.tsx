@@ -31,7 +31,7 @@ export default async function Page({ params }: PageProps) {
       toc={page.data.toc}
       full={page.data.full}
       editOnGithub={{
-        owner: "username",
+        owner: "belankus",
         repo: "kuizz",
         sha: "main",
         path: `docs/content/docs/${filePath}.mdx`,

@@ -74,7 +74,7 @@ The most common cause is a missing environment variable. Verify your `.env` file
 
 ```js
 const config = {
-  output: 'standalone',
+  output: "standalone",
 };
 ```
 
@@ -111,11 +111,11 @@ const config = {
 
 ```ts
 // In your NestJS auth service
-response.cookie('access_token', token, {
+response.cookie("access_token", token, {
   httpOnly: true,
   secure: true,
-  domain: '.kuizz.my.id',
-  sameSite: 'lax',
+  domain: ".kuizz.my.id",
+  sameSite: "lax",
 });
 ```
 
@@ -124,6 +124,7 @@ response.cookie('access_token', token, {
 ### `401 Unauthorized` on all API requests
 
 **Fix:** Check that:
+
 1. Your access token hasn't expired (15-minute TTL)
 2. You're including the `Authorization: Bearer {token}` header correctly
 3. Refresh the token using the `/auth/refresh` endpoint
@@ -132,6 +133,6 @@ response.cookie('access_token', token, {
 
 ## Still Stuck?
 
-- Search existing [GitHub Issues](https://github.com/username/kuizz/issues)
+- Search existing [GitHub Issues](https://github.com/belankus/kuizz/issues)
 - Open a new issue with your error message and steps to reproduce
 - Check the [FAQ](/docs/support/faq) for common questions
