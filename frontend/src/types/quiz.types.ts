@@ -1,7 +1,9 @@
+export type QuizStatus = "DRAFT" | "PUBLISHED";
+
 export interface QuizModelType {
   title: string;
   description?: string;
-  status?: "DRAFT" | "PUBLISHED";
+  status?: QuizStatus;
   ownerId?: string;
   questions: QuestionModelType[];
   isFavorite?: boolean;

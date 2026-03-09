@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { CollectionGrid } from "@/components/collections/CollectionGrid";
+import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
 import {
   CollectionCard,
   CollectionType,
@@ -10,89 +12,40 @@ import {
 import { CollectionsTabs } from "@/components/collections/CollectionsTabs";
 import { CollectionsEmptyState } from "@/components/collections/CollectionsEmptyState";
 import { Filter, Search } from "lucide-react";
+import { fetchCollections } from "@/lib/collections";
+import { CollectionModelType } from "@/types";
 
-const MOCK_COLLECTIONS = [
-  {
-    id: "c1",
-    title: "Computer Science Fundamentals",
-    description: "Standardized questions for entry-level engineering...",
-    type: "TEMPLATE" as CollectionType,
-    ownerName: "Alice",
-    ownerAvatar: "https://i.pravatar.cc/150?u=alice",
-    itemsCount: 24,
-    viewsCount: 1200,
-    updatedAt: "2h ago",
-    extraContributors: 3,
-  },
-  {
-    id: "c2",
-    title: "Marketing Strategy 101",
-    description: "Core concepts of digital marketing and brand...",
-    type: "BANK" as CollectionType,
-    ownerName: "Bob",
-    ownerAvatar: "https://i.pravatar.cc/150?u=bob",
-    itemsCount: 45,
-    viewsCount: 842,
-    updatedAt: "1d ago",
-  },
-  {
-    id: "c3",
-    title: "Global History Quiz Bank",
-    description: "Questions covering major historical events from 1900 to...",
-    type: "SHARED" as CollectionType,
-    ownerName: "Charlie",
-    ownerAvatar: "https://i.pravatar.cc/150?u=charlie",
-    itemsCount: 120,
-    viewsCount: 3100,
-    updatedAt: "3d ago",
-  },
-  {
-    id: "c4",
-    title: "UX Design Challenges",
-    description: "Creative problem-solving scenarios for senior UX roles.",
-    type: "PRIVATE" as CollectionType,
-    ownerName: "Dave",
-    ownerAvatar: "https://i.pravatar.cc/150?u=dave",
-    itemsCount: 12,
-    viewsCount: 124,
-    updatedAt: "5h ago",
-  },
-  {
-    id: "c5",
-    title: "Language Proficiency A1",
-    description: "Grammar and vocabulary basics for beginners.",
-    type: "NEW" as CollectionType,
-    ownerName: "Eve",
-    ownerAvatar: "https://i.pravatar.cc/150?u=eve",
-    itemsCount: 60,
-    viewsCount: 210,
-    updatedAt: "10m ago",
-  },
-];
-
-const TABS = ["All", "Templates", "Question Banks", "My Collections", "Shared"];
+const TABS = ["All", "My Collections", "Saved", "Shared", "Marketplace"];
 
 export default function CollectionsPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [collections, setCollections] = useState<CollectionModelType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const router = useRouter();
 
-  // Example state for empty toggling (for testing UI purposes if needed)
-  const [isEmpty, setIsEmpty] = useState(false);
-
-  const collections = isEmpty ? [] : MOCK_COLLECTIONS;
+  useEffect(() => {
+    fetchCollections()
+      .then((data) => {
+        setCollections(data);
+      })
+      .catch((err) => console.error("Failed to fetch collections", err))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   // Filter collections by tab
   const filteredCollections = collections
     .filter((collection) => {
+      // Logic would be better backed by API mapping, but doing it in memory since fetchCollections returns all right now
       if (activeTab === "All") return true;
-      if (activeTab === "Templates" && collection.type === "TEMPLATE")
+      if (activeTab === "Shared" && collection.visibility === "SHARED")
         return true;
-      if (activeTab === "Question Banks" && collection.type === "BANK")
+      if (activeTab === "Marketplace" && collection.visibility === "PUBLIC")
         return true;
-      if (activeTab === "Shared" && collection.type === "SHARED") return true;
-      if (activeTab === "My Collections" && collection.type === "PRIVATE")
-        return true;
-      return false;
+      if (activeTab === "My Collections") return true; // Could filter by ownerId if we had it in context
+      if (activeTab === "Saved") return false; // Usually we fetch from /collections/saved
+      return true;
     })
     .filter((collection) =>
       collection.title.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -118,14 +71,6 @@ export default function CollectionsPage() {
         />
 
         <div className="relative mb-3 flex shrink-0 items-center gap-2 sm:mb-0">
-          {/* Dev-only toggle for empty state testing */}
-          <button
-            onClick={() => setIsEmpty(!isEmpty)}
-            className="mr-2 text-xs text-gray-400 underline hover:text-orange-500"
-          >
-            Toggle Empty
-          </button>
-
           <div className="relative">
             <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
@@ -142,16 +87,48 @@ export default function CollectionsPage() {
         </div>
       </div>
 
-      {collections.length > 0 ? (
+      {isLoading ? (
+        <div className="flex justify-center p-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600" />
+        </div>
+      ) : collections.length > 0 ? (
         <CollectionGrid>
           {filteredCollections.map((collection) => (
-            <CollectionCard key={collection.id} {...collection} />
+            <CollectionCard
+              key={collection.id}
+              id={collection.id}
+              title={collection.title}
+              description={collection.description || ""}
+              type={collection.visibility as CollectionType}
+              ownerName={collection.owner?.name || "Unknown"}
+              ownerAvatar={collection.owner?.avatar?.url}
+              itemsCount={collection._count?.items || 0}
+              viewsCount={collection.viewsCount}
+              updatedAt={new Date(collection.updatedAt).toLocaleDateString()}
+              extraContributors={Math.max(
+                0,
+                (collection._count?.members || 0) - 1,
+              )}
+              contentBadgeStr="Items"
+            />
           ))}
-          <CreateCollectionCard />
+          <CreateCollectionCard onClick={() => setIsCreateModalOpen(true)} />
         </CollectionGrid>
       ) : (
-        <CollectionsEmptyState />
+        <CollectionsEmptyState
+          onCreateClick={() => setIsCreateModalOpen(true)}
+        />
       )}
+
+      <CreateCollectionModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={(newCollection) => {
+          setCollections([newCollection, ...collections]);
+          setIsCreateModalOpen(false);
+          router.push(`/dashboard/collections/${newCollection.id}`);
+        }}
+      />
     </div>
   );
 }

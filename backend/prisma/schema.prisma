@@ -20,32 +20,39 @@ enum Role {
 }
 
 model User {
-  id           String       @id @default(uuid())
-  email        String       @unique
-  name         String?
-  password     String?
-  role         Role         @default(USER)
-  provider     String?
-  providerId   String?
-  refreshToken String?
-  avatar       Json?
-  quizzes      Quiz[]
-  gameHistory  GamePlayer[] @relation("UserGameHistory")
-  createdAt    DateTime     @default(now())
+  id               String             @id @default(uuid())
+  email            String             @unique
+  name             String?
+  password         String?
+  role             Role               @default(USER)
+  provider         String?
+  providerId       String?
+  refreshToken     String?
+  avatar           Json?
+  quizzes          Quiz[]
+  gameHistory      GamePlayer[]       @relation("UserGameHistory")
+  collections      Collection[]       @relation("UserCollections")
+  collectionMembers CollectionMember[]
+  savedCollections SavedCollection[]
+  createdAt        DateTime           @default(now())
 }
 
 model Quiz {
-  id           String        @id @default(uuid())
+  id           String           @id @default(uuid())
   title        String
   description  String?
-  status       QuizStatus    @default(DRAFT)
+  status       QuizStatus       @default(DRAFT)
   ownerId      String?
-  owner        User?         @relation(fields: [ownerId], references: [id])
+  owner        User?            @relation(fields: [ownerId], references: [id])
   questions    Question[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  isFavorite   Boolean       @default(false)
-  gameSessions GameSession[] @relation("QuizToGameSessions") // relation to GameSession
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  isFavorite   Boolean          @default(false)
+  gameSessions GameSession[]    @relation("QuizToGameSessions") // relation to GameSession
+  
+  // Relations for Collections
+  templateItems CollectionItem[] @relation("QuizTemplate")
+  bankItems     CollectionItem[] @relation("QuestionBank")
 }
 
 enum QuizStatus {
@@ -122,4 +129,81 @@ model GameAnswer {
   responseTime     Int
 
   @@index([playerId])
+}
+
+enum CollectionVisibility {
+  PRIVATE
+  SHARED
+  PUBLIC
+}
+
+enum CollectionItemType {
+  QUIZ_TEMPLATE
+  QUESTION_BANK
+}
+
+enum CollectionRole {
+  OWNER
+  EDITOR
+  VIEWER
+}
+
+model Collection {
+  id          String                 @id @default(uuid())
+  title       String
+  description String?
+  coverImage  String?
+  visibility  CollectionVisibility   @default(PRIVATE)
+  itemsCount  Int                    @default(0)
+  viewsCount  Int                    @default(0)
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  ownerId     String
+  owner       User                   @relation("UserCollections", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  items       CollectionItem[]
+  members     CollectionMember[]
+  savedBy     SavedCollection[]
+}
+
+model CollectionMember {
+  id           String         @id @default(uuid())
+  collectionId String
+  collection   Collection     @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         CollectionRole @default(VIEWER)
+  createdAt    DateTime       @default(now())
+
+  @@unique([collectionId, userId])
+}
+
+model CollectionItem {
+  id           String              @id @default(uuid())
+  collectionId String
+  collection   Collection          @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  type         CollectionItemType
+  
+  // For QUIZ_TEMPLATE
+  quizId       String?
+  quiz         Quiz?               @relation("QuizTemplate", fields: [quizId], references: [id], onDelete: Cascade)
+  
+  // For QUESTION_BANK
+  bankId       String?
+  bank         Quiz?               @relation("QuestionBank", fields: [bankId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model SavedCollection {
+  id           String     @id @default(uuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  collectionId String
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  savedAt      DateTime   @default(now())
+
+  @@unique([userId, collectionId])
 }

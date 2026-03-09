@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { FolderPlus, Layers } from "lucide-react";
 
-export function CollectionsEmptyState() {
+export function CollectionsEmptyState({
+  onCreateClick,
+}: {
+  onCreateClick?: () => void;
+}) {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
       <div className="relative mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-orange-50">
@@ -31,7 +35,10 @@ export function CollectionsEmptyState() {
         questions, and build templates faster.
       </p>
       <div className="flex items-center gap-4">
-        <Button className="h-12 gap-2 rounded-full bg-orange-600 px-6 text-[15px] font-bold text-white shadow-sm transition-all hover:bg-orange-700 hover:shadow-md">
+        <Button
+          onClick={onCreateClick}
+          className="h-12 gap-2 rounded-full bg-orange-600 px-6 text-[15px] font-bold text-white shadow-sm transition-all hover:bg-orange-700 hover:shadow-md"
+        >
           <FolderPlus className="h-5 w-5" />
           Create Collection
         </Button>

@@ -152,6 +152,53 @@ export class QuizService {
     return { message: 'Quiz deleted successfully' };
   }
 
+  async cloneQuiz(id: string, ownerId: string) {
+    const original = await this.prisma.quiz.findUnique({
+      where: { id },
+      include: {
+        questions: {
+          include: {
+            options: true,
+          },
+        },
+      },
+    });
+
+    if (!original) {
+      throw new NotFoundException('Quiz not found');
+    }
+
+    return this.prisma.quiz.create({
+      data: {
+        title: `${original.title} (Clone)`,
+        description: original.description,
+        status: 'DRAFT',
+        ownerId,
+        questions: {
+          create: original.questions.map((q) => ({
+            text: q.text,
+            timeLimit: q.timeLimit,
+            order: q.order,
+            mediaUrl: q.mediaUrl,
+            options: {
+              create: q.options.map((o) => ({
+                text: o.text,
+                isCorrect: o.isCorrect,
+              })),
+            },
+          })),
+        },
+      },
+      include: {
+        questions: {
+          include: {
+            options: true,
+          },
+        },
+      },
+    });
+  }
+
   async toggleFavorite(id: string) {
     const existing = await this.prisma.quiz.findUnique({
       where: { id },

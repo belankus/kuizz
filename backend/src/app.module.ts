@@ -9,6 +9,8 @@ import { UsersModule } from './users/users.module.js';
 import { GameSessionModule } from './game-session/game-session.module.js';
 import { DashboardModule } from './dashboard/dashboard.module.js';
 import { PingModule } from './ping/ping.module.js';
+import { CollectionsModule } from './collections/collections.module.js';
+import { CollectionItemsModule } from './collection-items/collection-items.module.js';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { PingModule } from './ping/ping.module.js';
     UsersModule,
     GameSessionModule,
     DashboardModule,
+    CollectionsModule,
+    CollectionItemsModule,
   ],
 })
 export class AppModule {}

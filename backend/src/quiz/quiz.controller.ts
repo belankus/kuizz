@@ -84,6 +84,15 @@ export class QuizController {
     return this.quizService.deleteQuiz(id);
   }
 
+  @Post(':id/clone')
+  @UseGuards(JwtAuthGuard)
+  async cloneQuiz(
+    @Param('id') id: string,
+    @CurrentUser() user: { id: string },
+  ) {
+    return this.quizService.cloneQuiz(id, user.id);
+  }
+
   @Put(':id/favorite')
   @UseGuards(JwtAuthGuard)
   async toggleFavorite(@Param('id') id: string) {

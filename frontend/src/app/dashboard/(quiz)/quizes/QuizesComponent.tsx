@@ -10,34 +10,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  ChevronDown,
-  Clock,
-  Heart,
-  MoreVertical,
-  Play,
-  Plus,
-  Table2,
-  Trash2,
-  Edit2,
-} from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { socket } from "@/lib/socket";
 import { apiFetch, getAccessToken } from "@/lib/auth";
+import { CollectionItemCard } from "@/components/collections/CollectionItemCard";
 
 type Quiz = {
   id: string;
@@ -170,16 +155,6 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
   const renderQuizCard = (quiz: Quiz) => {
     // Determine visual treatment based on status
     const isPublished = quiz.status === "PUBLISHED";
-    let statusBadgeClass = "";
-    let cardGraphicClass = "";
-
-    if (isPublished) {
-      statusBadgeClass = "bg-[#2ECC71] text-white tracking-wider";
-      cardGraphicClass = "bg-[#E6F3EF]";
-    } else {
-      statusBadgeClass = "bg-[#8E95A4] text-white tracking-wider";
-      cardGraphicClass = "bg-[#E5E7EB]";
-    }
 
     // Format date relative
     const updatedDate = new Date(quiz.updatedAt);
@@ -201,154 +176,49 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
       if (diffMins > 0) timeAgo = `${diffMins}m ago`;
     }
 
+    const menuActions = [
+      {
+        label: "Edit",
+        onClick: () => router.push(`/dashboard/quiz/${quiz.id}`),
+      },
+      {
+        label: "Export Excel",
+        onClick: () => {
+          window.location.href = `${apiUrl}/quiz/${quiz.id}/export`;
+        },
+      },
+      {
+        label: quiz.isFavorite ? "Unfavorite" : "Favorite",
+        onClick: () => handleToggleFavorite(quiz.id, quiz.isFavorite),
+      },
+      {
+        label: "Delete",
+        onClick: () => {
+          setDeleteId(quiz.id);
+          setOpenModal(true);
+        },
+        destructive: true,
+      },
+    ];
+
     return (
-      <div
+      <CollectionItemCard
         key={quiz.id}
-        className="flex h-[380px] flex-col overflow-hidden rounded-[20px] border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md"
-      >
-        {/* Top Graphic Area */}
-        <div
-          className={`relative h-44 ${cardGraphicClass} w-full overflow-hidden p-4`}
-        >
-          {/* Abstract graphics based on status */}
-          {isPublished && (
-            <svg
-              className="absolute -right-10 -bottom-10 h-[150%] w-[150%] text-[#a8e6cf] opacity-50"
-              viewBox="0 0 200 200"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill="currentColor"
-                d="M44.7,-76.4C58.8,-69.2,71.8,-59.1,79.6,-45.8C87.4,-32.6,90,-16.3,88.5,-0.9C87,14.6,81.4,29.1,72.4,41.2C63.4,53.2,50.8,62.7,37.1,69.5C23.4,76.3,8.6,80.3,-6.1,79.8C-20.8,79.3,-35.4,74.3,-48.5,66.1C-61.6,57.9,-73.2,46.3,-80.6,32.3C-88,18.3,-91.2,1.9,-87.3,-13.1C-83.3,-28.1,-72.2,-41.8,-58.9,-51.2C-45.6,-60.7,-30.1,-66,-15.5,-73.1C-1,-80.1,13.4,-89,28.5,-87C43.6,-85.1,30.6,-83.6,44.7,-76.4Z"
-                transform="translate(100 100)"
-              />
-            </svg>
-          )}
-
-          {/* Top Badges inner */}
-          <div className="relative z-10 flex items-start justify-between">
-            <span
-              className={`rounded-md px-2.5 py-1 text-[10px] font-bold uppercase ${statusBadgeClass}`}
-            >
-              {isPublished ? "PUBLISHED" : "DRAFT"}
-            </span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleToggleFavorite(quiz.id, quiz.isFavorite);
-              }}
-              className={`flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition-colors hover:bg-black/30 ${
-                quiz.isFavorite
-                  ? "bg-red-500/90 text-white"
-                  : "bg-black/20 text-white"
-              }`}
-            >
-              <Heart
-                size={16}
-                className={quiz.isFavorite ? "fill-current" : ""}
-              />
-            </button>
-          </div>
-
-          {/* Questions absolute badge */}
-          <div className="absolute right-4 bottom-4 rounded-md bg-[#4B5563] px-3 py-1 text-xs font-bold text-white opacity-90 shadow-sm">
-            {quiz.questions.length} Qs
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="flex flex-1 flex-col p-5">
-          <div className="mb-4 flex items-start justify-between">
-            <h3 className="line-clamp-2 pr-2 text-[18px] leading-tight font-bold text-gray-900">
-              {quiz.title}
-            </h3>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="-mr-2 rounded-full p-1 text-gray-400 hover:text-gray-600">
-                  <MoreVertical size={20} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="bottom" align="end" className="w-48">
-                <DropdownMenuItem
-                  onSelect={() => router.push(`/dashboard/quiz/${quiz.id}`)}
-                >
-                  <Edit2 className="mr-2 h-4 w-4" /> Edit
-                </DropdownMenuItem>
-
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Table2 className="mr-2 h-4 w-4" /> Export
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuPortal>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          window.location.href = `${apiUrl}/quiz/${quiz.id}/export`;
-                        }}
-                      >
-                        Excel (.xlsx)
-                      </DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuPortal>
-                </DropdownMenuSub>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-red-600"
-                  onSelect={() => {
-                    setDeleteId(quiz.id);
-                    setOpenModal(true);
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          <div className="mb-2">
-            <h4 className="text-sm text-gray-600">{quiz.description}</h4>
-          </div>
-          <div className="mt-auto mb-6 flex items-center gap-4 text-xs font-medium text-gray-500">
-            <div className="flex items-center gap-1.5">
-              <Clock size={14} />
-              <span>Updated {timeAgo}</span>
-            </div>
-            <div className="h-1 w-1 rounded-full bg-gray-300"></div>
-            <div className="flex items-center gap-1.5">
-              <Play size={14} className="fill-gray-400" />
-              <span>{quiz._count?.gameSessions || 0} plays</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="mt-auto grid grid-cols-2 gap-3">
-            {isPublished ? (
-              <>
-                <Button
-                  onClick={() => handleStartGame(quiz.id)}
-                  className="h-10 w-full rounded-lg bg-[#46178f] font-bold text-white shadow-sm hover:bg-[#3b127a]"
-                >
-                  Host Live
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push(`/dashboard/quiz/${quiz.id}`)}
-                  className="h-10 w-full rounded-lg border-gray-200 bg-white font-bold text-gray-700 shadow-sm hover:bg-gray-50"
-                >
-                  Edit
-                </Button>
-              </>
-            ) : (
-              <Button
-                variant="outline"
-                onClick={() => router.push(`/dashboard/quiz/${quiz.id}`)}
-                className="col-span-2 h-10 w-full rounded-lg border-dashed border-gray-300 font-bold text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              >
-                Continue Editing (Draft)
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
+        id={quiz.id}
+        title={quiz.title}
+        type={isPublished ? "PUBLISHED" : "DRAFT"}
+        questionsCount={quiz.questions.length}
+        updatedAt={timeAgo}
+        primaryActionLabel={isPublished ? "Host Live" : "Continue Editing"}
+        onPrimaryAction={() =>
+          isPublished
+            ? handleStartGame(quiz.id)
+            : router.push(`/dashboard/quiz/${quiz.id}`)
+        }
+        secondaryActionLabel={null} // Don't show secondary button inside My Quizzes (cleaner)
+        menuActions={menuActions}
+        onClick={() => router.push(`/dashboard/quiz/${quiz.id}`)}
+      />
     );
   };
 

@@ -9,12 +9,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export type CollectionType = "TEMPLATE" | "BANK" | "SHARED" | "PRIVATE" | "NEW";
+import { CollectionVisibility } from "@/types";
+
+export type CollectionType = CollectionVisibility | "NEW";
 
 export interface CollectionCardProps {
   id: string;
   title: string;
-  description: string;
+  description: string | null;
   type: CollectionType;
   ownerName: string;
   ownerAvatar?: string;
@@ -22,11 +24,11 @@ export interface CollectionCardProps {
   viewsCount: number;
   updatedAt: string;
   extraContributors?: number;
+  contentBadgeStr?: string;
 }
 
 const colorMap: Record<CollectionType, string> = {
-  TEMPLATE: "bg-gradient-to-br from-purple-500 to-indigo-600",
-  BANK: "bg-gradient-to-br from-sky-400 to-blue-500",
+  PUBLIC: "bg-gradient-to-br from-purple-500 to-indigo-600",
   SHARED: "bg-gradient-to-br from-emerald-400 to-teal-500",
   PRIVATE: "bg-gradient-to-br from-orange-400 to-amber-500",
   NEW: "bg-gradient-to-br from-pink-500 to-rose-500",
@@ -43,6 +45,7 @@ export function CollectionCard({
   viewsCount,
   updatedAt,
   extraContributors,
+  contentBadgeStr = "Mixed",
 }: CollectionCardProps) {
   return (
     <div className="group relative flex h-[340px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md">
@@ -52,12 +55,20 @@ export function CollectionCard({
         className="absolute inset-0 z-0"
       />
       <div className={`h-[120px] w-full shrink-0 p-4 ${colorMap[type]}`}>
-        <Badge
-          variant="secondary"
-          className="border-none bg-white/20 text-[10px] font-semibold tracking-wider text-white uppercase hover:bg-white/30"
-        >
-          {type}
-        </Badge>
+        <div className="flex items-start justify-between">
+          <Badge
+            variant="secondary"
+            className="border-none bg-white/20 text-[10px] font-semibold tracking-wider text-white uppercase hover:bg-white/30"
+          >
+            {type}
+          </Badge>
+          <Badge
+            variant="secondary"
+            className="border-none bg-black/20 text-[10px] font-semibold tracking-wider text-white uppercase backdrop-blur-sm hover:bg-black/30"
+          >
+            {itemsCount} {contentBadgeStr}
+          </Badge>
+        </div>
       </div>
 
       <div className="pointer-events-none z-10 flex h-full flex-1 flex-col p-5">
@@ -129,9 +140,12 @@ export function CollectionCard({
   );
 }
 
-export function CreateCollectionCard() {
+export function CreateCollectionCard({ onClick }: { onClick?: () => void }) {
   return (
-    <button className="group flex h-[340px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-6 text-center transition-all hover:border-orange-300 hover:bg-orange-50/50">
+    <button
+      onClick={onClick}
+      className="group flex h-[340px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-6 text-center transition-all hover:border-orange-300 hover:bg-orange-50/50"
+    >
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200 transition-all group-hover:bg-orange-100 group-hover:ring-orange-200">
         <Plus className="h-6 w-6 text-gray-400 group-hover:text-orange-600" />
       </div>
