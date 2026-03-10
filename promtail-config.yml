@@ -17,13 +17,3 @@ scrape_configs:
           job: docker
           service: kuizz
           __path__: /var/lib/docker/containers/*/*.log
-
-  # membaca log file dev
-  - job_name: kuizz-dev
-    static_configs:
-      - targets:
-          - localhost
-        labels:
-          job: kuizz-dev
-          service: kuizz
-          __path__: /logs/*.log
