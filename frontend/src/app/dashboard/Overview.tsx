@@ -90,8 +90,8 @@ export default function Overview() {
 
       {/* Metric Cards Row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/3">
-          <div className="bg-brand-50 text-brand-500 dark:bg-brand-500/10 flex h-11 w-11 items-center justify-center rounded-full">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900/50">
+          <div className="bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400 flex h-11 w-11 items-center justify-center rounded-full">
             <BrainCircuit size={24} />
           </div>
           <div className="mt-4 flex items-end justify-between">
@@ -99,15 +99,15 @@ export default function Overview() {
               <h4 className="text-2xl font-bold text-gray-800 dark:text-white/90">
                 {data.metrics.totalQuizzes}
               </h4>
-              <span className="text-sm font-medium text-gray-500">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Total Quizzes
               </span>
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-50 text-indigo-500 dark:bg-indigo-500/10">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900/50">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-indigo-50 text-indigo-500 dark:bg-indigo-500/10 dark:text-indigo-400">
             <Gamepad2 size={24} />
           </div>
           <div className="mt-4 flex items-end justify-between">
@@ -115,15 +115,15 @@ export default function Overview() {
               <h4 className="text-2xl font-bold text-gray-800 dark:text-white/90">
                 {data.metrics.totalGamesHosted}
               </h4>
-              <span className="text-sm font-medium text-gray-500">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Games Hosted
               </span>
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-500 dark:bg-orange-500/10">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900/50">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-500 dark:bg-orange-500/10 dark:text-orange-400">
             <Users size={24} />
           </div>
           <div className="mt-4 flex items-end justify-between">
@@ -131,15 +131,15 @@ export default function Overview() {
               <h4 className="text-2xl font-bold text-gray-800 dark:text-white/90">
                 {data.metrics.totalPlayers}
               </h4>
-              <span className="text-sm font-medium text-gray-500">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Total Players
               </span>
             </div>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-green-50 text-green-500 dark:bg-green-500/10">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900/50">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-green-50 text-green-500 dark:bg-green-500/10 dark:text-green-400">
             <Target size={24} />
           </div>
           <div className="mt-4 flex items-end justify-between">
@@ -147,7 +147,7 @@ export default function Overview() {
               <h4 className="text-2xl font-bold text-gray-800 dark:text-white/90">
                 {data.metrics.averageAccuracy}%
               </h4>
-              <span className="text-sm font-medium text-gray-500">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Global Accuracy
               </span>
             </div>
@@ -157,7 +157,7 @@ export default function Overview() {
 
       <div className="mt-6 grid grid-cols-12 gap-4 md:gap-6">
         {/* Chart Column */}
-        <div className="col-span-12 rounded-2xl border border-gray-200 bg-white p-6 xl:col-span-8 dark:border-gray-800 dark:bg-white/3">
+        <div className="col-span-12 rounded-2xl border border-gray-200 bg-white p-6 xl:col-span-8 dark:border-gray-800 dark:bg-gray-900/50">
           <h4 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
             Games Activity (Last 7 Days)
           </h4>
@@ -172,14 +172,14 @@ export default function Overview() {
         </div>
 
         {/* Recent Games Table */}
-        <div className="col-span-12 rounded-2xl border border-gray-200 bg-white p-6 xl:col-span-4 dark:border-gray-800 dark:bg-white/3">
+        <div className="col-span-12 rounded-2xl border border-gray-200 bg-white p-6 xl:col-span-4 dark:border-gray-800 dark:bg-gray-900/50">
           <div className="mb-4 flex items-center justify-between">
             <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90">
               Recent Games
             </h4>
             <button
               onClick={() => router.push("/dashboard/reports")}
-              className="text-brand-500 hover:text-brand-600 text-sm font-medium"
+              className="text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300 text-sm font-medium"
             >
               View All
             </button>
@@ -187,7 +187,9 @@ export default function Overview() {
 
           <div className="flex flex-col gap-4 border-t border-gray-100 pt-4 dark:border-gray-800">
             {data.recentGames.length === 0 ? (
-              <p className="text-sm text-gray-500">No games hosted yet.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                No games hosted yet.
+              </p>
             ) : (
               data.recentGames.map((game) => (
                 <div
@@ -198,7 +200,7 @@ export default function Overview() {
                     <h5 className="font-semibold text-gray-800 dark:text-white/90">
                       {game.title}
                     </h5>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
                       {new Date(game.createdAt).toLocaleDateString()}
                     </span>
                   </div>
@@ -214,7 +216,7 @@ export default function Overview() {
                     >
                       {game.status}
                     </Badge>
-                    <span className="text-xs font-medium text-gray-500">
+                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                       {game.totalPlayers} Players
                     </span>
                   </div>

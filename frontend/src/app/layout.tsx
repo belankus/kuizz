@@ -17,8 +17,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${outfit.className} dark:bg-gray-900`}>
+    <html lang="en" suppressHydrationWarning>
+      <body
+        className={`${outfit.className} bg-gray-50 text-gray-900 transition-colors duration-200 ease-in-out dark:bg-gray-900 dark:text-gray-100`}
+      >
         <QueryProvider>
           <ThemeProvider>
             <TooltipProvider>

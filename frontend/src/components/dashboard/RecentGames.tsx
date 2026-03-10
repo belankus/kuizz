@@ -12,12 +12,12 @@ export default function RecentGames() {
   return (
     <div className="flex h-full flex-col">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-bold tracking-tight text-gray-900">
+        <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white/90">
           Recent Games
         </h2>
         <Link
           href="/dashboard/quizes"
-          className="text-sm font-semibold text-[#46178f] hover:underline"
+          className="dark:text-brand-400 text-sm font-semibold text-[#46178f] hover:underline"
         >
           View all
         </Link>

@@ -54,33 +54,33 @@ export default function CollectionsPage() {
   return (
     <div className="mx-auto flex h-full w-full max-w-7xl flex-col">
       <div className="mb-8">
-        <h1 className="mb-2 text-[28px] font-bold tracking-tight text-gray-900">
+        <h1 className="mb-2 text-[28px] font-bold tracking-tight text-gray-900 dark:text-white/90">
           Collections
         </h1>
-        <p className="text-[15px] font-medium text-gray-500">
+        <p className="text-[15px] font-medium text-gray-500 dark:text-gray-400">
           Organize reusable quiz content and templates.
         </p>
       </div>
 
-      <div className="mb-8 flex w-full flex-col justify-between gap-4 border-b border-gray-200 sm:flex-row sm:items-center">
+      <div className="mb-8 flex w-full flex-col justify-between gap-4 border-b border-gray-200 sm:flex-row sm:items-center dark:border-gray-800">
         <CollectionsTabs
           tabs={TABS}
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          className="mb-[-1px] border-none"
+          className="-mb-px border-none"
         />
 
         <div className="relative mb-3 flex shrink-0 items-center gap-2 sm:mb-0">
           <div className="relative">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search collections..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white pr-10 pl-9 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none sm:w-64"
+              className="h-10 w-full rounded-lg border border-gray-200 bg-white pr-10 pl-9 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none sm:w-64 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500"
             />
-            <button className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <button className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400">
               <Filter className="h-4 w-4" />
             </button>
           </div>
@@ -101,7 +101,13 @@ export default function CollectionsPage() {
               description={collection.description || ""}
               type={collection.visibility as CollectionType}
               ownerName={collection.owner?.name || "Unknown"}
-              ownerAvatar={collection.owner?.avatar?.url}
+              ownerAvatar={
+                collection.owner?.avatar &&
+                typeof collection.owner.avatar === "object" &&
+                "url" in collection.owner.avatar
+                  ? (collection.owner.avatar.url as string)
+                  : undefined
+              }
               itemsCount={collection._count?.items || 0}
               viewsCount={collection.viewsCount}
               updatedAt={new Date(collection.updatedAt).toLocaleDateString()}

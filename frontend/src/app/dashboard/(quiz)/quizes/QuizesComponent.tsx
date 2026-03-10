@@ -228,8 +228,10 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
     <div className="pb-24">
       {/* Header Area */}
       <div className="mb-8">
-        <h1 className="mb-2 text-4xl font-black text-gray-900">My Library</h1>
-        <p className="text-[15px] font-medium text-gray-500">
+        <h1 className="mb-2 text-4xl font-black text-gray-900 dark:text-white/90">
+          My Library
+        </h1>
+        <p className="text-[15px] font-medium text-gray-500 dark:text-gray-400">
           Manage your quizzes, host live games, or assign self-paced challenges.
         </p>
       </div>
@@ -243,8 +245,8 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
               onClick={() => setActiveFilter(tab)}
               className={`rounded-full px-5 py-2.5 text-sm font-bold transition-all ${
                 activeFilter === tab
-                  ? "bg-[#111827] text-white shadow-md shadow-gray-900/10"
-                  : "border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50"
+                  ? "bg-[#111827] text-white shadow-md shadow-gray-900/10 dark:bg-white dark:text-gray-900"
+                  : "border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-gray-800"
               }`}
             >
               {tab}
@@ -252,16 +254,19 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
           ))}
         </div>
 
-        <div className="flex items-center text-sm font-medium text-gray-500">
+        <div className="flex items-center text-sm font-medium text-gray-500 dark:text-gray-400">
           <span className="mr-2">Sort by:</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center rounded-lg px-3 py-1.5 font-bold text-gray-900 transition-colors outline-none hover:bg-gray-100">
+              <button className="flex items-center rounded-lg px-3 py-1.5 font-bold text-gray-900 transition-colors outline-none hover:bg-gray-100 dark:text-white/90 dark:hover:bg-gray-800">
                 {activeSort}{" "}
                 <ChevronDown size={16} className="ml-1 opacity-70" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent
+              align="end"
+              className="w-48 dark:border-gray-800 dark:bg-gray-900"
+            >
               {["Most Recent", "Oldest", "Alphabetical (A-Z)"].map(
                 (sortOption) => (
                   <DropdownMenuItem
@@ -287,33 +292,23 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
         {/* Create New Card (Always visible) */}
         <div
           onClick={() => router.push("/dashboard/create")}
-          className="group flex h-[380px] cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-gray-200 bg-white/50 p-8 transition-all hover:border-[#46178f]/30 hover:bg-white hover:shadow-sm"
+          className="group dark:hover:border-brand-500/50 flex h-[380px] cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-gray-200 bg-white/50 p-8 transition-all hover:border-[#46178f]/30 hover:bg-white hover:shadow-sm dark:border-gray-800 dark:bg-gray-900/50 dark:hover:bg-gray-800"
         >
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#46178f] shadow-sm transition-all group-hover:scale-110 group-hover:bg-[#46178f] group-hover:text-white">
+          <div className="dark:text-brand-400 dark:group-hover:bg-brand-500 mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#46178f] shadow-sm transition-all group-hover:scale-110 group-hover:bg-[#46178f] group-hover:text-white dark:bg-gray-800 dark:group-hover:text-white">
             <Plus size={32} />
           </div>
-          <h3 className="mb-2 text-center text-xl font-bold text-gray-900">
+          <h3 className="mb-2 text-center text-xl font-bold text-gray-900 dark:text-white/90">
             Create New
             <br />
             Quiz
           </h3>
-          <p className="max-w-[150px] text-center text-sm font-medium text-gray-500">
+          <p className="max-w-[150px] text-center text-sm font-medium text-gray-500 dark:text-gray-400">
             Start from scratch or use AI generator
           </p>
         </div>
 
         {/* Existing Quizzes */}
         {sortedQuizzes.map((quiz) => renderQuizCard(quiz))}
-      </div>
-
-      {/* Floating Action Button */}
-      <div className="fixed right-8 bottom-8 z-50">
-        <button
-          onClick={() => router.push("/dashboard/create")}
-          className="flex items-center gap-2 rounded-full bg-[#0060FF] px-6 py-4 font-bold text-white shadow-lg shadow-[#0060FF]/30 transition-all hover:-translate-y-1 hover:bg-[#0050d2] hover:shadow-xl"
-        >
-          <Plus size={20} /> Create Quiz
-        </button>
       </div>
 
       <AlertDialog open={openModal} onOpenChange={setOpenModal}>

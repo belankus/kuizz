@@ -201,11 +201,13 @@ export default function ImportPage() {
             <div
               {...getRootProps()}
               className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition ${
-                isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-300"
+                isDragActive
+                  ? "border-blue-500 bg-blue-50 dark:border-blue-500/50 dark:bg-blue-500/10"
+                  : "border-gray-300 dark:border-gray-700"
               }`}
             >
               <input {...getInputProps()} />
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 {fileName
                   ? `Selected: ${fileName}`
                   : "Drag & drop XLSX file here, or click to select"}
@@ -215,7 +217,7 @@ export default function ImportPage() {
             <Button
               variant={"outline"}
               onClick={downloadTemplate}
-              className="mt-4 text-sm"
+              className="mt-4 text-sm dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800"
             >
               <FileSpreadsheet size={16} />
               Download template
@@ -223,11 +225,11 @@ export default function ImportPage() {
 
             {/* Errors */}
             {errors.length > 0 && (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-4">
-                <h2 className="mb-2 font-semibold text-red-700">
+              <div className="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-500/10">
+                <h2 className="mb-2 font-semibold text-red-700 dark:text-red-400">
                   Validation Errors
                 </h2>
-                <ul className="space-y-1 text-sm text-red-600">
+                <ul className="space-y-1 text-sm text-red-600 dark:text-red-400/80">
                   {errors.map((e, i) => (
                     <li key={i}>• {e}</li>
                   ))}
@@ -238,24 +240,30 @@ export default function ImportPage() {
             {/* Preview */}
             {preview.length > 0 && (
               <div className="space-y-4">
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   {preview.length} questions detected
                 </div>
 
                 {preview.map((q, i) => (
                   <div
                     key={i}
-                    className="rounded-xl border bg-white p-4 shadow-sm"
+                    className="rounded-xl border bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900/50"
                   >
-                    <div className="font-semibold">{q.text}</div>
-                    <div className="text-xs text-gray-500">{q.timeLimit}s</div>
+                    <div className="font-semibold dark:text-white/90">
+                      {q.text}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {q.timeLimit}s
+                    </div>
 
                     <ul className="mt-2 space-y-1">
                       {q.options.map((o, idx) => (
                         <li
                           key={idx}
                           className={
-                            o.isCorrect ? "font-medium text-green-600" : ""
+                            o.isCorrect
+                              ? "font-medium text-green-600 dark:text-green-400"
+                              : "dark:text-gray-300"
                           }
                         >
                           {idx + 1}. {o.text}

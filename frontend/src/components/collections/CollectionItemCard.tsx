@@ -51,17 +51,17 @@ export function CollectionItemCard({
   return (
     <div
       onClick={onClick}
-      className={`group flex h-[320px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md ${onClick ? "cursor-pointer" : ""}`}
+      className={`group flex h-[320px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md dark:bg-gray-900/50 dark:ring-gray-800 ${onClick ? "cursor-pointer" : ""}`}
     >
       {/* Thumbnail */}
       <div
-        className={`relative h-[160px] w-full shrink-0 border-b border-gray-100 ${isPublished ? "bg-[#E6F3EF]" : "bg-slate-100"}`}
+        className={`relative h-[160px] w-full shrink-0 border-b border-gray-100 dark:border-gray-800 ${isPublished ? "bg-[#E6F3EF] dark:bg-[#1A2F25]" : "bg-slate-100 dark:bg-gray-800"}`}
       >
         {thumbnail ? (
           <Image src={thumbnail} alt={title} fill className="object-cover" />
         ) : isPublished ? (
           <svg
-            className="absolute -right-10 -bottom-10 h-[150%] w-[150%] text-[#a8e6cf] opacity-50"
+            className="absolute -right-10 -bottom-10 h-[150%] w-[150%] text-[#a8e6cf] opacity-50 dark:opacity-20"
             viewBox="0 0 200 200"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -75,21 +75,21 @@ export function CollectionItemCard({
         <div className="absolute top-3 left-3 flex w-full justify-between pr-6">
           <Badge
             variant="secondary"
-            className="border border-gray-100 bg-white text-[10px] font-bold tracking-wider text-gray-800 uppercase shadow-sm hover:bg-gray-50"
+            className="border border-gray-100 bg-white text-[10px] font-bold tracking-wider text-gray-800 uppercase shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             {displayType}
           </Badge>
           {questionsCount !== undefined && type === "PUBLISHED" && (
-            <div className="rounded-md bg-[#4B5563] px-3 py-1 text-xs font-bold text-white shadow-sm">
+            <div className="rounded-md bg-[#4B5563] px-3 py-1 text-xs font-bold text-white shadow-sm dark:bg-gray-700">
               {questionsCount} Qs
             </div>
           )}
         </div>
       </div>
 
-      <div className="z-10 flex flex-1 flex-col bg-white p-4">
+      <div className="z-10 flex flex-1 flex-col bg-white p-4 dark:bg-transparent">
         <div className="mb-2 flex items-start justify-between gap-2">
-          <h3 className="line-clamp-2 text-[15px] leading-tight font-bold text-gray-900 transition-colors group-hover:text-orange-600">
+          <h3 className="line-clamp-2 text-[15px] leading-tight font-bold text-gray-900 transition-colors group-hover:text-orange-600 dark:text-white/90 dark:group-hover:text-orange-500">
             {title}
           </h3>
           {menuActions && menuActions.length > 0 && (
@@ -97,12 +97,15 @@ export function CollectionItemCard({
               <DropdownMenuTrigger asChild>
                 <button
                   onClick={(e) => e.stopPropagation()}
-                  className="-mt-1 -mr-1 shrink-0 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                  className="-mt-1 -mr-1 shrink-0 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300"
                 >
                   <MoreVertical className="h-[18px] w-[18px]" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40 bg-white">
+              <DropdownMenuContent
+                align="end"
+                className="w-40 bg-white dark:border-gray-800 dark:bg-gray-900"
+              >
                 {menuActions.map((action, i) => (
                   <DropdownMenuItem
                     key={i}
@@ -110,7 +113,7 @@ export function CollectionItemCard({
                       e.stopPropagation();
                       action.onClick();
                     }}
-                    className={`cursor-pointer ${action.destructive ? "text-red-600 focus:text-red-700" : ""}`}
+                    className={`cursor-pointer dark:focus:bg-gray-800 dark:focus:text-white ${action.destructive ? "text-red-600 focus:text-red-700 dark:text-red-400 dark:focus:text-red-300" : "dark:text-gray-300"}`}
                   >
                     {action.label}
                   </DropdownMenuItem>
@@ -120,7 +123,7 @@ export function CollectionItemCard({
           )}
         </div>
 
-        <div className="mt-1 mb-auto flex flex-col gap-1 text-xs font-medium text-gray-500">
+        <div className="mt-1 mb-auto flex flex-col gap-1 text-xs font-medium text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-1.5">
             {questionsCount !== undefined && type !== "PUBLISHED" ? (
               <>
@@ -135,7 +138,7 @@ export function CollectionItemCard({
             ) : null}
           </div>
           {updatedAt && (
-            <span className="mt-1 text-[11px] text-gray-400">
+            <span className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
               Updated {updatedAt}
             </span>
           )}
@@ -148,7 +151,7 @@ export function CollectionItemCard({
                 e.stopPropagation();
                 onPrimaryAction?.();
               }}
-              className="h-10 flex-1 rounded-[10px] bg-[#46178f] text-sm font-semibold text-white shadow-sm hover:bg-[#3b127a]"
+              className="dark:bg-brand-500 dark:hover:bg-brand-600 h-10 flex-1 rounded-[10px] bg-[#46178f] text-sm font-semibold text-white shadow-sm hover:bg-[#3b127a]"
               size="sm"
             >
               {primaryActionLabel}
@@ -163,8 +166,8 @@ export function CollectionItemCard({
               }}
               className={
                 typeof secondaryActionLabel === "string"
-                  ? "h-10 flex-1 rounded-[10px] border-gray-200 bg-white text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
-                  : "h-10 w-10 shrink-0 rounded-[10px] border-gray-200 p-0 text-gray-500 hover:text-gray-900"
+                  ? "h-10 flex-1 rounded-[10px] border-gray-200 bg-white text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  : "h-10 w-10 shrink-0 rounded-[10px] border-gray-200 p-0 text-gray-500 hover:text-gray-900 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
               }
               size={typeof secondaryActionLabel === "string" ? "sm" : "icon"}
             >
@@ -179,14 +182,14 @@ export function CollectionItemCard({
 
 export function CreateCollectionItemCard() {
   return (
-    <button className="group flex h-[300px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-6 text-center transition-all hover:border-orange-300 hover:bg-orange-50/50">
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200 transition-all group-hover:bg-orange-100 group-hover:ring-orange-200">
-        <Plus className="h-6 w-6 text-gray-400 group-hover:text-orange-600" />
+    <button className="group flex h-[300px] w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-6 text-center transition-all hover:border-orange-300 hover:bg-orange-50/50 dark:border-gray-800 dark:bg-gray-900/30 dark:hover:border-orange-500/50 dark:hover:bg-orange-500/10">
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-gray-200 transition-all group-hover:bg-orange-100 group-hover:ring-orange-200 dark:bg-gray-800 dark:ring-gray-700 dark:group-hover:bg-orange-500/20 dark:group-hover:ring-orange-500/30">
+        <Plus className="h-6 w-6 text-gray-400 group-hover:text-orange-600 dark:text-gray-500 dark:group-hover:text-orange-400" />
       </div>
-      <h3 className="mb-1 text-base font-semibold text-gray-900 group-hover:text-orange-700">
+      <h3 className="mb-1 text-base font-semibold text-gray-900 group-hover:text-orange-700 dark:text-white/90 dark:group-hover:text-orange-400">
         New Item
       </h3>
-      <p className="text-sm text-gray-500 group-hover:text-orange-600/70">
+      <p className="text-sm text-gray-500 group-hover:text-orange-600/70 dark:text-gray-400 dark:group-hover:text-orange-400/80">
         Add a template or bank
       </p>
     </button>

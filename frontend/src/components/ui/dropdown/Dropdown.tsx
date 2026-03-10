@@ -1,46 +1,24 @@
 "use client";
 import type React from "react";
-import { useEffect, useRef } from "react";
 
 interface DropdownProps {
   isOpen: boolean;
-  onClose: () => void;
   children: React.ReactNode;
   className?: string;
 }
 
 export const Dropdown: React.FC<DropdownProps> = ({
   isOpen,
-  onClose,
   children,
   className = "",
 }) => {
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
- useEffect(() => {
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      dropdownRef.current &&
-      !dropdownRef.current.contains(event.target as Node) &&
-      !(event.target as HTMLElement).closest('.dropdown-toggle')
-    ) {
-      onClose();
-    }
-  };
-
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, [onClose]);
-
-
-  if (!isOpen) return null;
-
   return (
     <div
-      ref={dropdownRef}
-      className={`absolute z-40  right-0 mt-2  rounded-xl border border-gray-200 bg-white  shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark ${className}`}
+      className={`shadow-theme-lg dark:bg-gray-dark absolute right-0 z-40 mt-2 origin-top-right rounded-xl border border-gray-200 bg-white transition-all duration-200 ease-out dark:border-gray-800 ${
+        isOpen
+          ? "pointer-events-auto visible translate-y-0 scale-100 opacity-100"
+          : "pointer-events-none invisible -translate-y-2 scale-95 opacity-0"
+      } ${className}`}
     >
       {children}
     </div>

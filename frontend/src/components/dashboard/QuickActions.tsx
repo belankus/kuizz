@@ -37,7 +37,7 @@ export default function QuickActions() {
 
   return (
     <div className="mb-8">
-      <h2 className="mb-4 text-xl font-bold tracking-tight text-gray-900">
+      <h2 className="mb-4 text-xl font-bold tracking-tight text-gray-900 dark:text-white/90">
         Quick Actions
       </h2>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">

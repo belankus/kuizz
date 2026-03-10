@@ -29,8 +29,8 @@ export function CollectionsTabs({
             className={cn(
               "relative pt-2 pb-4 text-sm font-medium whitespace-nowrap transition-colors",
               isActive
-                ? "text-orange-600"
-                : "text-gray-500 hover:text-gray-900",
+                ? "text-orange-600 dark:text-orange-500"
+                : "text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300",
             )}
           >
             {tab}

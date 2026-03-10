@@ -52,14 +52,14 @@ export default function CollectionDetailPage() {
   if (isLoading) {
     return (
       <div className="flex justify-center p-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600" />
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600 dark:border-orange-900/50 dark:border-t-orange-500" />
       </div>
     );
   }
 
   if (!collection) {
     return (
-      <div className="p-12 text-center font-medium text-gray-500">
+      <div className="p-12 text-center font-medium text-gray-500 dark:text-gray-400">
         Collection not found
       </div>
     );
@@ -134,33 +134,33 @@ export default function CollectionDetailPage() {
   return (
     <div className="mx-auto flex h-full w-full max-w-7xl flex-col">
       {/* Breadcrumb and Top Actions */}
-      <div className="mb-4 flex flex-col justify-between gap-4 border-b border-gray-100 pb-4 sm:flex-row sm:items-center">
+      <div className="mb-4 flex flex-col justify-between gap-4 border-b border-gray-100 pb-4 sm:flex-row sm:items-center dark:border-gray-800">
         <div className="flex items-center gap-2 text-[15px]">
           <Link
             href="/dashboard/collections"
-            className="font-medium text-gray-500 transition-colors hover:text-gray-900"
+            className="font-medium text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
           >
             Collections
           </Link>
-          <span className="text-gray-300">/</span>
-          <span className="font-semibold text-gray-900">
+          <span className="text-gray-300 dark:text-gray-600">/</span>
+          <span className="font-semibold text-gray-900 dark:text-white">
             {collection.title}
           </span>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative hidden md:block">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search collection items..."
-              className="h-10 w-64 rounded-full border-transparent bg-gray-100/80 pr-4 pl-9 text-sm text-gray-900 transition-colors placeholder:text-gray-500 focus:border-orange-500 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:outline-none"
+              className="h-10 w-64 rounded-full border border-transparent bg-gray-100/80 pr-4 pl-9 text-sm text-gray-900 transition-colors placeholder:text-gray-500 focus:border-orange-500 focus:bg-white focus:ring-1 focus:ring-orange-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-orange-500 dark:focus:bg-gray-900"
             />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 disabled={isCreating}
-                className="h-10 gap-2 rounded-full bg-orange-600 px-5 text-[14px] font-bold text-white shadow-sm hover:bg-orange-700"
+                className="h-10 gap-2 rounded-full bg-orange-600 px-5 text-[14px] font-bold text-white shadow-sm hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-500"
               >
                 <Plus className="h-4 w-4" />
                 New Item
@@ -168,16 +168,16 @@ export default function CollectionDetailPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-56 font-medium text-gray-700"
+              className="w-56 font-medium text-gray-700 dark:border-gray-800 dark:bg-gray-900"
             >
               <DropdownMenuItem
-                className="cursor-pointer py-3"
+                className="cursor-pointer py-3 dark:text-gray-300 dark:focus:bg-gray-800 dark:focus:text-white"
                 onClick={() => handleCreateItem("QUIZ_TEMPLATE")}
               >
                 Create Quiz Template
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="cursor-pointer py-3"
+                className="cursor-pointer py-3 dark:text-gray-300 dark:focus:bg-gray-800 dark:focus:text-white"
                 onClick={() => handleCreateItem("QUESTION_BANK")}
               >
                 Create Question Bank

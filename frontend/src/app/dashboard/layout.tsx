@@ -21,7 +21,7 @@ export default function AdminLayout({
       : "lg:ml-20";
 
   return (
-    <div className="min-h-screen bg-[#F4F5F7]">
+    <div className="min-h-screen bg-[#F4F5F7] dark:bg-gray-950">
       {/* Sidebar and Backdrop */}
       <AppSidebar />
       <Backdrop />
