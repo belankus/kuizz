@@ -21,7 +21,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { socket } from "@/lib/socket";
-import { apiFetch, getAccessToken } from "@/lib/auth";
+import { apiFetch, getAccessToken, getUser } from "@/lib/auth";
 import { CollectionItemCard } from "@/components/collections/CollectionItemCard";
 
 type Quiz = {
@@ -34,6 +34,7 @@ type Quiz = {
   _count: {
     gameSessions: number;
   };
+  ownerId: string;
   questions: { id: string }[];
 };
 
@@ -176,30 +177,40 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
       if (diffMins > 0) timeAgo = `${diffMins}m ago`;
     }
 
-    const menuActions = [
-      {
+    const currentUser = getUser();
+    const isOwner = quiz.ownerId === currentUser?.id;
+
+    const menuActions = [];
+
+    if (isOwner) {
+      menuActions.push({
         label: "Edit",
         onClick: () => router.push(`/dashboard/quiz/${quiz.id}`),
+      });
+    }
+
+    menuActions.push({
+      label: "Export Excel",
+      onClick: () => {
+        window.location.href = `${apiUrl}/quiz/${quiz.id}/export`;
       },
-      {
-        label: "Export Excel",
-        onClick: () => {
-          window.location.href = `${apiUrl}/quiz/${quiz.id}/export`;
-        },
-      },
-      {
-        label: quiz.isFavorite ? "Unfavorite" : "Favorite",
-        onClick: () => handleToggleFavorite(quiz.id, quiz.isFavorite),
-      },
-      {
+    });
+
+    menuActions.push({
+      label: quiz.isFavorite ? "Unfavorite" : "Favorite",
+      onClick: () => handleToggleFavorite(quiz.id, quiz.isFavorite),
+    });
+
+    if (isOwner) {
+      menuActions.push({
         label: "Delete",
         onClick: () => {
           setDeleteId(quiz.id);
           setOpenModal(true);
         },
         destructive: true,
-      },
-    ];
+      });
+    }
 
     return (
       <CollectionItemCard

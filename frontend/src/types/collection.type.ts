@@ -23,7 +23,13 @@ export interface CollectionModelType {
     items: number;
     members: number;
   };
+  members?: CollectionMemberModelType[];
 }
+
+export type CollectionMemberStatus =
+  | "PENDING_INVITE"
+  | "PENDING_REQUEST"
+  | "ACCEPTED";
 
 export interface CollectionItemModelType {
   id: string;
@@ -42,10 +48,11 @@ export interface CollectionMemberModelType {
   collectionId: string;
   userId: string;
   role: CollectionRole;
+  status: CollectionMemberStatus;
   createdAt: string;
   user?: {
     name: string | null;
-    avatar: unknown;
+    avatar: { url: string } | null;
     email: string;
   };
 }

@@ -8,6 +8,15 @@ import { Prisma, Quiz } from '../generated/prisma/client.js';
 import { CreateQuizDto, UpdateQuizDto } from 'src/lib/dto.js';
 import ExcelJS from 'exceljs';
 
+export interface AddQuestionDto {
+  text?: string;
+  timeLimit?: number;
+  options?: Array<{
+    text: string;
+    isCorrect: boolean;
+  }>;
+}
+
 @Injectable()
 export class QuizService {
   constructor(private prisma: PrismaService) {}
@@ -401,6 +410,44 @@ export class QuizService {
       });
 
       return quiz;
+    });
+  }
+
+  async addQuestion(quizId: string, data: AddQuestionDto) {
+    const quiz = await this.prisma.quiz.findUnique({
+      where: { id: quizId },
+      include: { questions: true },
+    });
+    if (!quiz) throw new NotFoundException('Quiz not found');
+
+    const order = quiz.questions.length;
+    return this.prisma.question.create({
+      data: {
+        quizId,
+        text: data.text || 'New Question',
+        timeLimit: data.timeLimit || 20,
+        order,
+        options: {
+          create: data.options || [
+            { text: 'Option 1', isCorrect: true },
+            { text: 'Option 2', isCorrect: false },
+          ],
+        },
+      },
+      include: { options: true },
+    });
+  }
+
+  async removeQuestion(quizId: string, questionId: string) {
+    // Ensure question belongs to quiz
+    const question = await this.prisma.question.findFirst({
+      where: { id: questionId, quizId },
+    });
+    if (!question)
+      throw new NotFoundException('Question not found in this quiz');
+
+    return this.prisma.question.delete({
+      where: { id: questionId },
     });
   }
 

@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CollectionsService } from './collections.service.js';
 import { CreateCollectionDto } from './dto/create-collection.dto.js';
@@ -15,6 +16,12 @@ import { UpdateCollectionDto } from './dto/update-collection.dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CollectionItemsService } from '../collection-items/collection-items.service.js';
 import { CreateCollectionItemDto } from '../collection-items/dto/create-collection-item.dto.js';
+import {
+  canViewCollection,
+  canEditCollection,
+  canDeleteCollection,
+  canManageMembers,
+} from '../lib/permissions/collection.permissions.js';
 
 @Controller('collections')
 @UseGuards(JwtAuthGuard)
@@ -58,20 +65,43 @@ export class CollectionsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.collectionsService.findOne(id);
+  async findOne(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+  ) {
+    const collection = await this.collectionsService.findOne(id);
+    if (!canViewCollection(collection, req.user.id)) {
+      throw new ForbiddenException(
+        'You do not have permission to view this collection',
+      );
+    }
+    return collection;
   }
 
   @Patch(':id')
-  update(
+  async update(
+    @Request() req: { user: { id: string } },
     @Param('id') id: string,
     @Body() updateCollectionDto: UpdateCollectionDto,
   ) {
+    const collection = await this.collectionsService.findOne(id);
+    if (!canEditCollection(collection, req.user.id)) {
+      throw new ForbiddenException(
+        'You do not have permission to update this collection',
+      );
+    }
     return this.collectionsService.update(id, updateCollectionDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+  ) {
+    const collection = await this.collectionsService.findOne(id);
+    if (!canDeleteCollection(collection, req.user.id)) {
+      throw new ForbiddenException('Only the owner can delete this collection');
+    }
     return this.collectionsService.remove(id);
   }
 
@@ -84,15 +114,47 @@ export class CollectionsController {
   }
 
   @Post(':id/invite')
-  invite(@Param('id') id: string, @Body('email') email: string) {
+  async invite(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+    @Body('email') email: string,
+  ) {
+    const collection = await this.collectionsService.findOne(id);
+    if (!canManageMembers(collection, req.user.id)) {
+      throw new ForbiddenException(
+        'You do not have permission to invite members',
+      );
+    }
+    return this.collectionsService.invite(id, email);
+  }
+
+  @Post(':id/share')
+  async share(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+    @Body('email') email: string,
+  ) {
+    const collection = await this.collectionsService.findOne(id);
+    if (!canManageMembers(collection, req.user.id)) {
+      throw new ForbiddenException(
+        'You do not have permission to share this collection',
+      );
+    }
     return this.collectionsService.invite(id, email);
   }
 
   @Post(':id/items')
-  createItem(
+  async createItem(
+    @Request() req: { user: { id: string } },
     @Param('id') id: string,
     @Body() createCollectionItemDto: CreateCollectionItemDto,
   ) {
+    const collection = await this.collectionsService.findOne(id);
+    if (!canEditCollection(collection, req.user.id)) {
+      throw new ForbiddenException(
+        'You do not have permission to add items to this collection',
+      );
+    }
     return this.collectionItemsService.create(id, createCollectionItemDto);
   }
 }

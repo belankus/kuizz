@@ -12,12 +12,15 @@ import {
   CollectionType,
   CreateCollectionCard,
 } from "@/components/collections/CollectionCard";
+import { handleApiError } from "@/lib/api-error-handler";
+import { handleError } from "@/lib/handle-error";
 import { CollectionsTabs } from "@/components/collections/CollectionsTabs";
 import { CollectionsEmptyState } from "@/components/collections/CollectionsEmptyState";
 import { Filter, Search } from "lucide-react";
 import { useCollections } from "@/lib/collections";
 import { CollectionModelType } from "@/types";
 import { CollectionCardSkeleton } from "@/components/collections/CollectionCardSkeleton";
+import { apiFetch, getUser } from "@/lib/auth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +52,18 @@ export default function CollectionsPage() {
     (collection: CollectionModelType) =>
       collection.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  const handleToggleSave = async (id: string) => {
+    try {
+      const res = await apiFetch(`/collections/${id}/save`, { method: "POST" });
+      await handleApiError(res);
+      const data = await res.json();
+      toast.success(data.saved ? "Collection saved" : "Collection unsaved");
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+    } catch (err) {
+      handleError(err);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deletingId) return;
@@ -107,36 +122,58 @@ export default function CollectionsPage() {
         </CollectionGrid>
       ) : collections.length > 0 ? (
         <CollectionGrid>
-          {filteredCollections.map((collection: CollectionModelType) => (
-            <CollectionCard
-              key={collection.id}
-              id={collection.id}
-              title={collection.title}
-              description={collection.description || ""}
-              type={collection.visibility as CollectionType}
-              ownerName={collection.owner?.name || "Unknown"}
-              ownerAvatar={
-                collection.owner?.avatar &&
-                typeof collection.owner.avatar === "object" &&
-                "url" in collection.owner.avatar
-                  ? (collection.owner.avatar.url as string)
-                  : undefined
-              }
-              itemsCount={collection._count?.items || 0}
-              viewsCount={collection.viewsCount}
-              updatedAt={new Date(collection.updatedAt).toLocaleDateString()}
-              extraContributors={Math.max(
-                0,
-                (collection._count?.members || 0) - 1,
-              )}
-              contentBadgeStr="Items"
-              onEdit={() => {
-                setEditingCollection(collection);
-                setIsCreateModalOpen(true);
-              }}
-              onDelete={() => setDeletingId(collection.id)}
-            />
-          ))}
+          {filteredCollections.map(
+            (collection: import("@/types").CollectionModelType) => {
+              const currentUser = getUser();
+              const membership = collection.members?.find(
+                (m: import("@/types").CollectionMemberModelType) =>
+                  m.userId === currentUser?.id,
+              );
+              const isOwner = collection.ownerId === currentUser?.id;
+              const userRole = isOwner ? "OWNER" : membership?.role || null;
+              const isMember = membership?.status === "ACCEPTED";
+
+              return (
+                <CollectionCard
+                  key={collection.id}
+                  id={collection.id}
+                  title={collection.title}
+                  description={collection.description || ""}
+                  type={collection.visibility as CollectionType}
+                  ownerName={collection.owner?.name || "Unknown"}
+                  ownerAvatar={
+                    collection.owner?.avatar &&
+                    typeof collection.owner.avatar === "object" &&
+                    "url" in collection.owner.avatar
+                      ? (collection.owner.avatar.url as string)
+                      : undefined
+                  }
+                  itemsCount={collection._count?.items || 0}
+                  viewsCount={collection.viewsCount}
+                  updatedAt={new Date(
+                    collection.updatedAt,
+                  ).toLocaleDateString()}
+                  extraContributors={Math.max(
+                    0,
+                    (collection._count?.members || 0) - 1,
+                  )}
+                  contentBadgeStr="Items"
+                  canEdit={isOwner}
+                  canShare={isOwner || userRole === "EDITOR"}
+                  canDelete={isOwner}
+                  canSave={
+                    !isMember && !isOwner && collection.visibility === "PUBLIC"
+                  }
+                  onEdit={() => {
+                    setEditingCollection(collection);
+                    setIsCreateModalOpen(true);
+                  }}
+                  onDelete={() => setDeletingId(collection.id)}
+                  onSave={() => handleToggleSave(collection.id)}
+                />
+              );
+            },
+          )}
           <CreateCollectionCard onClick={() => setIsCreateModalOpen(true)} />
         </CollectionGrid>
       ) : (

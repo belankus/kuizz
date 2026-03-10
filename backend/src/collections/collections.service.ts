@@ -17,7 +17,8 @@ export class CollectionsService {
     const owned = await this.prisma.collection.findMany({
       where: { ownerId: userId },
       include: {
-        owner: { select: { name: true, avatar: true } },
+        owner: { select: { id: true, name: true, avatar: true } },
+        members: { where: { userId } },
         _count: { select: { items: true, members: true } },
       },
     });
@@ -28,7 +29,8 @@ export class CollectionsService {
         NOT: { ownerId: userId },
       },
       include: {
-        owner: { select: { name: true, avatar: true } },
+        owner: { select: { id: true, name: true, avatar: true } },
+        members: { where: { userId } },
         _count: { select: { items: true, members: true } },
       },
     });
@@ -41,7 +43,8 @@ export class CollectionsService {
       include: {
         collection: {
           include: {
-            owner: { select: { name: true, avatar: true } },
+            owner: { select: { id: true, name: true, avatar: true } },
+            members: { where: { userId } },
             _count: { select: { items: true, members: true } },
           },
         },
@@ -65,7 +68,7 @@ export class CollectionsService {
     return this.prisma.collection.findMany({
       where: { visibility: 'PUBLIC' },
       include: {
-        owner: { select: { name: true, avatar: true } },
+        owner: { select: { id: true, name: true, avatar: true } },
         _count: { select: { items: true, members: true } },
       },
       orderBy: { updatedAt: 'desc' },
@@ -76,7 +79,8 @@ export class CollectionsService {
     return this.prisma.collection.findMany({
       where: { ownerId: userId },
       include: {
-        owner: { select: { name: true, avatar: true } },
+        owner: { select: { id: true, name: true, avatar: true } },
+        members: { where: { userId } },
         _count: { select: { items: true, members: true } },
       },
       orderBy: { updatedAt: 'desc' },
@@ -90,7 +94,8 @@ export class CollectionsService {
         NOT: { ownerId: userId },
       },
       include: {
-        owner: { select: { name: true, avatar: true } },
+        owner: { select: { id: true, name: true, avatar: true } },
+        members: { where: { userId } },
         _count: { select: { items: true, members: true } },
       },
       orderBy: { updatedAt: 'desc' },

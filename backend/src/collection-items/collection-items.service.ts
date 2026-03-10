@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateCollectionItemDto } from './dto/create-collection-item.dto.js';
 import { UpdateCollectionItemDto } from './dto/update-collection-item.dto.js';
@@ -6,6 +10,14 @@ import { UpdateCollectionItemDto } from './dto/update-collection-item.dto.js';
 @Injectable()
 export class CollectionItemsService {
   constructor(private prisma: PrismaService) {}
+
+  async findOne(id: string) {
+    const item = await this.prisma.collectionItem.findUnique({
+      where: { id },
+    });
+    if (!item) throw new NotFoundException('Collection item not found');
+    return item;
+  }
 
   async create(collectionId: string, data: CreateCollectionItemDto) {
     if (data.type === 'QUIZ_TEMPLATE' && !data.quizId) {

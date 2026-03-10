@@ -15,6 +15,11 @@ export interface CollectionHeaderProps {
   viewsCount: number;
   updatedAt: string;
   onEdit?: () => void;
+  canEdit?: boolean;
+  canShare?: boolean;
+  showJoinButton?: boolean;
+  onJoin?: () => void;
+  joinButtonText?: string;
 }
 
 export function CollectionHeader({
@@ -28,6 +33,11 @@ export function CollectionHeader({
   viewsCount,
   updatedAt,
   onEdit,
+  canEdit = false,
+  canShare = false,
+  showJoinButton = false,
+  onJoin,
+  joinButtonText = "Join Collection",
 }: CollectionHeaderProps) {
   return (
     <div className="mb-8 flex flex-col gap-8 pt-4 md:flex-row md:items-start">
@@ -60,21 +70,33 @@ export function CollectionHeader({
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <Button
-              variant="outline"
-              className="h-10 cursor-pointer gap-2 rounded-full border-gray-200 bg-white px-5 font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
-            >
-              <Share2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              Share
-            </Button>
-            <Button
-              variant="outline"
-              onClick={onEdit}
-              className="h-10 cursor-pointer gap-2 rounded-full border-orange-200 bg-orange-50 px-5 font-semibold text-orange-700 shadow-sm transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20"
-            >
-              <Edit2 className="h-4 w-4 text-orange-500 dark:text-orange-400" />
-              Edit Details
-            </Button>
+            {showJoinButton && (
+              <Button
+                onClick={onJoin}
+                className="h-10 cursor-pointer gap-2 rounded-full bg-orange-600 px-6 font-bold text-white shadow-sm hover:bg-orange-700"
+              >
+                {joinButtonText}
+              </Button>
+            )}
+            {canShare && (
+              <Button
+                variant="outline"
+                className="h-10 cursor-pointer gap-2 rounded-full border-gray-200 bg-white px-5 font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
+              >
+                <Share2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                Share
+              </Button>
+            )}
+            {canEdit && (
+              <Button
+                variant="outline"
+                onClick={onEdit}
+                className="h-10 cursor-pointer gap-2 rounded-full border-orange-200 bg-orange-50 px-5 font-semibold text-orange-700 shadow-sm transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20"
+              >
+                <Edit2 className="h-4 w-4 text-orange-500 dark:text-orange-400" />
+                Edit Details
+              </Button>
+            )}
           </div>
         </div>
 

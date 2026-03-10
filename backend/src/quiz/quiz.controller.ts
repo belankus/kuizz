@@ -16,9 +16,16 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { QuizService } from './quiz.service.js';
+import type { AddQuestionDto } from './quiz.service.js';
 import { CreateQuizDto, UpdateQuizDto } from '../lib/dto.js';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
+import {
+  canViewQuiz,
+  canEditQuiz,
+  canDeleteQuiz,
+} from '../lib/permissions/quiz.permissions.js';
+import { ForbiddenException } from '@nestjs/common';
 
 @Controller('quiz')
 export class QuizController {
@@ -31,8 +38,15 @@ export class QuizController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.quizService.findOne(id);
+  @UseGuards(JwtAuthGuard)
+  async findOne(@CurrentUser() user: { id: string }, @Param('id') id: string) {
+    const quiz = await this.quizService.findOne(id);
+    if (!canViewQuiz(quiz, user.id)) {
+      throw new ForbiddenException(
+        'You do not have permission to view this quiz',
+      );
+    }
+    return quiz;
   }
 
   @Get(':id/export')
@@ -74,13 +88,28 @@ export class QuizController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  async updateQuiz(@Param('id') id: string, @Body() body: UpdateQuizDto) {
+  async updateQuiz(
+    @CurrentUser() user: { id: string },
+    @Param('id') id: string,
+    @Body() body: UpdateQuizDto,
+  ) {
+    const quiz = await this.quizService.findOne(id);
+    if (!canEditQuiz(quiz, user.id)) {
+      throw new ForbiddenException('Only the owner can update this quiz');
+    }
     return this.quizService.updateQuiz(id, body);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async deleteQuiz(@Param('id') id: string) {
+  async deleteQuiz(
+    @CurrentUser() user: { id: string },
+    @Param('id') id: string,
+  ) {
+    const quiz = await this.quizService.findOne(id);
+    if (!canDeleteQuiz(quiz, user.id)) {
+      throw new ForbiddenException('Only the owner can delete this quiz');
+    }
     return this.quizService.deleteQuiz(id);
   }
 
@@ -95,7 +124,46 @@ export class QuizController {
 
   @Put(':id/favorite')
   @UseGuards(JwtAuthGuard)
-  async toggleFavorite(@Param('id') id: string) {
+  async toggleFavorite(
+    @CurrentUser() user: { id: string },
+    @Param('id') id: string,
+  ) {
+    const quiz = await this.quizService.findOne(id);
+    if (!canEditQuiz(quiz, user.id)) {
+      throw new ForbiddenException('Only the owner can favorite this quiz');
+    }
     return await this.quizService.toggleFavorite(id);
+  }
+
+  @Post(':id/questions')
+  @UseGuards(JwtAuthGuard)
+  async addQuestion(
+    @CurrentUser() user: { id: string },
+    @Param('id') id: string,
+    @Body() body: AddQuestionDto,
+  ) {
+    const quiz = await this.quizService.findOne(id);
+    if (!canEditQuiz(quiz, user.id)) {
+      throw new ForbiddenException(
+        'Only the owner can add questions to this quiz',
+      );
+    }
+    return this.quizService.addQuestion(id, body);
+  }
+
+  @Delete(':id/questions/:questionId')
+  @UseGuards(JwtAuthGuard)
+  async deleteQuestion(
+    @CurrentUser() user: { id: string },
+    @Param('id') id: string,
+    @Param('questionId') questionId: string,
+  ) {
+    const quiz = await this.quizService.findOne(id);
+    if (!canEditQuiz(quiz, user.id)) {
+      throw new ForbiddenException(
+        'Only the owner can delete questions from this quiz',
+      );
+    }
+    return this.quizService.removeQuestion(id, questionId);
   }
 }

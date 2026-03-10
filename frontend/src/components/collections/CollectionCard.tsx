@@ -27,6 +27,12 @@ export interface CollectionCardProps {
   contentBadgeStr?: string;
   onEdit?: () => void;
   onDelete?: () => void;
+  onShare?: () => void;
+  onSave?: () => void;
+  canEdit?: boolean;
+  canShare?: boolean;
+  canDelete?: boolean;
+  canSave?: boolean;
 }
 
 const colorMap: Record<CollectionType, string> = {
@@ -49,6 +55,12 @@ export function CollectionCard({
   contentBadgeStr = "Mixed",
   onEdit,
   onDelete,
+  onShare,
+  onSave,
+  canEdit = false,
+  canShare = false,
+  canDelete = false,
+  canSave = false,
 }: CollectionCardProps) {
   return (
     <div className="group relative flex h-[340px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md dark:bg-gray-900/50 dark:ring-gray-800">
@@ -119,42 +131,64 @@ export function CollectionCard({
           <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500">
             Updated {updatedAt}
           </span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-400">
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-40 bg-white dark:border-gray-800 dark:bg-gray-900"
-            >
-              <DropdownMenuItem
-                className="cursor-pointer dark:focus:bg-gray-800"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit?.();
-                }}
+          {(canEdit || canShare || canDelete || canSave) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-400">
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-40 bg-white dark:border-gray-800 dark:bg-gray-900"
               >
-                Edit Details
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer dark:focus:bg-gray-800"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Share
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer text-red-600 focus:text-red-700 dark:focus:bg-gray-800"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete?.();
-                }}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {canEdit && (
+                  <DropdownMenuItem
+                    className="cursor-pointer dark:focus:bg-gray-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit?.();
+                    }}
+                  >
+                    Edit Details
+                  </DropdownMenuItem>
+                )}
+                {canShare && (
+                  <DropdownMenuItem
+                    className="cursor-pointer dark:focus:bg-gray-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShare?.();
+                    }}
+                  >
+                    Share
+                  </DropdownMenuItem>
+                )}
+                {canSave && (
+                  <DropdownMenuItem
+                    className="cursor-pointer text-orange-600 focus:text-orange-700 dark:focus:bg-gray-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSave?.();
+                    }}
+                  >
+                    Save Collection
+                  </DropdownMenuItem>
+                )}
+                {canDelete && (
+                  <DropdownMenuItem
+                    className="cursor-pointer text-red-600 focus:text-red-700 dark:focus:bg-gray-800"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete?.();
+                    }}
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </div>

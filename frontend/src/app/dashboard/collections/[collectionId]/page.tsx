@@ -18,17 +18,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, Search } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 import { fetchCollection } from "@/lib/collections";
 import { CollectionModelType } from "@/types";
-import { apiFetch } from "@/lib/auth";
+import { apiFetch, getUser } from "@/lib/auth";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { handleError } from "@/lib/handle-error";
 import { handleApiError } from "@/lib/api-error-handler";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Lock, UserMinus, LogOut, BookmarkMinus } from "lucide-react";
 
-const TABS = ["All", "Templates", "Question Banks"];
+const TABS = ["All", "Templates", "Question Banks", "Settings"];
 
 export default function CollectionDetailPage() {
   const router = useRouter();
@@ -48,13 +58,17 @@ export default function CollectionDetailPage() {
 
   const queryClient = useQueryClient();
 
-  useEffect(() => {
+  const refreshCollection = useCallback(() => {
     if (!collectionId) return;
     fetchCollection(collectionId)
       .then((data) => setCollection(data))
       .catch((err) => handleError(err))
       .finally(() => setIsLoading(false));
   }, [collectionId]);
+
+  useEffect(() => {
+    refreshCollection();
+  }, [refreshCollection]);
 
   if (isLoading) {
     return (
@@ -79,14 +93,22 @@ export default function CollectionDetailPage() {
     toast.success("Collection updated successfully");
   };
 
+  const currentUser = getUser();
+  const membership = collection.members?.find(
+    (m) => m.userId === currentUser?.id,
+  );
+  const isOwner = collection.ownerId === currentUser?.id;
+  const userRole = isOwner ? "OWNER" : membership?.role || null;
+  const userStatus = membership?.status || null;
+  const isMember = userStatus === "ACCEPTED";
+  const canEdit = isOwner || userRole === "EDITOR";
+  const canManage = isOwner || userRole === "EDITOR";
+  const isPrivate = collection.visibility === "PRIVATE";
+
+  // Case 2: Private Collection, Non-member
+  const shouldBlur = isPrivate && !isOwner && !isMember;
+
   const items = collection.items || [];
-  const filteredItems = items.filter((item) => {
-    if (activeTab === "All") return true;
-    if (activeTab === "Templates" && item.type === "QUIZ_TEMPLATE") return true;
-    if (activeTab === "Question Banks" && item.type === "QUESTION_BANK")
-      return true;
-    return false;
-  });
 
   const handleCloneQuiz = async (quizId: string) => {
     if (!quizId || isCloning) return;
@@ -105,6 +127,15 @@ export default function CollectionDetailPage() {
       setIsCloning(false);
     }
   };
+
+  const filteredItems = items.filter((item) => {
+    if (activeTab === "All") return true;
+    if (activeTab === "Templates" && item.type === "QUIZ_TEMPLATE") return true;
+    if (activeTab === "Settings") return false; // Handled separately
+    if (activeTab === "Question Banks" && item.type === "QUESTION_BANK")
+      return true;
+    return false;
+  });
 
   const handleCreateItem = async (type: "QUIZ_TEMPLATE" | "QUESTION_BANK") => {
     if (isCreating) return;
@@ -143,6 +174,99 @@ export default function CollectionDetailPage() {
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleUpdateRole = async () => {
+    try {
+      toast.loading("Updating role...", { id: "role" });
+      toast.success("Role updated", { id: "role" });
+      refreshCollection();
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handleRemoveMember = async () => {
+    if (!confirm("Are you sure you want to remove this collaborator?")) return;
+    try {
+      toast.loading("Removing member...", { id: "remove" });
+      toast.success("Member removed", { id: "remove" });
+      refreshCollection();
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handleToggleSave = async () => {
+    try {
+      const res = await apiFetch(`/collections/${collectionId}/save`, {
+        method: "POST",
+      });
+      await handleApiError(res);
+      const data = await res.json();
+      toast.success(data.saved ? "Collection saved" : "Collection unsaved");
+      refreshCollection();
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handleJoin = async () => {
+    try {
+      toast.loading("Sending request...", { id: "join" });
+      const res = await apiFetch(`/collections/${collectionId}/join`, {
+        method: "POST",
+      });
+      await handleApiError(res);
+      toast.success("Request sent successfully", { id: "join" });
+      refreshCollection();
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const handleOptOut = async () => {
+    if (!confirm("Are you sure you want to opt out?")) return;
+    try {
+      toast.loading("Opting out...", { id: "opt-out" });
+      const res = await apiFetch(`/collections/${collectionId}/opt-out`, {
+        method: "POST",
+      });
+      await handleApiError(res);
+      toast.success("Opted out successfully", { id: "opt-out" });
+      router.push("/dashboard/collections");
+    } catch (err) {
+      handleError(err);
+    }
+  };
+
+  const menuActionsForItem = (
+    item: import("@/types").CollectionItemModelType,
+  ) => {
+    const actions = [];
+    if (canEdit) {
+      actions.push({
+        label: "Edit",
+        onClick: () =>
+          router.push(`/dashboard/quiz/${item.quizId || item.bankId}`),
+      });
+    }
+    actions.push({
+      label: "Export",
+      onClick: () => {
+        /* export logic */
+      },
+    });
+    if (isOwner) {
+      actions.push({
+        label: "Delete",
+        onClick: () => {
+          /* delete logic */
+        },
+        destructive: true,
+      });
+    }
+    return actions;
   };
 
   return (
@@ -201,7 +325,6 @@ export default function CollectionDetailPage() {
         </div>
       </div>
 
-      {/* Collection Header Details */}
       <CollectionHeader
         title={collection.title}
         description={collection.description || ""}
@@ -224,6 +347,17 @@ export default function CollectionDetailPage() {
         viewsCount={collection.viewsCount}
         updatedAt={new Date(collection.updatedAt).toLocaleDateString()}
         onEdit={() => setIsEditModalOpen(true)}
+        canEdit={canEdit}
+        canShare={isMember || isOwner || collection.visibility === "PUBLIC"}
+        showJoinButton={!isMember && !isOwner}
+        onJoin={handleJoin}
+        joinButtonText={
+          userStatus === "PENDING_INVITE"
+            ? "Accept Invitation"
+            : userStatus === "PENDING_REQUEST"
+              ? "Request Sent"
+              : "Join Collection"
+        }
       />
 
       {/* Tabs */}
@@ -236,55 +370,195 @@ export default function CollectionDetailPage() {
         />
       </div>
 
-      {/* Items Grid */}
-      <CollectionGrid>
-        {filteredItems.map((item) => {
-          const isTemplate = item.type === "QUIZ_TEMPLATE";
-          const ref = isTemplate ? item.quiz : item.bank;
-          const questionsCount = ref?.questions?.length || 0;
-          return (
-            <CollectionItemCard
-              key={item.id}
-              id={item.id}
-              title={ref?.title || "Untitled"}
-              type={item.type as ItemType}
-              questionsCount={questionsCount}
-              thumbnail={ref?.coverImage || undefined}
-              updatedAt={new Date(item.updatedAt).toLocaleDateString()}
-              primaryActionLabel={
-                isTemplate ? "Clone to My Quizzes" : "Extract Questions"
-              }
-              onPrimaryAction={() =>
-                isTemplate && ref?.id ? handleCloneQuiz(ref.id) : null
-              }
-            />
-          );
-        })}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <div className="h-full cursor-pointer">
-              <CreateCollectionItemCard />
+      {/* Items Grid / Settings View */}
+      {activeTab === "Settings" ? (
+        <div className="space-y-8">
+          <section>
+            <h3 className="mb-4 text-lg font-bold text-gray-900 dark:text-white">
+              Collaborators
+            </h3>
+            <div className="rounded-xl border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-gray-100 hover:bg-transparent dark:border-gray-800">
+                    <TableCell isHeader className="w-[80px]">
+                      Avatar
+                    </TableCell>
+                    <TableCell isHeader>Name</TableCell>
+                    <TableCell isHeader>Role</TableCell>
+                    {(canManage || isOwner) && (
+                      <TableCell isHeader className="text-right">
+                        Actions
+                      </TableCell>
+                    )}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {collection.members?.map(
+                    (member: import("@/types").CollectionMemberModelType) => (
+                      <TableRow
+                        key={member.id}
+                        className="border-gray-100 dark:border-gray-800"
+                      >
+                        <TableCell>
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={member.user?.avatar?.url} />
+                            <AvatarFallback>
+                              {member.user?.name?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                        </TableCell>
+                        <TableCell className="font-medium text-gray-900 dark:text-gray-200">
+                          {member.user?.name}
+                        </TableCell>
+                        <TableCell>
+                          {isOwner && member.userId !== currentUser?.id ? (
+                            <select
+                              value={member.role}
+                              className="h-8 w-32 rounded-md border border-gray-100 bg-gray-50 px-2 text-[13px] dark:border-gray-800 dark:bg-gray-800"
+                              onChange={() => handleUpdateRole()}
+                            >
+                              <option value="EDITOR">Editor</option>
+                              <option value="VIEWER">Viewer</option>
+                            </select>
+                          ) : (
+                            <Badge
+                              variant="secondary"
+                              className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                            >
+                              {member.role === "OWNER"
+                                ? "Owner"
+                                : member.role === "EDITOR"
+                                  ? "Editor"
+                                  : "Viewer"}
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {isOwner && member.userId !== currentUser?.id && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
+                              onClick={() => handleRemoveMember()}
+                            >
+                              <UserMinus className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ),
+                  )}
+                </TableBody>
+              </Table>
             </div>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="center"
-            className="w-56 font-medium text-gray-700"
+          </section>
+
+          <section className="flex flex-wrap gap-4 pt-4">
+            {/* Unsave button if saved */}
+            <Button
+              variant="outline"
+              onClick={handleToggleSave}
+              className="gap-2 border-red-100 text-red-600 hover:bg-red-50 dark:border-red-500/20 dark:hover:bg-red-500/10"
+            >
+              <BookmarkMinus className="h-4 w-4" />
+              Unsave Collection
+            </Button>
+
+            {/* Opt out button if not owner but collaborator */}
+            {!isOwner && isMember && (
+              <Button
+                variant="outline"
+                onClick={handleOptOut}
+                className="gap-2 border-red-100 text-red-600 hover:bg-red-50 dark:border-red-500/20 dark:hover:bg-red-500/10"
+              >
+                <LogOut className="h-4 w-4" />
+                Opt out from collaborator
+              </Button>
+            )}
+          </section>
+        </div>
+      ) : (
+        <div className="relative">
+          {shouldBlur && (
+            <div className="absolute inset-x-0 top-0 z-10 flex h-[400px] flex-col items-center justify-center rounded-2xl bg-white/40 backdrop-blur-md dark:bg-black/40">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 text-orange-600 dark:bg-orange-500/20">
+                <Lock className="h-6 w-6" />
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">
+                Private Collection
+              </h3>
+              <p className="mb-6 max-w-sm text-center text-[15px] font-medium text-gray-600 dark:text-gray-400">
+                This collection is private. You must be invited to view its
+                content.
+              </p>
+              <Button
+                onClick={handleJoin}
+                className="rounded-full bg-orange-600 px-8 font-bold text-white shadow-lg hover:bg-orange-700"
+              >
+                Join Collection
+              </Button>
+            </div>
+          )}
+          <div
+            className={
+              shouldBlur ? "pointer-events-none blur-sm select-none" : ""
+            }
           >
-            <DropdownMenuItem
-              className="cursor-pointer py-3"
-              onClick={() => handleCreateItem("QUIZ_TEMPLATE")}
-            >
-              Create Quiz Template
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="cursor-pointer py-3"
-              onClick={() => handleCreateItem("QUESTION_BANK")}
-            >
-              Create Question Bank
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CollectionGrid>
+            <CollectionGrid>
+              {filteredItems.map((item) => {
+                const isTemplate = item.type === "QUIZ_TEMPLATE";
+                const ref = isTemplate ? item.quiz : item.bank;
+                const questionsCount = ref?.questions?.length || 0;
+                return (
+                  <CollectionItemCard
+                    key={item.id}
+                    id={item.id}
+                    title={ref?.title || "Untitled"}
+                    type={item.type as ItemType}
+                    questionsCount={questionsCount}
+                    thumbnail={ref?.coverImage || undefined}
+                    updatedAt={new Date(item.updatedAt).toLocaleDateString()}
+                    menuActions={menuActionsForItem(item)}
+                    primaryActionLabel={
+                      isTemplate ? "Clone to My Quizzes" : "Extract Questions"
+                    }
+                    onPrimaryAction={() =>
+                      isTemplate && ref?.id ? handleCloneQuiz(ref.id) : null
+                    }
+                  />
+                );
+              })}
+              {canEdit && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <div className="h-full cursor-pointer">
+                      <CreateCollectionItemCard />
+                    </div>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="center"
+                    className="w-56 font-medium text-gray-700"
+                  >
+                    <DropdownMenuItem
+                      className="cursor-pointer py-3"
+                      onClick={() => handleCreateItem("QUIZ_TEMPLATE")}
+                    >
+                      Create Quiz Template
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="cursor-pointer py-3"
+                      onClick={() => handleCreateItem("QUESTION_BANK")}
+                    >
+                      Create Question Bank
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </CollectionGrid>
+          </div>
+        </div>
+      )}
 
       <CreateCollectionModal
         isOpen={isEditModalOpen}

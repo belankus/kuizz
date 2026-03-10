@@ -147,6 +147,12 @@ enum CollectionRole {
   VIEWER
 }
 
+enum CollectionMemberStatus {
+  PENDING_INVITE
+  PENDING_REQUEST
+  ACCEPTED
+}
+
 model Collection {
   id          String                 @id @default(uuid())
   title       String
@@ -170,13 +176,14 @@ model Collection {
 }
 
 model CollectionMember {
-  id           String         @id @default(uuid())
+  id           String                 @id @default(uuid())
   collectionId String
-  collection   Collection     @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collection   Collection             @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   userId       String
-  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role         CollectionRole @default(VIEWER)
-  createdAt    DateTime       @default(now())
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role         CollectionRole         @default(VIEWER)
+  status       CollectionMemberStatus @default(ACCEPTED)
+  createdAt    DateTime               @default(now())
 
   @@unique([collectionId, userId])
   @@index([userId])
