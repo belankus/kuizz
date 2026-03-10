@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, Check, Camera, Info, Plus } from "lucide-react";
 import { createCollection } from "@/lib/collections";
 import { CollectionVisibility } from "@/types";
+import { handleError } from "@/lib/handle-error";
 
 interface CreateCollectionModalProps {
   isOpen: boolean;
@@ -33,7 +34,6 @@ export function CreateCollectionModal({
   const [coverColorId, setCoverColorId] = useState("purple");
   const [customImage, setCustomImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Reset form when opened
   useEffect(() => {
@@ -43,7 +43,6 @@ export function CreateCollectionModal({
       setVisibility("PRIVATE");
       setCoverColorId("purple");
       setCustomImage(null);
-      setError(null);
     }
   }, [isOpen]);
 
@@ -63,7 +62,6 @@ export function CreateCollectionModal({
     if (!name.trim()) return;
 
     setIsLoading(true);
-    setError(null);
 
     try {
       const payload: {
@@ -87,11 +85,7 @@ export function CreateCollectionModal({
       const newCollection = await createCollection(payload);
       onSuccess(newCollection);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message || "Failed to create collection");
-      } else {
-        setError("Failed to create collection");
-      }
+      handleError(err);
     } finally {
       setIsLoading(false);
     }
@@ -295,12 +289,6 @@ export function CreateCollectionModal({
                 <p>{helperText}</p>
               </div>
             </div>
-
-            {error && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">
-                {error}
-              </div>
-            )}
           </form>
         </div>
 

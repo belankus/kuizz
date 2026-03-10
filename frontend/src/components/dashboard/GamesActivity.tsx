@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { apiFetch } from "@/lib/auth";
 import { GamesActivitySkeleton } from "./skeletons/OverviewSkeleton";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 
 export default function GamesActivity() {
   const [loading, setLoading] = useState(true);
@@ -12,9 +14,10 @@ export default function GamesActivity() {
   useEffect(() => {
     async function fetchSummary() {
       try {
-        await apiFetch("/dashboard/summary");
+        const res = await apiFetch("/dashboard/summary");
+        await handleApiError(res);
       } catch (error) {
-        console.error("Failed to fetch dashboard summary:", error);
+        handleError(error);
       } finally {
         setLoading(false);
       }

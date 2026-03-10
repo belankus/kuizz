@@ -20,7 +20,7 @@ interface FinalResultProps {
 }
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { logWarn } from "@/lib/logger";
 
 export default function FinalResult({
   players,
@@ -37,9 +37,7 @@ export default function FinalResult({
       try {
         setLocalAvatar(JSON.parse(stored));
       } catch (e) {
-        toast.error("Failed to parse avatar", {
-          description: e instanceof Error ? e.message : "Please try again",
-        });
+        logWarn("Failed to parse avatar from localStorage", { error: e });
       }
     }
   }, []);

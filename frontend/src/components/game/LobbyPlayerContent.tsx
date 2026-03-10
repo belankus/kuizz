@@ -11,7 +11,7 @@ interface LobbyContentInterface {
 }
 
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { logWarn } from "@/lib/logger";
 
 export default function LobbyPlayer({
   nickname,
@@ -25,9 +25,7 @@ export default function LobbyPlayer({
       try {
         setLocalAvatar(JSON.parse(stored));
       } catch (e) {
-        toast.error("Failed to load avatar", {
-          description: e instanceof Error ? e.message : "Unknown error",
-        });
+        logWarn("Failed to load avatar from localStorage", { error: e });
       }
     }
   }, []);

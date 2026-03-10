@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { login, register } from "@/lib/auth";
 import { toast } from "sonner";
+import { handleError } from "@/lib/handle-error";
 import { Fredoka } from "next/font/google";
 import Image from "next/image";
 import {
@@ -57,13 +58,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
         router.push("/dashboard");
       }
     } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : isLogin
-            ? "Login gagal"
-            : "Registrasi gagal",
-      );
+      handleError(err);
     } finally {
       setLoading(false);
     }

@@ -23,6 +23,8 @@ import { fetchCollection } from "@/lib/collections";
 import { CollectionModelType } from "@/types";
 import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 
 const TABS = ["All", "Templates", "Question Banks"];
 
@@ -45,7 +47,7 @@ export default function CollectionDetailPage() {
     if (!collectionId) return;
     fetchCollection(collectionId)
       .then((data) => setCollection(data))
-      .catch((err) => console.error(err))
+      .catch((err) => handleError(err))
       .finally(() => setIsLoading(false));
   }, [collectionId]);
 
@@ -80,13 +82,13 @@ export default function CollectionDetailPage() {
       setIsCloning(true);
       toast.loading("Cloning template...", { id: "clone" });
       const res = await apiFetch(`/quiz/${quizId}/clone`, { method: "POST" });
-      if (!res.ok) throw new Error("Failed to clone quiz");
+      await handleApiError(res);
       const clonedQuiz = await res.json();
       toast.success("Template cloned successfully!", { id: "clone" });
       router.push(`/dashboard/quiz/${clonedQuiz.id}`);
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to clone template", { id: "clone" });
+      toast.dismiss("clone");
+      handleError(err);
     } finally {
       setIsCloning(false);
     }
@@ -108,7 +110,7 @@ export default function CollectionDetailPage() {
         }),
       });
 
-      if (!quizRes.ok) throw new Error("Failed to create base item");
+      await handleApiError(quizRes);
       const newQuiz = await quizRes.json();
 
       const itemRes = await apiFetch(`/collections/${collectionId}/items`, {
@@ -119,13 +121,13 @@ export default function CollectionDetailPage() {
         }),
       });
 
-      if (!itemRes.ok) throw new Error("Failed to attach to collection");
+      await handleApiError(itemRes);
 
       toast.success("Created successfully!", { id: "create-item" });
       router.push(`/dashboard/quiz/${newQuiz.id}`);
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to create item", { id: "create-item" });
+      toast.dismiss("create-item");
+      handleError(err);
     } finally {
       setIsCreating(false);
     }

@@ -3,7 +3,9 @@
 import React, { useState, useEffect, ReactNode } from "react";
 import { errorHub } from "@/lib/error-hub";
 import { SystemError } from "@/lib/errors/system-error";
+import { NotFoundError } from "@/lib/errors/not-found-error";
 import GlobalErrorPage from "@/components/common/GlobalErrorPage";
+import NotFoundPage from "@/components/common/NotFoundPage";
 
 interface ErrorProviderProps {
   children: ReactNode;
@@ -29,6 +31,15 @@ export default function ErrorProvider({ children }: ErrorProviderProps) {
 
   if (activeError) {
     const metadata = activeError.toJSON();
+
+    if (activeError instanceof NotFoundError) {
+      return (
+        <NotFoundPage
+          message={activeError.message}
+          requestPath={metadata.requestPath}
+        />
+      );
+    }
 
     return (
       <GlobalErrorPage

@@ -4,6 +4,8 @@ import StatsCard from "./StatsCard";
 import { FileText, PlayCircle, Users, Target } from "lucide-react";
 import { apiFetch } from "@/lib/auth";
 import { StatsCardsSkeleton } from "./skeletons/OverviewSkeleton";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 
 interface DashboardStats {
   metrics: {
@@ -22,12 +24,11 @@ export default function StatsCards() {
     async function fetchStats() {
       try {
         const res = await apiFetch("/dashboard/summary");
-        if (res.ok) {
-          const data = await res.json();
-          setStats(data);
-        }
+        await handleApiError(res);
+        const data = await res.json();
+        setStats(data);
       } catch (error) {
-        console.error("Failed to fetch dashboard summary:", error);
+        handleError(error);
       } finally {
         setLoading(false);
       }

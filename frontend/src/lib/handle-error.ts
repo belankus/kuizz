@@ -3,6 +3,7 @@ import { UserError } from "./errors/user-error";
 import { SystemError } from "./errors/system-error";
 import { logWarn, logError } from "./logger";
 import { errorHub } from "./error-hub";
+import { NotFoundError } from "./errors/not-found-error";
 
 /**
  * Global error handler for the application.
@@ -16,16 +17,22 @@ export const handleError = (error: unknown) => {
   }
 
   const systemError =
-    error instanceof SystemError
+    error instanceof NotFoundError
       ? error
-      : error instanceof Error
-        ? new SystemError(error.message, { code: "UNEXPECTED_ERROR" })
-        : new SystemError("An unexpected runtime error occurred", {
-            code: "UNKNOWN_ERROR",
-          });
+      : error instanceof SystemError
+        ? error
+        : error instanceof Error
+          ? new SystemError(error.message, { code: "UNEXPECTED_ERROR" })
+          : new SystemError("An unexpected runtime error occurred", {
+              code: "UNKNOWN_ERROR",
+            });
 
-  // Log as structured JSON error
-  logError(systemError.message, systemError.toJSON());
+  // Log 404 as warning, other system errors as errors
+  if (systemError instanceof NotFoundError) {
+    logWarn(systemError.message, systemError.toJSON());
+  } else {
+    logError(systemError.message, systemError.toJSON());
+  }
 
   // Broadcast to the Error Hub so the UI can respond
   errorHub.emit(systemError);

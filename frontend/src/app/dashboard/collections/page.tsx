@@ -15,6 +15,7 @@ import { Filter, Search } from "lucide-react";
 import { fetchCollections } from "@/lib/collections";
 import { CollectionModelType } from "@/types";
 import ListSkeleton from "@/components/dashboard/skeletons/ListSkeleton";
+import { handleError } from "@/lib/handle-error";
 
 const TABS = ["All", "My Collections", "Saved", "Shared", "Marketplace"];
 
@@ -31,7 +32,7 @@ export default function CollectionsPage() {
       .then((data) => {
         setCollections(data);
       })
-      .catch((err) => console.error("Failed to fetch collections", err))
+      .catch((err) => handleError(err))
       .finally(() => setIsLoading(false));
   }, []);
 

@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 import AvatarBuilder, {
   AvatarDisplay,
 } from "@/components/avatar/AvatarBuilder";
@@ -46,13 +48,13 @@ export default function ProfilePage() {
   const fetchProfile = async () => {
     try {
       const res = await apiFetch("/users/me");
-      if (!res.ok) throw new Error();
+      await handleApiError(res);
       const data: UserProfile = await res.json();
       setProfile(data);
       setName(data.name ?? "");
       setAvatarConfig(data.avatar ?? null);
-    } catch {
-      toast.error("Failed to load profile");
+    } catch (err) {
+      handleError(err);
     } finally {
       setLoading(false);
     }
@@ -66,11 +68,11 @@ export default function ProfilePage() {
         body: JSON.stringify({ name }),
         headers: { "Content-Type": "application/json" },
       });
-      if (!res.ok) throw new Error();
+      await handleApiError(res);
       toast.success("Profile updated!");
       setProfile((p) => (p ? { ...p, name } : p));
-    } catch {
-      toast.error("Failed to update profile");
+    } catch (err) {
+      handleError(err);
     } finally {
       setSavingProfile(false);
     }
@@ -88,16 +90,13 @@ export default function ProfilePage() {
         body: JSON.stringify({ oldPassword, newPassword }),
         headers: { "Content-Type": "application/json" },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message);
+      await handleApiError(res);
       toast.success("Password changed!");
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      toast.error("Failed to change password", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
+      handleError(err);
     } finally {
       setSavingPassword(false);
     }
@@ -112,10 +111,10 @@ export default function ProfilePage() {
         body: JSON.stringify({ avatar: avatarConfig }),
         headers: { "Content-Type": "application/json" },
       });
-      if (!res.ok) throw new Error();
+      await handleApiError(res);
       toast.success("Avatar saved!");
-    } catch {
-      toast.error("Failed to save avatar");
+    } catch (err) {
+      handleError(err);
     } finally {
       setSavingAvatar(false);
     }

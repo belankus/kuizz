@@ -7,7 +7,8 @@ import ComponentCard from "@/components/common/ComponentCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/auth";
-import { toast } from "sonner";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 import dynamic from "next/dynamic";
 import { Users, Target, Trophy, HelpCircle } from "lucide-react";
 import {
@@ -66,13 +67,11 @@ export default function GameStatsPage() {
     const fetchStats = async () => {
       try {
         const res = await apiFetch(`/game-session/${gamesessionid}/stats`);
-        if (!res.ok) throw new Error("Failed to load statistics");
+        await handleApiError(res);
         const json = await res.json();
         setData(json);
       } catch (err) {
-        toast.error("Could not load game session statistics", {
-          description: err instanceof Error ? err.message : "Unknown error",
-        });
+        handleError(err);
       } finally {
         setLoading(false);
       }

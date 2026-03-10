@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/auth";
 import { SharedQuizEditor } from "@/components/quiz/SharedQuizEditor";
 import { QuizModelType } from "@/types";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 
 export default function CreatePage() {
   const router = useRouter();
@@ -25,11 +27,7 @@ export default function CreatePage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        toast.error(`Failed to save quiz as ${status.toLowerCase()}`);
-        setIsSaving(false);
-        return;
-      }
+      await handleApiError(res);
 
       toast.success(
         status === "PUBLISHED"
@@ -38,9 +36,7 @@ export default function CreatePage() {
       );
       router.push("/dashboard/quizes");
     } catch (err) {
-      toast.error("An error occurred while saving the quiz", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
+      handleError(err);
       setIsSaving(false);
     }
   }

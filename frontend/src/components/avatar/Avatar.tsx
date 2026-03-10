@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AvatarDisplay, getConsistentAvatar } from "./AvatarBuilder";
 import { getUser, apiFetch } from "@/lib/auth";
 import { AvatarModel } from "@/types";
+import { logError, logWarn } from "@/lib/logger";
 
 interface AvatarProps {
   /**
@@ -48,7 +49,7 @@ export default function Avatar({
             }
           }
         } catch (error) {
-          console.error("Failed to fetch user avatar", error);
+          logError("Failed to fetch user avatar", { error });
         }
       }
 
@@ -60,7 +61,7 @@ export default function Avatar({
           return;
         }
       } catch (e) {
-        console.error("Failed to parse guestAvatar from localStorage", e);
+        logWarn("Failed to parse guestAvatar from localStorage", { error: e });
       }
 
       // 4. Fallback to seed if provided

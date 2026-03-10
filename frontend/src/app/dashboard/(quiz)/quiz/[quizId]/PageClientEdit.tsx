@@ -7,6 +7,8 @@ import { apiFetch } from "@/lib/auth";
 import { nanoid } from "nanoid";
 import { SharedQuizEditor } from "@/components/quiz/SharedQuizEditor";
 import { OptionModelType, QuestionModelType, QuizModelType } from "@/types";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 
 const colorPalette = [
   { color: "bg-red-600", icon: "triangle" },
@@ -75,8 +77,8 @@ export default function EditPage() {
           })),
         });
       })
-      .catch(() => {
-        toast.error("Failed to load quiz");
+      .catch((err) => {
+        handleError(err);
       });
   }, [quizId]);
 
@@ -94,11 +96,7 @@ export default function EditPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        toast.error("Failed to update quiz");
-        setIsSaving(false);
-        return;
-      }
+      await handleApiError(res);
 
       toast.success(
         status === "PUBLISHED"
@@ -107,9 +105,7 @@ export default function EditPage() {
       );
       router.push("/dashboard/quizes");
     } catch (err) {
-      toast.error("Failed to update quiz", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
+      handleError(err);
       setIsSaving(false);
     }
   }

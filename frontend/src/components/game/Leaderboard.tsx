@@ -4,7 +4,7 @@ import { AvatarModel, LeaderboardProps, PlayerModel } from "@/types";
 
 import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
-import { toast } from "sonner";
+import { logWarn } from "@/lib/logger";
 
 export default function Leaderboard({
   players,
@@ -22,9 +22,7 @@ export default function Leaderboard({
       try {
         setLocalAvatar(JSON.parse(stored));
       } catch (e) {
-        toast.error("Failed to load avatar", {
-          description: e instanceof Error ? e.message : "Please try again.",
-        });
+        logWarn("Failed to load avatar from localStorage", { error: e });
       }
     }
   }, []);

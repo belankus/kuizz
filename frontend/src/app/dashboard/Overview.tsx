@@ -6,10 +6,11 @@ import { apiFetch } from "@/lib/auth";
 import { Users, Gamepad2, BrainCircuit, Target, Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { DashboardMetricsType } from "@/types";
 import { ApexOptions } from "apexcharts";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 
 // Dynamically import ReactApexChart to avoid SSR issues
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -28,15 +29,11 @@ export default function Overview() {
   const fetchDashboardSummary = async () => {
     try {
       const res = await apiFetch("/dashboard/summary");
-      if (!res.ok) {
-        throw new Error("Failed to fetch dashboard summary");
-      }
+      await handleApiError(res);
       const json = await res.json();
       setData(json);
     } catch (err) {
-      toast.error("Failed to load dashboard", {
-        description: err instanceof Error ? err.message : "Unknown error",
-      });
+      handleError(err);
     } finally {
       setLoading(false);
     }

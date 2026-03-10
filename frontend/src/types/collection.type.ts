@@ -1,6 +1,8 @@
 export type CollectionVisibility = "PRIVATE" | "SHARED" | "PUBLIC";
 export type CollectionItemType = "QUIZ_TEMPLATE" | "QUESTION_BANK";
 export type CollectionRole = "OWNER" | "EDITOR" | "VIEWER";
+import { QuizModelType } from "./quiz.types";
+import { AvatarModel } from "./game.type";
 
 export interface CollectionModelType {
   id: string;
@@ -15,7 +17,7 @@ export interface CollectionModelType {
   ownerId: string;
   owner?: {
     name: string | null;
-    avatar: unknown;
+    avatar: AvatarModel | null;
   };
   _count?: {
     items: number;
@@ -31,8 +33,8 @@ export interface CollectionItemModelType {
   bankId: string | null;
   createdAt: string;
   updatedAt: string;
-  quiz?: unknown; // You can refine this using QuizModelType
-  bank?: unknown; // You can refine this using QuizModelType
+  quiz?: QuizModelType;
+  bank?: QuizModelType;
 }
 
 export interface CollectionMemberModelType {

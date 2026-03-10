@@ -1,5 +1,7 @@
 import { UserModelType } from "../types";
 import { jwtVerify } from "jose";
+import { logError } from "./logger";
+import { handleApiError } from "./api-error-handler";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -26,7 +28,7 @@ export async function verifyJWT(token: string, type: "access" | "refresh") {
       name: (payload.name as string) || null,
     } as AuthUser;
   } catch (err) {
-    console.error(err);
+    logError("JWT Verification failed", { error: err });
     return null;
   }
 }
@@ -61,7 +63,7 @@ export async function getServerUser(): Promise<AuthUser | null> {
 
     return verifyJWT(token, "access");
   } catch (err) {
-    console.error(err);
+    logError("Failed to get server user", { error: err });
     return null;
   }
 }
@@ -98,7 +100,7 @@ export function getUser(): AuthUser | null {
       name: payload.name || null,
     } as AuthUser;
   } catch (err) {
-    console.error(err);
+    logError("JWT Verification failed", { error: err });
     return null;
   }
 }
@@ -144,8 +146,8 @@ export async function register(email: string, password: string, name?: string) {
     body: JSON.stringify({ email, password, name }),
     credentials: "include",
   });
+  await handleApiError(res);
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Registration failed");
   // Update: Set cookie juga di client (untuk instan UI)
   setAccessToken(data.accessToken);
   return data as { user: UserModelType; accessToken: string };
@@ -158,8 +160,8 @@ export async function login(email: string, password: string) {
     body: JSON.stringify({ email, password }),
     credentials: "include",
   });
+  await handleApiError(res);
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Login failed");
   // Update: Set cookie juga di client (untuk instan UI)
   setAccessToken(data.accessToken);
   return data as { user: UserModelType; accessToken: string };
@@ -175,14 +177,14 @@ export async function refreshAccessToken(): Promise<string | null> {
     method: "POST",
     credentials: "include",
   });
-  if (!res.ok) return null;
+  await handleApiError(res);
   const data = await res.json();
   return data.accessToken;
 }
 
 export async function fetchMe(): Promise<UserModelType | null> {
   const res = await authFetch("/auth/me");
-  if (!res.ok) return null;
+  await handleApiError(res);
   return res.json();
 }
 

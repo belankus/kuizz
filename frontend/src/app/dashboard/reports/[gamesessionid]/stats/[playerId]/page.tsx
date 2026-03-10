@@ -14,6 +14,8 @@ import {
   User,
   Calendar,
 } from "lucide-react";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 
 type SnapshotQuestion = {
   id: string;
@@ -53,7 +55,6 @@ export default function HostPlayerReviewPage({
   const router = useRouter();
   const [detail, setDetail] = useState<PlayerHistoryDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchDetail() {
@@ -61,11 +62,11 @@ export default function HostPlayerReviewPage({
         const res = await apiFetch(
           `/game-session/${gamesessionid}/players/${playerId}`,
         );
-        if (!res.ok) throw new Error("Failed to fetch player details");
+        await handleApiError(res);
         const data = await res.json();
         setDetail(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        handleError(err);
       } finally {
         setLoading(false);
       }
@@ -90,13 +91,11 @@ export default function HostPlayerReviewPage({
     );
   }
 
-  if (error || !detail) {
+  if (!detail) {
     return (
       <div className="p-6 text-center">
-        <h2 className="text-xl font-bold text-red-600">Error</h2>
-        <p className="mt-2 text-gray-500">
-          {error || "Player detail not found"}
-        </p>
+        <h2 className="text-xl font-bold text-gray-400">Not Found</h2>
+        <p className="mt-2 text-gray-500">Player detail not found</p>
         <Button onClick={() => router.back()} className="mt-4">
           Go Back
         </Button>

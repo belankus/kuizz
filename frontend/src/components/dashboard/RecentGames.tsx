@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/auth";
 import { RecentGamesSkeleton } from "./skeletons/OverviewSkeleton";
+import { handleError } from "@/lib/handle-error";
+import { handleApiError } from "@/lib/api-error-handler";
 
 // Simple relative time formatter to avoid extra dependencies
 function formatRelativeTime(date: Date) {
@@ -38,12 +40,11 @@ export default function RecentGames() {
     async function fetchRecentGames() {
       try {
         const res = await apiFetch("/dashboard/summary");
-        if (res.ok) {
-          const data = await res.json();
-          setGames(data.recentGames || []);
-        }
+        await handleApiError(res);
+        const data = await res.json();
+        setGames(data.recentGames || []);
       } catch (error) {
-        console.error("Failed to fetch recent games:", error);
+        handleError(error);
       } finally {
         setLoading(false);
       }
