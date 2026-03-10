@@ -14,6 +14,7 @@ import { CollectionsEmptyState } from "@/components/collections/CollectionsEmpty
 import { Filter, Search } from "lucide-react";
 import { fetchCollections } from "@/lib/collections";
 import { CollectionModelType } from "@/types";
+import ListSkeleton from "@/components/dashboard/skeletons/ListSkeleton";
 
 const TABS = ["All", "My Collections", "Saved", "Shared", "Marketplace"];
 
@@ -88,9 +89,7 @@ export default function CollectionsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center p-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-200 border-t-orange-600" />
-        </div>
+        <ListSkeleton />
       ) : collections.length > 0 ? (
         <CollectionGrid>
           {filteredCollections.map((collection) => (

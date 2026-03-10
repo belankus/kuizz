@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { UserModelType } from "@/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import ListSkeleton from "@/components/dashboard/skeletons/ListSkeleton";
 
 export default function UsersPage() {
   const router = useRouter();
@@ -94,11 +95,7 @@ export default function UsersPage() {
   };
 
   if (loadingMe || (currentUser?.role === "SUPERADMIN" && loadingUsers)) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="border-brand-500 h-8 w-8 animate-spin rounded-full border-b-2" />
-      </div>
-    );
+    return <ListSkeleton />;
   }
 
   if (!currentUser || currentUser.role !== "SUPERADMIN") return null;

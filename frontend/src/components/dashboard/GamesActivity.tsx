@@ -1,9 +1,32 @@
-import React from "react";
+"use client";
+import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { apiFetch } from "@/lib/auth";
+import { GamesActivitySkeleton } from "./skeletons/OverviewSkeleton";
 
 export default function GamesActivity() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSummary() {
+      try {
+        await apiFetch("/dashboard/summary");
+      } catch (error) {
+        console.error("Failed to fetch dashboard summary:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchSummary();
+  }, []);
+
+  if (loading) {
+    return <GamesActivitySkeleton />;
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div className="mb-4 flex items-center justify-between">

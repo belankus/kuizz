@@ -10,6 +10,7 @@ import AvatarBuilder, {
 import { Loader2, User2, KeyRound, Palette, Save } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AvatarModel } from "@/types";
+import DetailSkeleton from "@/components/dashboard/skeletons/DetailSkeleton";
 
 type UserProfile = {
   id: string;
@@ -121,11 +122,7 @@ export default function ProfilePage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-96 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-      </div>
-    );
+    return <DetailSkeleton />;
   }
 
   return (

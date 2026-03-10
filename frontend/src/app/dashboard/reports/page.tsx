@@ -64,6 +64,7 @@ import {
   keepPreviousData,
   useQueryClient,
 } from "@tanstack/react-query";
+import ListSkeleton from "@/components/dashboard/skeletons/ListSkeleton";
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -268,368 +269,364 @@ export default function ReportsPage() {
         </button>
       </div>
 
-      {/* Hosted Games View */}
-      {activeTab === "HOSTED" && (
-        <div className="animate-in fade-in zoom-in-95 space-y-6 duration-200">
-          <ComponentCard title="Sessions You Hosted">
-            <div className="mb-4 flex items-center justify-between px-4">
-              <input
-                type="text"
-                placeholder="Search by title..."
-                className="w-full rounded-full border-transparent bg-gray-50 px-5 py-2.5 text-sm text-gray-900 transition-all outline-none focus:border-gray-200 focus:bg-white focus:ring-4 focus:ring-[#46178f]/5 sm:w-80 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500 dark:focus:border-gray-700 dark:focus:bg-gray-900"
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1); // reset to first page on search
-                }}
-              />
-            </div>
-
-            {loadingHosted ? (
-              <div className="py-10 text-center text-gray-500 dark:text-gray-400">
-                Loading sessions...
-              </div>
-            ) : hostedSessions.length === 0 ? (
-              <Empty className="m-4 rounded-[20px] border border-dashed dark:border-gray-800">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon" className="dark:text-gray-500">
-                    <Gamepad2 />
-                  </EmptyMedia>
-                  <EmptyTitle className="dark:text-white/90">
-                    No Hosted Games
-                  </EmptyTitle>
-                  <EmptyDescription className="dark:text-gray-400">
-                    You haven&apos;t hosted any games yet. Start a quiz to see
-                    its history here!
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : (
-              <>
-                <div className="overflow-hidden rounded-[20px] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
-                  <div className="max-w-full overflow-x-auto">
-                    <div className="min-w-[800px]">
-                      <Table>
-                        <TableHeader className="border-b border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-800">
-                          <TableRow className="dark:border-gray-800 dark:hover:bg-gray-800">
-                            <TableCell
-                              isHeader
-                              className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                            >
-                              Title
-                            </TableCell>
-                            <TableCell
-                              isHeader
-                              className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                            >
-                              Status
-                            </TableCell>
-                            <TableCell
-                              isHeader
-                              className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                            >
-                              Date Played
-                            </TableCell>
-                            <TableCell
-                              isHeader
-                              className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                            >
-                              Players
-                            </TableCell>
-                            <TableCell
-                              isHeader
-                              className="px-5 py-4 text-right text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                            >
-                              Actions
-                            </TableCell>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-                          {hostedSessions.map((session) => (
-                            <TableRow
-                              key={session.id}
-                              className="transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
-                            >
-                              <TableCell className="px-5 py-4 font-bold text-gray-900 dark:text-white/90">
-                                {session.title}
-                              </TableCell>
-                              <TableCell className="px-5 py-4">
-                                <Badge
-                                  className={`rounded-md px-3 py-1 text-[10px] font-bold tracking-wider uppercase ${
-                                    session.status === "FINISHED"
-                                      ? "bg-[#E6F3EF] text-[#2ECC71] dark:bg-green-500/10 dark:text-green-400"
-                                      : session.status === "STARTED"
-                                        ? "bg-[#FFF2E5] text-[#FF9B26] dark:bg-orange-500/10 dark:text-orange-400"
-                                        : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                                  }`}
-                                >
-                                  {session.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="px-5 py-4 font-medium text-gray-500 dark:text-gray-400">
-                                {new Date(
-                                  session.createdAt,
-                                ).toLocaleDateString()}{" "}
-                                <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">
-                                  {new Date(
-                                    session.createdAt,
-                                  ).toLocaleTimeString([], {
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}
-                                </span>
-                              </TableCell>
-                              <TableCell className="px-5 py-4 font-bold text-gray-700 dark:text-gray-300">
-                                {session.totalPlayers}
-                              </TableCell>
-                              <TableCell className="px-5 py-4 text-right">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      className="h-8 w-8 rounded-full p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
-                                    >
-                                      <Ellipsis className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent
-                                    side="bottom"
-                                    align="end"
-                                    className="w-48 rounded-xl dark:border-gray-800 dark:bg-gray-900"
-                                  >
-                                    <DropdownMenuGroup>
-                                      <DropdownMenuItem
-                                        className="font-medium dark:text-gray-300 dark:focus:bg-gray-800 dark:focus:text-white"
-                                        onClick={() =>
-                                          router.push(
-                                            `/dashboard/reports/${session.id}/stats`,
-                                          )
-                                        }
-                                      >
-                                        <BarChartBig className="mr-2 h-4 w-4" />
-                                        View Full Stats
-                                      </DropdownMenuItem>
-                                      {(session.status === "WAITING" ||
-                                        session.status === "STARTED") &&
-                                        session.roomCode && (
-                                          <DropdownMenuItem
-                                            className="dark:text-brand-400 dark:focus:text-brand-300 font-medium text-[#46178f] dark:focus:bg-gray-800"
-                                            onSelect={() => {
-                                              localStorage.setItem(
-                                                "hostRoom",
-                                                session.roomCode!,
-                                              );
-                                              router.push(
-                                                `/game/${session.roomCode}`,
-                                              );
-                                            }}
-                                          >
-                                            <Gamepad2 className="mr-2 h-4 w-4" />
-                                            Enter Lobby
-                                          </DropdownMenuItem>
-                                        )}
-                                    </DropdownMenuGroup>
-                                    <DropdownMenuSeparator className="dark:bg-gray-800" />
-                                    <DropdownMenuGroup>
-                                      <DropdownMenuItem
-                                        className="font-medium text-red-600 dark:text-red-400 dark:focus:bg-gray-800 dark:focus:text-red-300"
-                                        onClick={() => {
-                                          setDeleteId(session.id);
-                                          setOpenModal(true);
-                                        }}
-                                      >
-                                        <TrashIcon className="mr-2 h-4 w-4" />
-                                        Delete
-                                      </DropdownMenuItem>
-                                    </DropdownMenuGroup>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </div>
+      {/* Content Area */}
+      {loadingSummary || loadingHosted || loadingPlayed ? (
+        <ListSkeleton />
+      ) : (
+        <>
+          {/* Hosted Games View */}
+          {activeTab === "HOSTED" && (
+            <div className="animate-in fade-in zoom-in-95 space-y-6 duration-200">
+              <ComponentCard title="Sessions You Hosted">
+                <div className="mb-4 flex items-center justify-between px-4">
+                  <input
+                    type="text"
+                    placeholder="Search by title..."
+                    className="w-full rounded-full border-transparent bg-gray-50 px-5 py-2.5 text-sm text-gray-900 transition-all outline-none focus:border-gray-200 focus:bg-white focus:ring-4 focus:ring-[#46178f]/5 sm:w-80 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500 dark:focus:border-gray-700 dark:focus:bg-gray-900"
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setPage(1); // reset to first page on search
+                    }}
+                  />
                 </div>
 
-                {/* Pagination Controls */}
-                {totalPages > 1 && (
-                  <div className="mt-6 flex items-center justify-between px-4">
-                    <div className="text-sm font-bold text-gray-500 dark:text-gray-400">
-                      Page {page} of {totalPages}
+                {hostedSessions.length === 0 ? (
+                  <Empty className="m-4 rounded-[20px] border border-dashed dark:border-gray-800">
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon" className="dark:text-gray-500">
+                        <Gamepad2 />
+                      </EmptyMedia>
+                      <EmptyTitle className="dark:text-white/90">
+                        No Hosted Games
+                      </EmptyTitle>
+                      <EmptyDescription className="dark:text-gray-400">
+                        You haven&apos;t hosted any games yet. Start a quiz to
+                        see its history here!
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                ) : (
+                  <>
+                    <div className="overflow-hidden rounded-[20px] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
+                      <div className="max-w-full overflow-x-auto">
+                        <div className="min-w-[800px]">
+                          <Table>
+                            <TableHeader className="border-b border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-800">
+                              <TableRow className="dark:border-gray-800 dark:hover:bg-gray-800">
+                                <TableCell
+                                  isHeader
+                                  className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                                >
+                                  Title
+                                </TableCell>
+                                <TableCell
+                                  isHeader
+                                  className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                                >
+                                  Status
+                                </TableCell>
+                                <TableCell
+                                  isHeader
+                                  className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                                >
+                                  Date Played
+                                </TableCell>
+                                <TableCell
+                                  isHeader
+                                  className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                                >
+                                  Players
+                                </TableCell>
+                                <TableCell
+                                  isHeader
+                                  className="px-5 py-4 text-right text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                                >
+                                  Actions
+                                </TableCell>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+                              {hostedSessions.map((session) => (
+                                <TableRow
+                                  key={session.id}
+                                  className="transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
+                                >
+                                  <TableCell className="px-5 py-4 font-bold text-gray-900 dark:text-white/90">
+                                    {session.title}
+                                  </TableCell>
+                                  <TableCell className="px-5 py-4">
+                                    <Badge
+                                      className={`rounded-md px-3 py-1 text-[10px] font-bold tracking-wider uppercase ${
+                                        session.status === "FINISHED"
+                                          ? "bg-[#E6F3EF] text-[#2ECC71] dark:bg-green-500/10 dark:text-green-400"
+                                          : session.status === "STARTED"
+                                            ? "bg-[#FFF2E5] text-[#FF9B26] dark:bg-orange-500/10 dark:text-orange-400"
+                                            : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                                      }`}
+                                    >
+                                      {session.status}
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="px-5 py-4 font-medium text-gray-500 dark:text-gray-400">
+                                    {new Date(
+                                      session.createdAt,
+                                    ).toLocaleDateString()}{" "}
+                                    <span className="ml-1 text-xs text-gray-400 dark:text-gray-500">
+                                      {new Date(
+                                        session.createdAt,
+                                      ).toLocaleTimeString([], {
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      })}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell className="px-5 py-4 font-bold text-gray-700 dark:text-gray-300">
+                                    {session.totalPlayers}
+                                  </TableCell>
+                                  <TableCell className="px-5 py-4 text-right">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          className="h-8 w-8 rounded-full p-0 hover:bg-gray-200 dark:hover:bg-gray-700"
+                                        >
+                                          <Ellipsis className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent
+                                        side="bottom"
+                                        align="end"
+                                        className="w-48 rounded-xl dark:border-gray-800 dark:bg-gray-900"
+                                      >
+                                        <DropdownMenuGroup>
+                                          <DropdownMenuItem
+                                            className="font-medium dark:text-gray-300 dark:focus:bg-gray-800 dark:focus:text-white"
+                                            onClick={() =>
+                                              router.push(
+                                                `/dashboard/reports/${session.id}/stats`,
+                                              )
+                                            }
+                                          >
+                                            <BarChartBig className="mr-2 h-4 w-4" />
+                                            View Full Stats
+                                          </DropdownMenuItem>
+                                          {(session.status === "WAITING" ||
+                                            session.status === "STARTED") &&
+                                            session.roomCode && (
+                                              <DropdownMenuItem
+                                                className="dark:text-brand-400 dark:focus:text-brand-300 font-medium text-[#46178f] dark:focus:bg-gray-800"
+                                                onSelect={() => {
+                                                  localStorage.setItem(
+                                                    "hostRoom",
+                                                    session.roomCode!,
+                                                  );
+                                                  router.push(
+                                                    `/game/${session.roomCode}`,
+                                                  );
+                                                }}
+                                              >
+                                                <Gamepad2 className="mr-2 h-4 w-4" />
+                                                Enter Lobby
+                                              </DropdownMenuItem>
+                                            )}
+                                        </DropdownMenuGroup>
+                                        <DropdownMenuSeparator className="dark:bg-gray-800" />
+                                        <DropdownMenuGroup>
+                                          <DropdownMenuItem
+                                            className="font-medium text-red-600 dark:text-red-400 dark:focus:bg-gray-800 dark:focus:text-red-300"
+                                            onClick={() => {
+                                              setDeleteId(session.id);
+                                              setOpenModal(true);
+                                            }}
+                                          >
+                                            <TrashIcon className="mr-2 h-4 w-4" />
+                                            Delete
+                                          </DropdownMenuItem>
+                                        </DropdownMenuGroup>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-lg font-bold shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                        onClick={() => setPage((p) => Math.max(1, p - 1))}
-                        disabled={page === 1}
-                      >
-                        Previous
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="rounded-lg font-bold shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                        onClick={() =>
-                          setPage((p) => Math.min(totalPages, p + 1))
-                        }
-                        disabled={page === totalPages}
-                      >
-                        Next
-                      </Button>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className="mt-6 flex items-center justify-between px-4">
+                        <div className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                          Page {page} of {totalPages}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-lg font-bold shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={page === 1}
+                          >
+                            Previous
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-lg font-bold shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+                            onClick={() =>
+                              setPage((p) => Math.min(totalPages, p + 1))
+                            }
+                            disabled={page === totalPages}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </ComponentCard>
+            </div>
+          )}
+
+          {/* Played Games View */}
+          {activeTab === "PLAYED" && (
+            <div className="animate-in fade-in zoom-in-95 space-y-6 duration-200">
+              <ComponentCard title="Games You Played">
+                {playedError ? (
+                  <div className="m-4 rounded-xl border-red-200 bg-red-50 p-4 font-medium text-red-600 dark:border-red-900/50 dark:bg-red-500/10 dark:text-red-400">
+                    {playedError}
+                  </div>
+                ) : playedHistory.length === 0 ? (
+                  <Empty className="m-4 rounded-[20px] border border-dashed dark:border-gray-800">
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon" className="dark:text-gray-500">
+                        <History />
+                      </EmptyMedia>
+                      <EmptyTitle className="dark:text-white/90">
+                        No Gameplay History
+                      </EmptyTitle>
+                      <EmptyDescription className="dark:text-gray-400">
+                        You haven&apos;t played any games yet. Join a room and
+                        complete a quiz to track your score here!
+                      </EmptyDescription>
+                    </EmptyHeader>
+                    <Button
+                      className="dark:bg-brand-500 dark:hover:bg-brand-600 mt-4 rounded-full bg-[#46178f] px-6 font-bold hover:bg-[#3b127a] dark:text-white/90"
+                      asChild
+                    >
+                      <Link href="/join">
+                        Join a Game{" "}
+                        <ArrowUpRightIcon className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </Empty>
+                ) : (
+                  <div className="overflow-hidden rounded-[20px] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
+                    <div className="max-w-full overflow-x-auto">
+                      <div className="min-w-[800px]">
+                        <Table>
+                          <TableHeader className="border-b border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-800">
+                            <TableRow className="dark:border-gray-800 dark:hover:bg-gray-800">
+                              <TableCell
+                                isHeader
+                                className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                              >
+                                Quiz Title
+                              </TableCell>
+                              <TableCell
+                                isHeader
+                                className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                              >
+                                Played As
+                              </TableCell>
+                              <TableCell
+                                isHeader
+                                className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                              >
+                                Score
+                              </TableCell>
+                              <TableCell
+                                isHeader
+                                className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                              >
+                                Date
+                              </TableCell>
+                              <TableCell
+                                isHeader
+                                className="px-5 py-4 text-right text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
+                              >
+                                Action
+                              </TableCell>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+                            {playedHistory.map((record) => (
+                              <TableRow
+                                key={record.id}
+                                className="transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
+                              >
+                                <TableCell className="px-5 py-4">
+                                  <div className="font-bold text-gray-900 dark:text-white/90">
+                                    {record.session?.title || "Unknown Quiz"}
+                                  </div>
+                                  <div className="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                    {record.session?.totalQuestions} Questions
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-4 font-bold text-gray-700 dark:text-gray-300">
+                                  {record.nickname}
+                                </TableCell>
+                                <TableCell className="dark:text-brand-400 px-5 py-4 text-lg font-black text-[#46178f]">
+                                  {record.score.toLocaleString()}
+                                </TableCell>
+                                <TableCell className="px-5 py-4 font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
+                                  {new Date(record.joinedAt).toLocaleDateString(
+                                    undefined,
+                                    {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    },
+                                  )}
+                                  <div className="mt-0.5 text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+                                    {new Date(
+                                      record.joinedAt,
+                                    ).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="px-5 py-4 text-right">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="rounded-lg font-bold shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+                                    asChild
+                                  >
+                                    <Link
+                                      href={`/dashboard/reports/player-history/${record.id}`}
+                                    >
+                                      View Details
+                                    </Link>
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
                     </div>
                   </div>
                 )}
-              </>
-            )}
-          </ComponentCard>
-        </div>
+              </ComponentCard>
+            </div>
+          )}
+        </>
       )}
-
-      {/* Played Games View */}
-      {activeTab === "PLAYED" && (
-        <div className="animate-in fade-in zoom-in-95 space-y-6 duration-200">
-          <ComponentCard title="Games You Played">
-            {loadingPlayed ? (
-              <div className="animate-pulse space-y-4 p-4">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="h-16 w-full rounded-xl border border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-800"
-                  />
-                ))}
-              </div>
-            ) : playedError ? (
-              <div className="m-4 rounded-xl border-red-200 bg-red-50 p-4 font-medium text-red-600 dark:border-red-900/50 dark:bg-red-500/10 dark:text-red-400">
-                {playedError}
-              </div>
-            ) : playedHistory.length === 0 ? (
-              <Empty className="m-4 rounded-[20px] border border-dashed dark:border-gray-800">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon" className="dark:text-gray-500">
-                    <History />
-                  </EmptyMedia>
-                  <EmptyTitle className="dark:text-white/90">
-                    No Gameplay History
-                  </EmptyTitle>
-                  <EmptyDescription className="dark:text-gray-400">
-                    You haven&apos;t played any games yet. Join a room and
-                    complete a quiz to track your score here!
-                  </EmptyDescription>
-                </EmptyHeader>
-                <Button
-                  className="dark:bg-brand-500 dark:hover:bg-brand-600 mt-4 rounded-full bg-[#46178f] px-6 font-bold hover:bg-[#3b127a] dark:text-white/90"
-                  asChild
-                >
-                  <Link href="/join">
-                    Join a Game <ArrowUpRightIcon className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </Empty>
-            ) : (
-              <div className="overflow-hidden rounded-[20px] border border-gray-100 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900/50">
-                <div className="max-w-full overflow-x-auto">
-                  <div className="min-w-[800px]">
-                    <Table>
-                      <TableHeader className="border-b border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-800">
-                        <TableRow className="dark:border-gray-800 dark:hover:bg-gray-800">
-                          <TableCell
-                            isHeader
-                            className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                          >
-                            Quiz Title
-                          </TableCell>
-                          <TableCell
-                            isHeader
-                            className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                          >
-                            Played As
-                          </TableCell>
-                          <TableCell
-                            isHeader
-                            className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                          >
-                            Score
-                          </TableCell>
-                          <TableCell
-                            isHeader
-                            className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                          >
-                            Date
-                          </TableCell>
-                          <TableCell
-                            isHeader
-                            className="px-5 py-4 text-right text-xs font-bold tracking-wider text-gray-600 uppercase dark:text-gray-400"
-                          >
-                            Action
-                          </TableCell>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-                        {playedHistory.map((record) => (
-                          <TableRow
-                            key={record.id}
-                            className="transition-colors hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800/50"
-                          >
-                            <TableCell className="px-5 py-4">
-                              <div className="font-bold text-gray-900 dark:text-white/90">
-                                {record.session?.title || "Unknown Quiz"}
-                              </div>
-                              <div className="mt-1 text-xs font-semibold text-gray-500 dark:text-gray-400">
-                                {record.session?.totalQuestions} Questions
-                              </div>
-                            </TableCell>
-                            <TableCell className="px-5 py-4 font-bold text-gray-700 dark:text-gray-300">
-                              {record.nickname}
-                            </TableCell>
-                            <TableCell className="dark:text-brand-400 px-5 py-4 text-lg font-black text-[#46178f]">
-                              {record.score.toLocaleString()}
-                            </TableCell>
-                            <TableCell className="px-5 py-4 font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">
-                              {new Date(record.joinedAt).toLocaleDateString(
-                                undefined,
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                },
-                              )}
-                              <div className="mt-0.5 text-[11px] font-semibold text-gray-400 dark:text-gray-500">
-                                {new Date(record.joinedAt).toLocaleTimeString(
-                                  [],
-                                  { hour: "2-digit", minute: "2-digit" },
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="px-5 py-4 text-right">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="rounded-lg font-bold shadow-sm dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-                                asChild
-                              >
-                                <Link
-                                  href={`/dashboard/reports/player-history/${record.id}`}
-                                >
-                                  View Details
-                                </Link>
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-              </div>
-            )}
-          </ComponentCard>
-        </div>
-      )}
-
       {/* Delete Confirmation Modal for Hosted Game */}
       <AlertDialog open={openModal} onOpenChange={setOpenModal}>
         <AlertDialogContent className="rounded-[24px] dark:border-gray-800 dark:bg-gray-900">
