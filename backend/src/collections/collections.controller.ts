@@ -37,6 +37,21 @@ export class CollectionsController {
     return this.collectionsService.findAll(req.user.id);
   }
 
+  @Get('marketplace')
+  getMarketplace() {
+    return this.collectionsService.getMarketplace();
+  }
+
+  @Get('mine')
+  getMyCollections(@Request() req: { user: { id: string } }) {
+    return this.collectionsService.getMyCollections(req.user.id);
+  }
+
+  @Get('shared')
+  getSharedCollections(@Request() req: { user: { id: string } }) {
+    return this.collectionsService.getSharedCollections(req.user.id);
+  }
+
   @Get('saved')
   findSaved(@Request() req: { user: { id: string } }) {
     return this.collectionsService.findSaved(req.user.id);

@@ -25,11 +25,12 @@ export interface CollectionCardProps {
   updatedAt: string;
   extraContributors?: number;
   contentBadgeStr?: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 const colorMap: Record<CollectionType, string> = {
   PUBLIC: "bg-gradient-to-br from-purple-500 to-indigo-600",
-  SHARED: "bg-gradient-to-br from-emerald-400 to-teal-500",
   PRIVATE: "bg-gradient-to-br from-orange-400 to-amber-500",
   NEW: "bg-gradient-to-br from-pink-500 to-rose-500",
 };
@@ -46,6 +47,8 @@ export function CollectionCard({
   updatedAt,
   extraContributors,
   contentBadgeStr = "Mixed",
+  onEdit,
+  onDelete,
 }: CollectionCardProps) {
   return (
     <div className="group relative flex h-[340px] flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-200 transition-all hover:shadow-md dark:bg-gray-900/50 dark:ring-gray-800">
@@ -60,7 +63,7 @@ export function CollectionCard({
             variant="secondary"
             className="border-none bg-white/20 text-[10px] font-semibold tracking-wider text-white uppercase hover:bg-white/30"
           >
-            {type}
+            {type === "PRIVATE" ? "Private" : "Public"}
           </Badge>
           <Badge
             variant="secondary"
@@ -126,13 +129,28 @@ export function CollectionCard({
               align="end"
               className="w-40 bg-white dark:border-gray-800 dark:bg-gray-900"
             >
-              <DropdownMenuItem className="cursor-pointer dark:focus:bg-gray-800">
+              <DropdownMenuItem
+                className="cursor-pointer dark:focus:bg-gray-800"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit?.();
+                }}
+              >
                 Edit Details
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer dark:focus:bg-gray-800">
+              <DropdownMenuItem
+                className="cursor-pointer dark:focus:bg-gray-800"
+                onClick={(e) => e.stopPropagation()}
+              >
                 Share
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-700 dark:focus:bg-gray-800">
+              <DropdownMenuItem
+                className="cursor-pointer text-red-600 focus:text-red-700 dark:focus:bg-gray-800"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete?.();
+                }}
+              >
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>

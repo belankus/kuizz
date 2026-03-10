@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { X, Check, Camera, Info, Plus } from "lucide-react";
-import { createCollection } from "@/lib/collections";
+import { createCollection, updateCollection } from "@/lib/collections";
 import { CollectionVisibility } from "@/types";
 import { handleError } from "@/lib/handle-error";
 
@@ -8,6 +8,7 @@ interface CreateCollectionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (newCollection: import("@/types").CollectionModelType) => void;
+  initialData?: import("@/types").CollectionModelType | null;
 }
 
 const COLORS = [
@@ -19,7 +20,6 @@ const COLORS = [
 
 const VISIBILITY_OPTIONS = [
   { value: "PRIVATE", label: "Private" },
-  { value: "SHARED", label: "Shared" },
   { value: "PUBLIC", label: "Public" },
 ] as const;
 
@@ -27,6 +27,7 @@ export function CreateCollectionModal({
   isOpen,
   onClose,
   onSuccess,
+  initialData,
 }: CreateCollectionModalProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -35,16 +36,26 @@ export function CreateCollectionModal({
   const [customImage, setCustomImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Reset form when opened
+  const isEditing = !!initialData;
+
+  // Reset form when opened or initialData changes
   useEffect(() => {
     if (isOpen) {
-      setName("");
-      setDescription("");
-      setVisibility("PRIVATE");
-      setCoverColorId("purple");
-      setCustomImage(null);
+      if (initialData) {
+        setName(initialData.title || "");
+        setDescription(initialData.description || "");
+        setVisibility(initialData.visibility);
+        setCustomImage(initialData.coverImage || null);
+        setCoverColorId(initialData.coverImage ? "custom" : "purple");
+      } else {
+        setName("");
+        setDescription("");
+        setVisibility("PRIVATE");
+        setCoverColorId("purple");
+        setCustomImage(null);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialData]);
 
   if (!isOpen) return null;
 
@@ -82,8 +93,16 @@ export function CreateCollectionModal({
         payload.coverImageId = coverColorId;
       }
 
-      const newCollection = await createCollection(payload);
-      onSuccess(newCollection);
+      if (isEditing) {
+        const updatedCollection = await updateCollection(
+          initialData!.id,
+          payload,
+        );
+        onSuccess(updatedCollection);
+      } else {
+        const newCollection = await createCollection(payload);
+        onSuccess(newCollection);
+      }
     } catch (err) {
       handleError(err);
     } finally {
@@ -93,10 +112,8 @@ export function CreateCollectionModal({
 
   const helperText =
     visibility === "PRIVATE"
-      ? "Only you can access this collection."
-      : visibility === "SHARED"
-        ? "Invite collaborators to contribute items."
-        : "Anyone can discover and save this collection.";
+      ? "Only you and users you explicitly share with can access this collection."
+      : "Visible to everyone and appears in the marketplace.";
 
   const activeColorClass =
     COLORS.find((c) => c.id === coverColorId)?.class || COLORS[0].class;
@@ -119,7 +136,7 @@ export function CreateCollectionModal({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
           <h2 className="text-lg font-semibold text-gray-900">
-            Create New Collection
+            {isEditing ? "Edit Collection" : "Create New Collection"}
           </h2>
           <button
             onClick={onClose}
@@ -310,9 +327,15 @@ export function CreateCollectionModal({
             {isLoading ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-white" />
             ) : (
-              <Plus className="h-4 w-4" />
+              !isEditing && <Plus className="h-4 w-4" />
             )}
-            Create Collection
+            {isEditing
+              ? isLoading
+                ? "Saving..."
+                : "Save Changes"
+              : isLoading
+                ? "Creating..."
+                : "Create Collection"}
           </button>
         </div>
       </div>

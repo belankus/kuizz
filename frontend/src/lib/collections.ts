@@ -1,5 +1,6 @@
 import { apiFetch } from "./auth";
 import { handleApiError } from "./api-error-handler";
+import { useQuery } from "@tanstack/react-query";
 
 export async function fetchCollections() {
   const res = await apiFetch("/collections");
@@ -9,6 +10,24 @@ export async function fetchCollections() {
 
 export async function fetchSavedCollections() {
   const res = await apiFetch("/collections/saved");
+  await handleApiError(res);
+  return res.json();
+}
+
+export async function fetchMarketplaceCollections() {
+  const res = await apiFetch("/collections/marketplace");
+  await handleApiError(res);
+  return res.json();
+}
+
+export async function fetchMyCollections() {
+  const res = await apiFetch("/collections/mine");
+  await handleApiError(res);
+  return res.json();
+}
+
+export async function fetchSharedCollections() {
+  const res = await apiFetch("/collections/shared");
   await handleApiError(res);
   return res.json();
 }
@@ -95,4 +114,30 @@ export async function deleteCollectionItem(itemId: string) {
   });
   await handleApiError(res);
   return res.json();
+}
+
+/**
+ * Hook for fetching collections based on the active tab with TanStack Query.
+ */
+export function useCollections(tab: string) {
+  return useQuery({
+    queryKey: ["collections", tab],
+    queryFn: () => {
+      switch (tab) {
+        case "All":
+          return fetchCollections();
+        case "My Collections":
+          return fetchMyCollections();
+        case "Saved":
+          return fetchSavedCollections();
+        case "Shared":
+          return fetchSharedCollections();
+        case "Marketplace":
+          return fetchMarketplaceCollections();
+        default:
+          return fetchCollections();
+      }
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 }

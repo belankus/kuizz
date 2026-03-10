@@ -133,7 +133,6 @@ model GameAnswer {
 
 enum CollectionVisibility {
   PRIVATE
-  SHARED
   PUBLIC
 }
 
@@ -165,6 +164,9 @@ model Collection {
   items       CollectionItem[]
   members     CollectionMember[]
   savedBy     SavedCollection[]
+
+  @@index([ownerId])
+  @@index([visibility])
 }
 
 model CollectionMember {
@@ -177,6 +179,7 @@ model CollectionMember {
   createdAt    DateTime       @default(now())
 
   @@unique([collectionId, userId])
+  @@index([userId])
 }
 
 model CollectionItem {
@@ -206,4 +209,5 @@ model SavedCollection {
   savedAt      DateTime   @default(now())
 
   @@unique([userId, collectionId])
+  @@index([userId])
 }

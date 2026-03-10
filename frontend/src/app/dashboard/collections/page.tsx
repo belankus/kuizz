@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { deleteCollection } from "@/lib/collections";
 import { CollectionGrid } from "@/components/collections/CollectionGrid";
 import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
 import {
@@ -12,46 +15,53 @@ import {
 import { CollectionsTabs } from "@/components/collections/CollectionsTabs";
 import { CollectionsEmptyState } from "@/components/collections/CollectionsEmptyState";
 import { Filter, Search } from "lucide-react";
-import { fetchCollections } from "@/lib/collections";
+import { useCollections } from "@/lib/collections";
 import { CollectionModelType } from "@/types";
-import ListSkeleton from "@/components/dashboard/skeletons/ListSkeleton";
-import { handleError } from "@/lib/handle-error";
+import { CollectionCardSkeleton } from "@/components/collections/CollectionCardSkeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const TABS = ["All", "My Collections", "Saved", "Shared", "Marketplace"];
 
 export default function CollectionsPage() {
   const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [collections, setCollections] = useState<CollectionModelType[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingCollection, setEditingCollection] =
+    useState<CollectionModelType | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchCollections()
-      .then((data) => {
-        setCollections(data);
-      })
-      .catch((err) => handleError(err))
-      .finally(() => setIsLoading(false));
-  }, []);
+  const { data: collections = [], isLoading } = useCollections(activeTab);
 
-  // Filter collections by tab
-  const filteredCollections = collections
-    .filter((collection) => {
-      // Logic would be better backed by API mapping, but doing it in memory since fetchCollections returns all right now
-      if (activeTab === "All") return true;
-      if (activeTab === "Shared" && collection.visibility === "SHARED")
-        return true;
-      if (activeTab === "Marketplace" && collection.visibility === "PUBLIC")
-        return true;
-      if (activeTab === "My Collections") return true; // Could filter by ownerId if we had it in context
-      if (activeTab === "Saved") return false; // Usually we fetch from /collections/saved
-      return true;
-    })
-    .filter((collection) =>
+  // Filter collections by search query
+  const filteredCollections = collections.filter(
+    (collection: CollectionModelType) =>
       collection.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+  );
+
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    try {
+      await deleteCollection(deletingId);
+      toast.success("Collection deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+    } catch {
+      toast.error("Failed to delete collection");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className="mx-auto flex h-full w-full max-w-7xl flex-col">
@@ -90,10 +100,14 @@ export default function CollectionsPage() {
       </div>
 
       {isLoading ? (
-        <ListSkeleton />
+        <CollectionGrid>
+          {[...Array(4)].map((_, i) => (
+            <CollectionCardSkeleton key={i} />
+          ))}
+        </CollectionGrid>
       ) : collections.length > 0 ? (
         <CollectionGrid>
-          {filteredCollections.map((collection) => (
+          {filteredCollections.map((collection: CollectionModelType) => (
             <CollectionCard
               key={collection.id}
               id={collection.id}
@@ -116,6 +130,11 @@ export default function CollectionsPage() {
                 (collection._count?.members || 0) - 1,
               )}
               contentBadgeStr="Items"
+              onEdit={() => {
+                setEditingCollection(collection);
+                setIsCreateModalOpen(true);
+              }}
+              onDelete={() => setDeletingId(collection.id)}
             />
           ))}
           <CreateCollectionCard onClick={() => setIsCreateModalOpen(true)} />
@@ -128,13 +147,48 @@ export default function CollectionsPage() {
 
       <CreateCollectionModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={(newCollection) => {
-          setCollections([newCollection, ...collections]);
+        onClose={() => {
           setIsCreateModalOpen(false);
-          router.push(`/dashboard/collections/${newCollection.id}`);
+          setEditingCollection(null);
+        }}
+        initialData={editingCollection}
+        onSuccess={(collection) => {
+          setIsCreateModalOpen(false);
+          setEditingCollection(null);
+          // Invalidate collections on both create and update
+          queryClient.invalidateQueries({ queryKey: ["collections"] });
+
+          if (!editingCollection) {
+            router.push(`/dashboard/collections/${collection.id}`);
+          } else {
+            toast.success("Collection updated successfully");
+          }
         }}
       />
+
+      <AlertDialog
+        open={!!deletingId}
+        onOpenChange={(open) => !open && setDeletingId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              collection and remove it from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

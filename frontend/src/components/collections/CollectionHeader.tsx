@@ -14,6 +14,7 @@ export interface CollectionHeaderProps {
   itemsCount: number;
   viewsCount: number;
   updatedAt: string;
+  onEdit?: () => void;
 }
 
 export function CollectionHeader({
@@ -26,6 +27,7 @@ export function CollectionHeader({
   itemsCount,
   viewsCount,
   updatedAt,
+  onEdit,
 }: CollectionHeaderProps) {
   return (
     <div className="mb-8 flex flex-col gap-8 pt-4 md:flex-row md:items-start">
@@ -48,7 +50,9 @@ export function CollectionHeader({
                 variant="secondary"
                 className="mt-1 bg-green-100 px-2 py-0.5 text-[10px] font-bold tracking-widest text-green-700 uppercase hover:bg-green-200 dark:bg-green-500/10 dark:text-green-400 dark:hover:bg-green-500/20"
               >
-                {type}
+                {type === "PRIVATE"
+                  ? "Private Collection"
+                  : "Public Collection"}
               </Badge>
             </div>
             <p className="mb-6 max-w-2xl text-[15px] leading-relaxed font-medium text-gray-600 dark:text-gray-400">
@@ -65,6 +69,7 @@ export function CollectionHeader({
             </Button>
             <Button
               variant="outline"
+              onClick={onEdit}
               className="h-10 cursor-pointer gap-2 rounded-full border-orange-200 bg-orange-50 px-5 font-semibold text-orange-700 shadow-sm transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20"
             >
               <Edit2 className="h-4 w-4 text-orange-500 dark:text-orange-400" />

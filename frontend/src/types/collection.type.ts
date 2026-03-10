@@ -1,4 +1,4 @@
-export type CollectionVisibility = "PRIVATE" | "SHARED" | "PUBLIC";
+export type CollectionVisibility = "PRIVATE" | "PUBLIC";
 export type CollectionItemType = "QUIZ_TEMPLATE" | "QUESTION_BANK";
 export type CollectionRole = "OWNER" | "EDITOR" | "VIEWER";
 import { QuizModelType } from "./quiz.types";
@@ -57,3 +57,8 @@ export interface SavedCollectionModelType {
   savedAt: string;
   collection?: CollectionModelType;
 }
+
+export type OwnedCollection = CollectionModelType;
+export type SharedCollection = CollectionModelType;
+export type SavedCollection = CollectionModelType;
+export type PublicCollection = CollectionModelType;

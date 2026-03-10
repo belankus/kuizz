@@ -130,6 +130,12 @@ export function setAccessToken(token: string) {
   document.cookie = `accessToken=${token}; path=/; ${domain}max-age=${15 * 60}; samesite=lax${isProd ? "; secure" : ""}`;
 }
 
+export function getAccessToken(): string | null {
+  if (typeof window === "undefined") return null;
+  const match = document.cookie.match(new RegExp("(^| )accessToken=([^;]+)"));
+  return match ? match[2] : null;
+}
+
 export function removeAccessToken() {
   if (typeof window === "undefined") return;
   const isProd = process.env.NODE_ENV === "production";

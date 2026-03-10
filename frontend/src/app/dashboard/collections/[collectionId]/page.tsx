@@ -8,6 +8,7 @@ import {
   ItemType,
 } from "@/components/collections/CollectionItemCard";
 import { CollectionsTabs } from "@/components/collections/CollectionsTabs";
+import { CreateCollectionModal } from "@/components/collections/CreateCollectionModal";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ import { fetchCollection } from "@/lib/collections";
 import { CollectionModelType } from "@/types";
 import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { handleError } from "@/lib/handle-error";
 import { handleApiError } from "@/lib/api-error-handler";
 
@@ -42,6 +44,9 @@ export default function CollectionDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCloning, setIsCloning] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!collectionId) return;
@@ -66,6 +71,13 @@ export default function CollectionDetailPage() {
       </div>
     );
   }
+
+  const handleUpdateSuccess = (updatedCollection: CollectionModelType) => {
+    setCollection({ ...collection, ...updatedCollection });
+    setIsEditModalOpen(false);
+    queryClient.invalidateQueries({ queryKey: ["collections"] });
+    toast.success("Collection updated successfully");
+  };
 
   const items = collection.items || [];
   const filteredItems = items.filter((item) => {
@@ -198,18 +210,20 @@ export default function CollectionDetailPage() {
           "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=800&q=80"
         }
         type={
-          collection.visibility as
-            | "TEMPLATE"
-            | "BANK"
-            | "PRIVATE"
-            | "SHARED"
-            | "PUBLIC"
+          collection.visibility as "TEMPLATE" | "BANK" | "PRIVATE" | "PUBLIC"
         }
         ownerName={collection.owner?.name || "Unknown"}
-        ownerAvatar={collection.owner?.avatar?.url}
+        ownerAvatar={
+          collection.owner?.avatar &&
+          typeof collection.owner.avatar === "object" &&
+          "url" in collection.owner.avatar
+            ? (collection.owner.avatar.url as string)
+            : undefined
+        }
         itemsCount={collection._count?.items || collection.itemsCount}
         viewsCount={collection.viewsCount}
         updatedAt={new Date(collection.updatedAt).toLocaleDateString()}
+        onEdit={() => setIsEditModalOpen(true)}
       />
 
       {/* Tabs */}
@@ -241,7 +255,7 @@ export default function CollectionDetailPage() {
                 isTemplate ? "Clone to My Quizzes" : "Extract Questions"
               }
               onPrimaryAction={() =>
-                isTemplate ? handleCloneQuiz(ref?.id) : null
+                isTemplate && ref?.id ? handleCloneQuiz(ref.id) : null
               }
             />
           );
@@ -271,6 +285,13 @@ export default function CollectionDetailPage() {
           </DropdownMenuContent>
         </DropdownMenu>
       </CollectionGrid>
+
+      <CreateCollectionModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        initialData={collection}
+        onSuccess={handleUpdateSuccess}
+      />
     </div>
   );
 }

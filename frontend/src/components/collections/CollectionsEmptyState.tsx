@@ -7,7 +7,7 @@ export function CollectionsEmptyState({
   onCreateClick?: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-center">
+    <div className="flex flex-col items-center justify-center py-14 text-center">
       <div className="relative mb-6 flex h-32 w-32 items-center justify-center rounded-full bg-orange-50">
         <div className="absolute h-24 w-24 rounded-full bg-orange-100/50" />
         <div className="relative z-10 text-orange-400">
