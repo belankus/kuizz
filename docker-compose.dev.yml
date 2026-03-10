@@ -27,6 +27,36 @@ services:
     depends_on:
       - redis
 
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: loki-kuizz
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: promtail-kuizz
+    volumes:
+      - ./logs:/logs
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana-kuizz
+    ports:
+      - "3010:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - loki
+
 volumes:
   redisinsight:
   postgres_data_kuizz:
+  grafana_data:
