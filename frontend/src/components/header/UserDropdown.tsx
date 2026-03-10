@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import { getUserFromToken, logout, apiFetch } from "@/lib/auth";
+import { getUser, logout, apiFetch } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import Avatar from "@/components/avatar/Avatar";
 import { useTheme } from "@/context/ThemeContext";
@@ -17,7 +17,7 @@ export default function UserDropdown() {
   const router = useRouter();
 
   useEffect(() => {
-    const u = getUserFromToken();
+    const u = getUser();
     setUser(u);
     if (u) {
       apiFetch("/users/me")
@@ -104,7 +104,6 @@ export default function UserDropdown() {
 
       <Dropdown
         isOpen={isOpen}
-        onClose={closeDropdown}
         className="shadow-theme-lg dark:bg-gray-dark absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 dark:border-gray-800"
       >
         {/* User info with avatar */}

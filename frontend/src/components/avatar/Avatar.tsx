@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AvatarDisplay, getConsistentAvatar } from "./AvatarBuilder";
-import { getUserFromToken, apiFetch } from "@/lib/auth";
+import { getUser, apiFetch } from "@/lib/auth";
 import { AvatarModel } from "@/types";
 
 interface AvatarProps {
@@ -36,7 +36,7 @@ export default function Avatar({
 
     const loadAvatar = async () => {
       // 2. Check if user is logged in
-      const user = getUserFromToken();
+      const user = getUser();
       if (user) {
         try {
           const res = await apiFetch("/users/me");

@@ -68,7 +68,6 @@ export default function NotificationDropdown() {
       </button>
       <Dropdown
         isOpen={isOpen}
-        onClose={closeDropdown}
         className="shadow-theme-lg dark:bg-gray-dark absolute -right-[240px] mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-gray-200 bg-white p-3 sm:w-[361px] lg:right-0 dark:border-gray-800"
       >
         <div className="mb-3 flex items-center justify-between border-b border-gray-100 pb-3 dark:border-gray-700">

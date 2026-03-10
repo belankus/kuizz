@@ -5,11 +5,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import { Dropdown } from "@/components/ui/dropdown/Dropdown";
 import { DropdownItem } from "@/components/ui/dropdown/DropdownItem";
-import { getUserFromToken, logout, apiFetch } from "@/lib/auth";
+import { logout, apiFetch, getUser, type AuthUser } from "@/lib/auth";
 import Avatar from "@/components/avatar/Avatar";
 import { useTheme } from "@/context/ThemeContext";
 import { AvatarModel } from "@/types";
-import { UserModelType } from "@/types";
 import {
   BarChart2,
   FolderOpen,
@@ -107,7 +106,7 @@ const AppSidebar: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [user, setUser] = useState<UserModelType | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [avatar, setAvatar] = useState<AvatarModel | null>(null);
   const { theme, toggleTheme } = useTheme();
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -128,16 +127,22 @@ const AppSidebar: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const u = getUserFromToken();
-    setUser(u);
+    // 1. Ambil data dasar dari cookie secara instan (No Fetch)
+    const u = getUser();
     if (u) {
-      apiFetch("/users/me")
-        .then((r) => (r.ok ? r.json() : null))
-        .then((data) => {
-          if (data?.avatar) setAvatar(data.avatar as AvatarModel);
-        })
-        .catch(() => null);
+      setUser(u);
     }
+
+    // 2. Tetap fetch /users/me untuk data lengkap (avatar, dll) secara background
+    apiFetch("/users/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data) {
+          setUser(data);
+          if (data.avatar) setAvatar(data.avatar as AvatarModel);
+        }
+      })
+      .catch(() => null);
   }, []);
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
@@ -296,7 +301,6 @@ const AppSidebar: React.FC = () => {
 
         <Dropdown
           isOpen={isDropdownOpen}
-          onClose={closeDropdown}
           className={`absolute ${
             isExpanded || isHovered || isMobileOpen
               ? "right-4 left-4"

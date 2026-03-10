@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { socket } from "@/lib/socket";
-import { apiFetch, getAccessToken } from "@/lib/auth";
+import { apiFetch, getUser } from "@/lib/auth";
 import { getRandomAvatar } from "@/components/avatar/AvatarBuilder";
 import { Fredoka, Nunito } from "next/font/google";
 import Link from "next/link";
@@ -46,8 +46,8 @@ export default function JoinContent() {
     // Pre-fetch avatar for step 2 preview
     const fetchAvatar = async () => {
       try {
-        const token = getAccessToken();
-        if (token) {
+        const user = getUser();
+        if (user) {
           const meRes = await apiFetch("/users/me");
           if (meRes.ok) {
             const me = await meRes.json();
@@ -161,7 +161,6 @@ export default function JoinContent() {
       nickname: nick,
       playerToken: existingToken ?? undefined,
       avatar: avatarToSend,
-      authToken: getAccessToken() ?? undefined,
     });
   };
 

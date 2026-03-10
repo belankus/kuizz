@@ -1,39 +1,104 @@
-import { UserModelType } from "@/types";
-import { jwtDecode } from "jwt-decode";
+import { UserModelType } from "../types";
+import { jwtVerify } from "jose";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-// ─── Storage helpers (access token in memory / sessionStorage) ───────────────
+const ACCESS_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "kuizz_jwt_secret_super_secure_32chars_min",
+);
 
-const TOKEN_KEY = "kuizz_access_token";
+const REFRESH_SECRET = new TextEncoder().encode(
+  process.env.JWT_REFRESH_SECRET || "kuizz_refresh_secret_super_secure_32chars",
+);
 
-export function getAccessToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return sessionStorage.getItem(TOKEN_KEY);
-}
+export type AuthUser = UserModelType;
 
-export function setAccessToken(token: string) {
-  sessionStorage.setItem(TOKEN_KEY, token);
-}
+// ─── Token Verification (Edge compatible) ───────────────────────────────────
 
-export function removeAccessToken() {
-  sessionStorage.removeItem(TOKEN_KEY);
-}
-
-export function getUserFromToken(): UserModelType | null {
-  const token = getAccessToken();
-  if (!token) return null;
+export async function verifyJWT(token: string, type: "access" | "refresh") {
   try {
-    const decoded = jwtDecode<UserModelType>(token);
+    const secret = type === "access" ? ACCESS_SECRET : REFRESH_SECRET;
+    const { payload } = await jwtVerify(token, secret);
     return {
-      id: decoded.id,
-      email: decoded.email,
-      name: decoded.name || null,
-      role: decoded.role,
-      provider: decoded.provider,
-      createdAt: decoded.createdAt,
-    };
-  } catch {
+      id: payload.sub as string,
+      email: payload.email as string,
+      role: payload.role as string,
+      name: (payload.name as string) || null,
+    } as AuthUser;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+/**
+ * Mendapatkan user dari headers atau cookies (untuk Server Components / Actions)
+ * Hanya berjalan di server.
+ */
+export async function getServerUser(): Promise<AuthUser | null> {
+  if (typeof window !== "undefined") return null;
+
+  try {
+    // Import dinamis agar tidak pecah di client build
+    const { cookies, headers } = await import("next/headers");
+    const headerStore = await headers();
+
+    // 1. Cek header (optimasi middleware)
+    const userId = headerStore.get("x-user-id");
+    if (userId) {
+      return {
+        id: userId,
+        email: headerStore.get("x-user-email") || "",
+        role: headerStore.get("x-user-role") || "",
+        name: headerStore.get("x-user-name") || null,
+      } as AuthUser;
+    }
+
+    // 2. Fallback ke cookies
+    const cookieStore = await cookies();
+    const token = cookieStore.get("accessToken")?.value;
+    if (!token) return null;
+
+    return verifyJWT(token, "access");
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+/**
+ * Mendapatkan user dari cookie (Client Side).
+ * Membutuhkan accessToken tidak httpOnly.
+ */
+export function getUser(): AuthUser | null {
+  if (typeof window === "undefined") return null;
+
+  const match = document.cookie.match(new RegExp("(^| )accessToken=([^;]+)"));
+  const token = match ? match[2] : null;
+
+  if (!token) return null;
+
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join(""),
+    );
+
+    const payload = JSON.parse(jsonPayload);
+    return {
+      id: payload.sub,
+      email: payload.email,
+      role: payload.role,
+      name: payload.name || null,
+    } as AuthUser;
+  } catch (err) {
+    console.error(err);
     return null;
   }
 }
@@ -41,18 +106,33 @@ export function getUserFromToken(): UserModelType | null {
 // ─── API helpers ─────────────────────────────────────────────────────────────
 
 async function authFetch(path: string, options: RequestInit = {}) {
-  const token = getAccessToken();
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string>),
-  };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-
+  // Kita tidak lagi memasukkan Authorization header secara manual dari client
+  // karena kita mengandalkan httpOnly cookie yang dikirim otomatis
   return fetch(`${API_URL}${path}`, {
     ...options,
-    headers,
-    credentials: "include", // send httpOnly cookie for refresh token
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers as Record<string, string>),
+    },
+    credentials: "include",
   });
+}
+
+// ─── Token helpers (Client Side) ─────────────────────────────────────────────
+
+export function setAccessToken(token: string) {
+  if (typeof window === "undefined") return;
+  const isProd = process.env.NODE_ENV === "production";
+  const domain = isProd ? "domain=.kuizz.my.id; " : "";
+  // 15 menit maxAge (sinkron dengan backend)
+  document.cookie = `accessToken=${token}; path=/; ${domain}max-age=${15 * 60}; samesite=lax${isProd ? "; secure" : ""}`;
+}
+
+export function removeAccessToken() {
+  if (typeof window === "undefined") return;
+  const isProd = process.env.NODE_ENV === "production";
+  const domain = isProd ? "domain=.kuizz.my.id; " : "";
+  document.cookie = `accessToken=; path=/; ${domain}expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
 
 // ─── Auth actions ─────────────────────────────────────────────────────────────
@@ -66,6 +146,7 @@ export async function register(email: string, password: string, name?: string) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Registration failed");
+  // Update: Set cookie juga di client (untuk instan UI)
   setAccessToken(data.accessToken);
   return data as { user: UserModelType; accessToken: string };
 }
@@ -79,15 +160,13 @@ export async function login(email: string, password: string) {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Login failed");
+  // Update: Set cookie juga di client (untuk instan UI)
   setAccessToken(data.accessToken);
   return data as { user: UserModelType; accessToken: string };
 }
 
 export async function logout() {
-  const token = getAccessToken();
-  if (token) {
-    await authFetch("/auth/logout", { method: "POST" }).catch(() => {});
-  }
+  await authFetch("/auth/logout", { method: "POST" }).catch(() => {});
   removeAccessToken();
 }
 
@@ -98,7 +177,6 @@ export async function refreshAccessToken(): Promise<string | null> {
   });
   if (!res.ok) return null;
   const data = await res.json();
-  setAccessToken(data.accessToken);
   return data.accessToken;
 }
 
@@ -113,7 +191,6 @@ export async function fetchMe(): Promise<UserModelType | null> {
 export async function apiFetch(path: string, options: RequestInit = {}) {
   let res = await authFetch(path, options);
 
-  // Try token refresh on 401
   if (res.status === 401) {
     const newToken = await refreshAccessToken();
     if (newToken) {

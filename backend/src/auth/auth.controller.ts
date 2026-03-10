@@ -51,10 +51,12 @@ export class AuthController {
   private setCookies(res: Response, accessToken: string, refreshToken: string) {
     res.cookie(ACCESS_COOKIE, accessToken, {
       ...COOKIE_OPTIONS,
+      httpOnly: false, // Biar bisa dibaca client (auth helper)
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
     res.cookie(REFRESH_COOKIE, refreshToken, {
       ...COOKIE_OPTIONS,
+      httpOnly: true, // Tetap aman di backend
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
   }
@@ -155,12 +157,12 @@ export class AuthController {
         user.role,
         user.name,
       );
-    res.cookie(REFRESH_COOKIE, refreshToken, COOKIE_OPTIONS);
+    this.setCookies(res, accessToken, refreshToken);
     const frontendUrl = this.config.get<string>(
       'FRONTEND_URL',
       'http://localhost:3000',
     );
-    return res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
+    return res.redirect(`${frontendUrl}/auth/callback`);
   }
 
   // ─── GitHub OAuth ────────────────────────────────────────────────────────────
@@ -182,11 +184,11 @@ export class AuthController {
         user.role,
         user.name,
       );
-    res.cookie(REFRESH_COOKIE, refreshToken, COOKIE_OPTIONS);
+    this.setCookies(res, accessToken, refreshToken);
     const frontendUrl = this.config.get<string>(
       'FRONTEND_URL',
       'http://localhost:3000',
     );
-    return res.redirect(`${frontendUrl}/auth/callback?token=${accessToken}`);
+    return res.redirect(`${frontendUrl}/auth/callback`);
   }
 }
