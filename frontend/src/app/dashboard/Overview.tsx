@@ -42,7 +42,7 @@ export default function Overview() {
   if (loading) {
     return (
       <div className="flex h-96 w-full items-center justify-center">
-        <Loader2 className="text-brand-500 h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
       </div>
     );
   }
@@ -88,7 +88,7 @@ export default function Overview() {
       {/* Metric Cards Row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
         <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900/50">
-          <div className="bg-brand-50 text-brand-500 dark:bg-brand-500/10 dark:text-brand-400 flex h-11 w-11 items-center justify-center rounded-full">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-orange-50 text-orange-500 dark:bg-orange-500/10 dark:text-orange-400">
             <BrainCircuit size={24} />
           </div>
           <div className="mt-4 flex items-end justify-between">
@@ -176,7 +176,7 @@ export default function Overview() {
             </h4>
             <button
               onClick={() => router.push("/dashboard/reports")}
-              className="text-brand-500 hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300 text-sm font-medium"
+              className="text-sm font-medium text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300"
             >
               View All
             </button>

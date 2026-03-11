@@ -68,10 +68,10 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
     <div className="flex min-h-screen items-center justify-center bg-[#F4F5F7] p-4 sm:p-8">
       <div className="flex min-h-[600px] w-full max-w-[1000px] flex-col overflow-hidden rounded-3xl bg-white shadow-xl md:flex-row">
         {/* LEFT COLUMN - Branding */}
-        <div className="relative flex flex-col items-center justify-center overflow-hidden bg-[#46178F] p-10 text-white md:w-5/12">
+        <div className="relative flex flex-col items-center justify-center overflow-hidden bg-[#e54d1f] p-10 text-white md:w-5/12">
           <div className="relative z-10 flex flex-col items-center text-center">
             {/* Avatar/Illustration Placeholder */}
-            <div className="bg-brand-400/20 relative mb-8 flex h-56 w-56 items-center justify-center rounded-full border-[6px] border-[#5a2ab3]">
+            <div className="relative mb-8 flex h-56 w-56 items-center justify-center rounded-full border-[6px] border-[#5a2ab3] bg-orange-400/20">
               {/* Decorative elements */}
               <div className="absolute -top-4 -right-4 flex h-12 w-12 rotate-12 items-center justify-center rounded-xl bg-[#FFC000] shadow-lg">
                 <Lightbulb className="text-[20px] text-white" />
@@ -151,7 +151,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="John Doe"
-                      className="w-full rounded-xl border border-transparent bg-[#F8F9FA] py-3 pr-4 pl-11 text-sm font-medium text-gray-800 transition-all outline-none placeholder:text-gray-400 focus:border-[#46178F] focus:bg-white focus:ring-2 focus:ring-[#46178F]/20"
+                      className="w-full rounded-xl border border-transparent bg-[#F8F9FA] py-3 pr-4 pl-11 text-sm font-medium text-gray-800 transition-all outline-none placeholder:text-gray-400 focus:border-[#e54d1f] focus:bg-white focus:ring-2 focus:ring-[#e54d1f]/20"
                     />
                   </div>
                 </div>
@@ -169,7 +169,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Start typing..."
-                    className="w-full rounded-xl border border-transparent bg-[#F8F9FA] py-3 pr-4 pl-11 text-sm font-medium text-gray-800 transition-all outline-none placeholder:text-gray-400 focus:border-[#46178F] focus:bg-white focus:ring-2 focus:ring-[#46178F]/20"
+                    className="w-full rounded-xl border border-transparent bg-[#F8F9FA] py-3 pr-4 pl-11 text-sm font-medium text-gray-800 transition-all outline-none placeholder:text-gray-400 focus:border-[#e54d1f] focus:bg-white focus:ring-2 focus:ring-[#e54d1f]/20"
                   />
                 </div>
               </div>
@@ -187,7 +187,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     minLength={!isLogin ? 6 : undefined}
-                    className="w-full rounded-xl border border-transparent bg-[#F8F9FA] py-3 pr-11 pl-11 text-sm font-medium text-gray-800 transition-all outline-none placeholder:text-gray-400 focus:border-[#46178F] focus:bg-white focus:ring-2 focus:ring-[#46178F]/20"
+                    className="w-full rounded-xl border border-transparent bg-[#F8F9FA] py-3 pr-11 pl-11 text-sm font-medium text-gray-800 transition-all outline-none placeholder:text-gray-400 focus:border-[#e54d1f] focus:bg-white focus:ring-2 focus:ring-[#e54d1f]/20"
                   />
                   <button
                     type="button"
@@ -208,7 +208,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
                 <div className="flex justify-end pt-1">
                   <Link
                     href="#"
-                    className="text-xs font-bold text-[#46178F] transition-colors hover:text-[#34116c]"
+                    className="text-xs font-bold text-[#e54d1f] transition-colors hover:text-[#34116c]"
                   >
                     Forgot password?
                   </Link>
@@ -218,7 +218,7 @@ export default function AuthContainer({ mode, apiUrl }: AuthContainerProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#46178F] px-4 py-3.5 text-sm font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.15)] transition-all hover:translate-y-[1px] hover:bg-[#34116c] hover:shadow-[0_3px_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#e54d1f] px-4 py-3.5 text-sm font-bold text-white shadow-[0_4px_0_rgba(0,0,0,0.15)] transition-all hover:translate-y-[1px] hover:bg-[#34116c] hover:shadow-[0_3px_0_rgba(0,0,0,0.15)] active:translate-y-[4px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading
                   ? isLogin

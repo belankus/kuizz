@@ -15,7 +15,7 @@ export default function HeroBanner() {
         </p>
       </div>
       <Link href="/dashboard/quizes?create=true">
-        <Button className="dark:bg-brand-500 dark:hover:bg-brand-600 rounded-full bg-[#46178f] px-6 py-5 font-semibold text-white shadow-sm transition-all hover:bg-[#3b127a] hover:shadow-lg hover:shadow-[#46178f]/20 dark:text-white/90">
+        <Button className="rounded-full bg-[#e54d1f] px-6 py-5 font-semibold text-white shadow-sm transition-all hover:bg-[#b23c18] hover:shadow-lg hover:shadow-[#e54d1f]/20 dark:bg-orange-500 dark:text-white/90 dark:hover:bg-orange-600">
           <Plus className="mr-2 h-5 w-5" />
           Create Your First Quiz
         </Button>

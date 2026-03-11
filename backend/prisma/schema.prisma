@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider     = "prisma-client"
   output       = "../src/generated/prisma"
@@ -20,37 +14,44 @@ enum Role {
 }
 
 model User {
-  id               String             @id @default(uuid())
-  email            String             @unique
-  name             String?
-  password         String?
-  role             Role               @default(USER)
-  provider         String?
-  providerId       String?
-  refreshToken     String?
-  avatar           Json?
-  quizzes          Quiz[]
-  gameHistory      GamePlayer[]       @relation("UserGameHistory")
-  collections      Collection[]       @relation("UserCollections")
+  id                String             @id @default(uuid())
+  email             String             @unique
+  name              String?
+  password          String?
+  role              Role               @default(USER)
+  provider          String?
+  providerId        String?
+  refreshToken      String?
+  avatar            Json?
+  quizzes           Quiz[]
+  questionBanks     QuestionBank[]
+  gameHistory       GamePlayer[]       @relation("UserGameHistory")
+  collections       Collection[]       @relation("UserCollections")
   collectionMembers CollectionMember[]
-  savedCollections SavedCollection[]
-  createdAt        DateTime           @default(now())
+  savedCollections  SavedCollection[]
+  createdAt         DateTime           @default(now())
 }
 
 model Quiz {
-  id           String           @id @default(uuid())
-  title        String
-  description  String?
-  status       QuizStatus       @default(DRAFT)
-  ownerId      String?
-  owner        User?            @relation(fields: [ownerId], references: [id])
-  questions    Question[]
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  isFavorite   Boolean          @default(false)
-  gameSessions GameSession[]    @relation("QuizToGameSessions") // relation to GameSession
-  
-  // Relations for Collections
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  ownerId     String
+  status      QuizStatus @default(DRAFT)
+  type        QuizType   @default(LIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id])
+
+  questions QuizQuestion[]
+
+  // Existing relations to preserve if possible
+  isFavorite   Boolean       @default(false)
+  gameSessions GameSession[] @relation("QuizToGameSessions")
+
+  // Relations for Collections (legacy but keeping for now to avoid breaking changes)
   templateItems CollectionItem[] @relation("QuizTemplate")
   bankItems     CollectionItem[] @relation("QuestionBank")
 }
@@ -60,23 +61,102 @@ enum QuizStatus {
   PUBLISHED
 }
 
-model Question {
-  id        String   @id @default(uuid())
-  quizId    String
-  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
-  text      String
-  timeLimit Int // seconds
-  order     Int
-  mediaUrl  String?
-  options   Option[]
+enum QuizType {
+  LIVE
+  TEMPLATE
 }
 
-model Option {
-  id         String   @id @default(uuid())
+model Question {
+  id         String       @id @default(cuid())
+  content    String
+  type       QuestionType
+  difficulty Difficulty?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  answers Answer[]
+
+  bankItems QuestionBankItem[]
+  quizItems QuizQuestion[]
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Answer {
+  id         String  @id @default(cuid())
   questionId String
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
   text       String
-  isCorrect  Boolean  @default(false)
+  isCorrect  Boolean
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model QuestionBank {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+
+  visibility BankVisibility @default(PRIVATE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id])
+
+  items QuestionBankItem[]
+}
+
+enum BankVisibility {
+  PRIVATE
+  SHARED
+  PUBLIC
+}
+
+model QuestionBankItem {
+  id         String @id @default(cuid())
+  bankId     String
+  questionId String
+
+  bank     QuestionBank @relation(fields: [bankId], references: [id], onDelete: Cascade)
+  question Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([bankId, questionId])
+}
+
+model QuizQuestion {
+  id         String @id @default(cuid())
+  quizId     String
+  questionId String
+
+  sourceType   QuestionSource
+  sourceBankId String?
+
+  position Int
+
+  quiz     Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([quizId, questionId])
+}
+
+enum QuestionSource {
+  MANUAL
+  BANK_COPY
+  BANK_REFERENCE
+  TEMPLATE
 }
 
 model GameSession {
@@ -154,22 +234,22 @@ enum CollectionMemberStatus {
 }
 
 model Collection {
-  id          String                 @id @default(uuid())
+  id          String               @id @default(uuid())
   title       String
   description String?
   coverImage  String?
-  visibility  CollectionVisibility   @default(PRIVATE)
-  itemsCount  Int                    @default(0)
-  viewsCount  Int                    @default(0)
-  createdAt   DateTime               @default(now())
-  updatedAt   DateTime               @updatedAt
+  visibility  CollectionVisibility @default(PRIVATE)
+  itemsCount  Int                  @default(0)
+  viewsCount  Int                  @default(0)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
 
-  ownerId     String
-  owner       User                   @relation("UserCollections", fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId String
+  owner   User   @relation("UserCollections", fields: [ownerId], references: [id], onDelete: Cascade)
 
-  items       CollectionItem[]
-  members     CollectionMember[]
-  savedBy     SavedCollection[]
+  items   CollectionItem[]
+  members CollectionMember[]
+  savedBy SavedCollection[]
 
   @@index([ownerId])
   @@index([visibility])
@@ -190,21 +270,21 @@ model CollectionMember {
 }
 
 model CollectionItem {
-  id           String              @id @default(uuid())
+  id           String             @id @default(uuid())
   collectionId String
-  collection   Collection          @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collection   Collection         @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   type         CollectionItemType
-  
-  // For QUIZ_TEMPLATE
-  quizId       String?
-  quiz         Quiz?               @relation("QuizTemplate", fields: [quizId], references: [id], onDelete: Cascade)
-  
-  // For QUESTION_BANK
-  bankId       String?
-  bank         Quiz?               @relation("QuestionBank", fields: [bankId], references: [id], onDelete: Cascade)
 
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
+  // For QUIZ_TEMPLATE
+  quizId String?
+  quiz   Quiz?   @relation("QuizTemplate", fields: [quizId], references: [id], onDelete: Cascade)
+
+  // For QUESTION_BANK
+  bankId String?
+  bank   Quiz?   @relation("QuestionBank", fields: [bankId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SavedCollection {

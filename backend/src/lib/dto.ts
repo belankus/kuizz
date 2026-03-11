@@ -1,11 +1,14 @@
+import { QuestionType, Difficulty } from '../generated/prisma/enums.js';
+
 export class CreateQuizDto {
   title: string;
   description?: string;
   status?: 'DRAFT' | 'PUBLISHED';
   questions: {
-    text: string;
-    timeLimit: number;
-    options: {
+    content: string;
+    type: QuestionType;
+    difficulty?: Difficulty;
+    answers: {
       text: string;
       isCorrect: boolean;
     }[];
@@ -17,9 +20,10 @@ export class UpdateQuizDto {
   description?: string;
   status?: 'DRAFT' | 'PUBLISHED';
   questions: {
-    text: string;
-    timeLimit: number;
-    options: {
+    content: string;
+    type: QuestionType;
+    difficulty?: Difficulty;
+    answers: {
       text: string;
       isCorrect: boolean;
     }[];

@@ -170,7 +170,7 @@ export default function ReportsPage() {
       <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Quizzes */}
         <div className="flex flex-col justify-between rounded-[20px] border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-900/50">
-          <div className="dark:bg-brand-500/20 dark:text-brand-400 mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#F3E8FF] text-[#46178f]">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#fff3eb] text-[#e54d1f] dark:bg-orange-500/20 dark:text-orange-400">
             <Gamepad2 size={24} />
           </div>
           <div>
@@ -251,7 +251,7 @@ export default function ReportsPage() {
           onClick={() => setActiveTab("HOSTED")}
           className={`border-b-2 px-6 py-3 text-sm font-bold tracking-wide transition-colors ${
             activeTab === "HOSTED"
-              ? "dark:border-brand-400 dark:text-brand-400 border-[#46178f] text-[#46178f]"
+              ? "border-[#e54d1f] text-[#e54d1f] dark:border-orange-400 dark:text-orange-400"
               : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           }`}
         >
@@ -261,7 +261,7 @@ export default function ReportsPage() {
           onClick={() => setActiveTab("PLAYED")}
           className={`border-b-2 px-6 py-3 text-sm font-bold tracking-wide transition-colors ${
             activeTab === "PLAYED"
-              ? "dark:border-brand-400 dark:text-brand-400 border-[#46178f] text-[#46178f]"
+              ? "border-[#e54d1f] text-[#e54d1f] dark:border-orange-400 dark:text-orange-400"
               : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           }`}
         >
@@ -282,7 +282,7 @@ export default function ReportsPage() {
                   <input
                     type="text"
                     placeholder="Search by title..."
-                    className="w-full rounded-full border-transparent bg-gray-50 px-5 py-2.5 text-sm text-gray-900 transition-all outline-none focus:border-gray-200 focus:bg-white focus:ring-4 focus:ring-[#46178f]/5 sm:w-80 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500 dark:focus:border-gray-700 dark:focus:bg-gray-900"
+                    className="w-full rounded-full border-transparent bg-gray-50 px-5 py-2.5 text-sm text-gray-900 transition-all outline-none focus:border-gray-200 focus:bg-white focus:ring-4 focus:ring-[#e54d1f]/5 sm:w-80 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-gray-500 dark:focus:border-gray-700 dark:focus:bg-gray-900"
                     value={search}
                     onChange={(e) => {
                       setSearch(e.target.value);
@@ -415,7 +415,7 @@ export default function ReportsPage() {
                                             session.status === "STARTED") &&
                                             session.roomCode && (
                                               <DropdownMenuItem
-                                                className="dark:text-brand-400 dark:focus:text-brand-300 font-medium text-[#46178f] dark:focus:bg-gray-800"
+                                                className="font-medium text-[#e54d1f] dark:text-orange-400 dark:focus:bg-gray-800 dark:focus:text-orange-300"
                                                 onSelect={() => {
                                                   localStorage.setItem(
                                                     "hostRoom",
@@ -514,7 +514,7 @@ export default function ReportsPage() {
                       </EmptyDescription>
                     </EmptyHeader>
                     <Button
-                      className="dark:bg-brand-500 dark:hover:bg-brand-600 mt-4 rounded-full bg-[#46178f] px-6 font-bold hover:bg-[#3b127a] dark:text-white/90"
+                      className="mt-4 rounded-full bg-[#e54d1f] px-6 font-bold hover:bg-[#b23c18] dark:bg-orange-500 dark:text-white/90 dark:hover:bg-orange-600"
                       asChild
                     >
                       <Link href="/join">
@@ -579,7 +579,7 @@ export default function ReportsPage() {
                                 <TableCell className="px-5 py-4 font-bold text-gray-700 dark:text-gray-300">
                                   {record.nickname}
                                 </TableCell>
-                                <TableCell className="dark:text-brand-400 px-5 py-4 text-lg font-black text-[#46178f]">
+                                <TableCell className="px-5 py-4 text-lg font-black text-[#e54d1f] dark:text-orange-400">
                                   {record.score.toLocaleString()}
                                 </TableCell>
                                 <TableCell className="px-5 py-4 font-medium whitespace-nowrap text-gray-500 dark:text-gray-400">

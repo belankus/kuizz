@@ -36,7 +36,7 @@ export function EmptyState({
         <Button
           onClick={onAction}
           variant="secondary"
-          className="rounded-full bg-[#f3e8ff] px-6 text-[#46178f] hover:bg-[#e9d5ff]"
+          className="rounded-full bg-[#fff3eb] px-6 text-[#e54d1f] hover:bg-[#e9d5ff]"
         >
           {actionText}
         </Button>

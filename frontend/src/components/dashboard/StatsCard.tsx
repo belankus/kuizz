@@ -28,7 +28,7 @@ export default function StatsCard({
         <span className="text-xs font-bold tracking-wider text-gray-500 uppercase dark:text-gray-400">
           {title}
         </span>
-        <div className="dark:bg-brand-500/20 dark:text-brand-400 flex h-10 w-10 items-center justify-center rounded-lg bg-[#f3e8ff] text-[#46178f]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#fff3eb] text-[#e54d1f] dark:bg-orange-500/20 dark:text-orange-400">
           <Icon size={20} />
         </div>
       </div>

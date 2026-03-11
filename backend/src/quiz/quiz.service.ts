@@ -4,14 +4,22 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
-import { Prisma, Quiz } from '../generated/prisma/client.js';
-import { CreateQuizDto, UpdateQuizDto } from 'src/lib/dto.js';
+import type { QuizModel } from '../generated/prisma/models/Quiz.js';
+import {
+  QuizStatus,
+  QuizType,
+  QuestionType,
+  Difficulty,
+  QuestionSource,
+} from '../generated/prisma/enums.js';
+import { CreateQuizDto, UpdateQuizDto } from '../lib/dto.js';
 import ExcelJS from 'exceljs';
 
 export interface AddQuestionDto {
-  text?: string;
-  timeLimit?: number;
-  options?: Array<{
+  content: string;
+  type: QuestionType;
+  difficulty?: Difficulty;
+  answers: Array<{
     text: string;
     isCorrect: boolean;
   }>;
@@ -23,11 +31,10 @@ export class QuizService {
 
   async findAll(ownerId: string) {
     return this.prisma.quiz.findMany({
-      where: { ownerId },
+      where: { ownerId, type: QuizType.LIVE },
       include: {
-        questions: true,
         _count: {
-          select: { gameSessions: true },
+          select: { questions: true, gameSessions: true },
         },
       },
       orderBy: {
@@ -42,10 +49,14 @@ export class QuizService {
       include: {
         questions: {
           include: {
-            options: true,
+            question: {
+              include: {
+                answers: true,
+              },
+            },
           },
           orderBy: {
-            order: 'asc',
+            position: 'asc',
           },
         },
       },
@@ -58,37 +69,61 @@ export class QuizService {
     return quiz;
   }
 
-  async createQuiz(data: CreateQuizDto, ownerId: string): Promise<Quiz> {
-    const status = data.status ?? 'DRAFT';
+  async createQuiz(data: CreateQuizDto, ownerId: string): Promise<QuizModel> {
+    const status = data.status ?? QuizStatus.DRAFT;
     const normalizedQuestions = this.normalizeAndValidateQuestions(
       data.questions ?? [],
       status,
     );
 
-    return this.prisma.quiz.create({
-      data: {
-        title: data.title,
-        description: data.description,
-        status,
-        ownerId,
-        questions: {
-          create: normalizedQuestions.map((q, index) => ({
-            text: q.text,
-            timeLimit: q.timeLimit,
-            order: index,
-            options: {
-              create: q.options,
-            },
-          })),
+    return this.prisma.$transaction(async (tx) => {
+      const quiz = await tx.quiz.create({
+        data: {
+          title: data.title,
+          description: data.description,
+          status,
+          ownerId,
+          type: QuizType.LIVE,
         },
-      },
-      include: {
-        questions: {
-          include: {
-            options: true,
+      });
+
+      for (let i = 0; i < normalizedQuestions.length; i++) {
+        const q = normalizedQuestions[i];
+        const question = await tx.question.create({
+          data: {
+            content: q.content,
+            type: q.type,
+            difficulty: q.difficulty,
+            answers: {
+              create: q.answers,
+            },
+          },
+        });
+
+        await tx.quizQuestion.create({
+          data: {
+            quizId: quiz.id,
+            questionId: question.id,
+            sourceType: QuestionSource.MANUAL,
+            position: i,
+          },
+        });
+      }
+
+      return tx.quiz.findUnique({
+        where: { id: quiz.id },
+        include: {
+          questions: {
+            include: {
+              question: {
+                include: {
+                  answers: true,
+                },
+              },
+            },
           },
         },
-      },
+      }) as Promise<QuizModel>;
     });
   }
 
@@ -101,15 +136,13 @@ export class QuizService {
       throw new NotFoundException('Quiz not found');
     }
 
-    const status = body.status ?? 'DRAFT';
+    const status = body.status ?? QuizStatus.DRAFT;
     const normalizedQuestions = this.normalizeAndValidateQuestions(
       body.questions ?? [],
       status,
     );
 
-    // transaction biar atomic
     return this.prisma.$transaction(async (tx) => {
-      // update basic info
       await tx.quiz.update({
         where: { id },
         data: {
@@ -119,24 +152,50 @@ export class QuizService {
         },
       });
 
-      // delete all existing questions (cascade options)
-      await tx.question.deleteMany({
+      // Simple implementation: delete all current QuizQuestion and Question records
+      // and recreate them. (Or we could optimize by diffing)
+      const currentQuestions = await tx.quizQuestion.findMany({
         where: { quizId: id },
       });
 
-      // recreate questions
+      await tx.quizQuestion.deleteMany({
+        where: { quizId: id },
+      });
+
+      // Optionally delete the detached questions if they aren't referenced elsewhere (like in a bank)
+      for (const cq of currentQuestions) {
+        // Only delete if it's not a reference to a bank or if it's not shared
+        // For simplicity in the initial upgrade, we delete MANUAL questions.
+        if (
+          cq.sourceType === QuestionSource.MANUAL ||
+          cq.sourceType === QuestionSource.BANK_COPY
+        ) {
+          // We might want to check if it's still used elsewhere, but for now we follow old behavior
+          await tx.question
+            .delete({ where: { id: cq.questionId } })
+            .catch(() => {});
+        }
+      }
+
       for (let i = 0; i < normalizedQuestions.length; i++) {
         const q = normalizedQuestions[i];
+        const question = await tx.question.create({
+          data: {
+            content: q.content,
+            type: q.type,
+            difficulty: q.difficulty,
+            answers: {
+              create: q.answers,
+            },
+          },
+        });
 
-        await tx.question.create({
+        await tx.quizQuestion.create({
           data: {
             quizId: id,
-            text: q.text,
-            timeLimit: q.timeLimit,
-            order: i,
-            options: {
-              create: q.options,
-            },
+            questionId: question.id,
+            sourceType: QuestionSource.MANUAL,
+            position: i,
           },
         });
       }
@@ -162,49 +221,58 @@ export class QuizService {
   }
 
   async cloneQuiz(id: string, ownerId: string) {
-    const original = await this.prisma.quiz.findUnique({
-      where: { id },
-      include: {
-        questions: {
-          include: {
-            options: true,
-          },
+    const original = await this.findOne(id);
+
+    return this.prisma.$transaction(async (tx) => {
+      const quiz = await tx.quiz.create({
+        data: {
+          title: `${original.title} (Clone)`,
+          description: original.description,
+          status: QuizStatus.DRAFT,
+          ownerId,
+          type: QuizType.LIVE,
         },
-      },
-    });
+      });
 
-    if (!original) {
-      throw new NotFoundException('Quiz not found');
-    }
-
-    return this.prisma.quiz.create({
-      data: {
-        title: `${original.title} (Clone)`,
-        description: original.description,
-        status: 'DRAFT',
-        ownerId,
-        questions: {
-          create: original.questions.map((q) => ({
-            text: q.text,
-            timeLimit: q.timeLimit,
-            order: q.order,
-            mediaUrl: q.mediaUrl,
-            options: {
-              create: q.options.map((o) => ({
-                text: o.text,
-                isCorrect: o.isCorrect,
+      for (const qq of original.questions) {
+        const newQuestion = await tx.question.create({
+          data: {
+            content: qq.question.content,
+            type: qq.question.type,
+            difficulty: qq.question.difficulty,
+            answers: {
+              create: qq.question.answers.map((a) => ({
+                text: a.text,
+                isCorrect: a.isCorrect,
               })),
             },
-          })),
-        },
-      },
-      include: {
-        questions: {
-          include: {
-            options: true,
+          },
+        });
+
+        await tx.quizQuestion.create({
+          data: {
+            quizId: quiz.id,
+            questionId: newQuestion.id,
+            sourceType: QuestionSource.MANUAL,
+            position: qq.position,
+          },
+        });
+      }
+
+      return tx.quiz.findUnique({
+        where: { id: quiz.id },
+        include: {
+          questions: {
+            include: {
+              question: {
+                include: {
+                  answers: true,
+                },
+              },
+            },
           },
         },
-      },
+      }) as Promise<QuizModel>;
     });
   }
 
@@ -230,8 +298,12 @@ export class QuizService {
       where: { id },
       include: {
         questions: {
-          include: { options: true },
-          orderBy: { order: 'asc' },
+          include: {
+            question: {
+              include: { answers: true },
+            },
+          },
+          orderBy: { position: 'asc' },
         },
       },
     });
@@ -243,34 +315,35 @@ export class QuizService {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('Quiz');
 
-    const maxOptions = Math.max(
+    const maxAnswers = Math.max(
       4,
-      ...quiz.questions.map((q) => q.options.length),
+      ...quiz.questions.map((q) => q.question.answers.length),
     );
 
-    const header = ['Question', 'TimeLimit'];
+    const header = ['Question', 'Type', 'Difficulty'];
 
-    for (let i = 1; i <= maxOptions; i++) {
-      header.push(`Option${i}`);
+    for (let i = 1; i <= maxAnswers; i++) {
+      header.push(`Answer${i}`);
     }
 
     header.push('Correct');
 
     sheet.addRow(header);
 
-    for (const question of quiz.questions) {
-      const row: (string | number)[] = [question.text, question.timeLimit];
+    for (const qq of quiz.questions) {
+      const q = qq.question;
+      const row: (string | number)[] = [q.content, q.type, q.difficulty || ''];
 
-      question.options.forEach((option) => {
-        row.push(option.text);
+      q.answers.forEach((answer) => {
+        row.push(answer.text);
       });
 
-      // pad kosong kalau kurang dari maxOptions
-      for (let i = question.options.length; i < maxOptions; i++) {
+      // pad kosong kalau kurang dari maxAnswers
+      for (let i = q.answers.length; i < maxAnswers; i++) {
         row.push('');
       }
 
-      const correctIndexes = question.options
+      const correctIndexes = q.answers
         .map((opt, index) => (opt.isCorrect ? index + 1 : null))
         .filter(Boolean)
         .join(',');
@@ -296,7 +369,7 @@ export class QuizService {
     const headerRow = worksheet.getRow(1);
     const headers = headerRow.values as string[];
 
-    const optionStartIndex = 3;
+    const answerStartIndex = 4;
     const correctIndex = headers.findIndex(
       (h) => h?.toString().toLowerCase() === 'correct',
     );
@@ -305,77 +378,65 @@ export class QuizService {
       throw new BadRequestException('Correct column not found');
     }
 
-    const questions: {
-      text: string;
-      timeLimit: number;
-      options: Prisma.OptionCreateWithoutQuestionInput[];
-    }[] = [];
-
+    const questions: Array<{
+      content: string;
+      type: QuestionType;
+      difficulty?: Difficulty;
+      answers: Array<{ text: string; isCorrect: boolean }>;
+    }> = [];
     const errors: string[] = [];
 
     for (let i = 2; i <= worksheet.rowCount; i++) {
       const row = worksheet.getRow(i);
 
-      const questionText = row.getCell(1).text.trim();
-      const rawTimeLimit = row.getCell(2).value;
-      const timeLimit = Number(rawTimeLimit) || 20;
+      const content = row.getCell(1).text.trim();
+      const type = (row.getCell(2).text.trim() ||
+        QuestionType.MULTIPLE_CHOICE) as QuestionType;
+      const difficulty = (row.getCell(3).text.trim() ||
+        undefined) as Difficulty;
 
-      if (!questionText) {
-        errors.push(`Row ${i}: Question text is required`);
+      if (!content) {
+        errors.push(`Row ${i}: Question content is required`);
         continue;
       }
 
-      if (timeLimit < 5 || timeLimit > 300) {
-        errors.push(`Row ${i}: TimeLimit must be between 5 and 300`);
-      }
+      const answers: { text: string; isCorrect: boolean }[] = [];
 
-      const options: Prisma.OptionCreateWithoutQuestionInput[] = [];
-
-      for (let col = optionStartIndex; col < correctIndex; col++) {
+      for (let col = answerStartIndex; col < correctIndex; col++) {
         const value = row.getCell(col).text.trim();
         if (value) {
-          options.push({
+          answers.push({
             text: value,
             isCorrect: false,
           });
         }
       }
 
-      if (options.length < 2) {
-        errors.push(`Row ${i}: Minimum 2 options required`);
+      if (answers.length < 2 && type !== QuestionType.ESSAY) {
+        errors.push(
+          `Row ${i}: Minimum 2 answers required for this question type`,
+        );
         continue;
-      }
-
-      if (options.length > 8) {
-        errors.push(`Row ${i}: Maximum 8 options allowed`);
       }
 
       const correctRaw = row.getCell(correctIndex).text.trim();
 
-      if (!correctRaw) {
-        errors.push(`Row ${i}: Correct column required`);
-        continue;
-      }
-
-      const correctIndexes = correctRaw.split(',').map((v) => Number(v.trim()));
-
-      for (const index of correctIndexes) {
-        if (!index || index < 1 || index > options.length) {
-          errors.push(`Row ${i}: Correct index "${index}" out of range`);
-        } else {
-          options[index - 1].isCorrect = true;
+      if (correctRaw && type !== QuestionType.ESSAY) {
+        const correctIndexes = correctRaw
+          .split(',')
+          .map((v) => Number(v.trim()));
+        for (const index of correctIndexes) {
+          if (index >= 1 && index <= answers.length) {
+            answers[index - 1].isCorrect = true;
+          }
         }
       }
 
-      if (!options.some((o) => o.isCorrect)) {
-        errors.push(`Row ${i}: At least 1 correct answer required`);
-        continue;
-      }
-
       questions.push({
-        text: questionText,
-        timeLimit,
-        options,
+        content,
+        type,
+        difficulty,
+        answers,
       });
     }
 
@@ -386,28 +447,38 @@ export class QuizService {
       });
     }
 
-    if (!questions.length) {
-      throw new BadRequestException('No valid questions found');
-    }
-
     return this.prisma.$transaction(async (tx) => {
       const quiz = await tx.quiz.create({
         data: {
           title: 'Imported Quiz',
           ownerId,
-          questions: {
-            create: questions.map((q, index) => ({
-              text: q.text,
-              timeLimit: q.timeLimit,
-              order: index,
-              options: {
-                create: q.options,
-              },
-            })),
-          },
+          type: QuizType.LIVE,
+          status: QuizStatus.DRAFT,
         },
-        include: { questions: true },
       });
+
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        const question = await tx.question.create({
+          data: {
+            content: q.content,
+            type: q.type,
+            difficulty: q.difficulty,
+            answers: {
+              create: q.answers,
+            },
+          },
+        });
+
+        await tx.quizQuestion.create({
+          data: {
+            quizId: quiz.id,
+            questionId: question.id,
+            sourceType: QuestionSource.MANUAL,
+            position: i,
+          },
+        });
+      }
 
       return quiz;
     });
@@ -416,111 +487,131 @@ export class QuizService {
   async addQuestion(quizId: string, data: AddQuestionDto) {
     const quiz = await this.prisma.quiz.findUnique({
       where: { id: quizId },
-      include: { questions: true },
+      include: {
+        _count: { select: { questions: true } },
+      },
     });
     if (!quiz) throw new NotFoundException('Quiz not found');
 
-    const order = quiz.questions.length;
-    return this.prisma.question.create({
-      data: {
-        quizId,
-        text: data.text || 'New Question',
-        timeLimit: data.timeLimit || 20,
-        order,
-        options: {
-          create: data.options || [
-            { text: 'Option 1', isCorrect: true },
-            { text: 'Option 2', isCorrect: false },
-          ],
+    const position = quiz._count.questions;
+
+    return this.prisma.$transaction(async (tx) => {
+      const question = await tx.question.create({
+        data: {
+          content: data.content || 'New Question',
+          type: data.type || QuestionType.MULTIPLE_CHOICE,
+          difficulty: data.difficulty,
+          answers: {
+            create: data.answers || [
+              { text: 'Option 1', isCorrect: true },
+              { text: 'Option 2', isCorrect: false },
+            ],
+          },
         },
-      },
-      include: { options: true },
+        include: { answers: true },
+      });
+
+      await tx.quizQuestion.create({
+        data: {
+          quizId,
+          questionId: question.id,
+          sourceType: QuestionSource.MANUAL,
+          position,
+        },
+      });
+
+      return question;
     });
   }
 
   async removeQuestion(quizId: string, questionId: string) {
-    // Ensure question belongs to quiz
-    const question = await this.prisma.question.findFirst({
-      where: { id: questionId, quizId },
+    const qq = await this.prisma.quizQuestion.findFirst({
+      where: { quizId, questionId },
     });
-    if (!question)
-      throw new NotFoundException('Question not found in this quiz');
+    if (!qq) throw new NotFoundException('Question not found in this quiz');
 
-    return this.prisma.question.delete({
-      where: { id: questionId },
+    return this.prisma.$transaction(async (tx) => {
+      await tx.quizQuestion.delete({
+        where: { id: qq.id },
+      });
+
+      // Optionally delete the question if it's manual and not used elsewhere
+      if (qq.sourceType === QuestionSource.MANUAL) {
+        await tx.question.delete({ where: { id: questionId } }).catch(() => {});
+      }
     });
   }
 
   private normalizeAndValidateQuestions(
-    questions: NonNullable<CreateQuizDto['questions']>,
-    status: 'DRAFT' | 'PUBLISHED',
-  ) {
+    questions: any[],
+    status: QuizStatus,
+  ): Array<{
+    content: string;
+    type: QuestionType;
+    difficulty?: Difficulty;
+    answers: Array<{ text: string; isCorrect: boolean }>;
+  }> {
     if (!Array.isArray(questions)) {
-      if (status === 'PUBLISHED') {
+      if (status === QuizStatus.PUBLISHED) {
         throw new BadRequestException('At least 1 question is required');
       }
       return [];
     }
 
-    if (status === 'PUBLISHED' && questions.length === 0) {
+    if (status === QuizStatus.PUBLISHED && questions.length === 0) {
       throw new BadRequestException('At least 1 question is required');
     }
 
-    return questions.map((q, qIndex) => {
-      const isPublished = status === 'PUBLISHED';
-      const text = q.text ? q.text.trim() : '';
+    return (questions as Array<Record<string, any>>).map((q, qIndex) => {
+      const isPublished = status === QuizStatus.PUBLISHED;
+      const content = typeof q.content === 'string' ? q.content.trim() : '';
 
-      if (isPublished && !text) {
+      if (isPublished && !content) {
         throw new BadRequestException(
-          `Question ${qIndex + 1}: Text is required`,
+          `Question ${qIndex + 1}: Content is required`,
         );
       }
 
-      const timeLimit =
-        Number(q.timeLimit) >= 5 && Number(q.timeLimit) <= 300
-          ? Number(q.timeLimit)
-          : 20;
+      const type = (q.type as QuestionType) || QuestionType.MULTIPLE_CHOICE;
+      const difficulty = q.difficulty as Difficulty;
 
-      const mappedOptions = Array.isArray(q.options)
-        ? q.options.map((o) => ({
-            text: o.text ? o.text.trim() : '',
-            isCorrect: Boolean(o.isCorrect),
+      const mappedAnswers = Array.isArray(q.answers)
+        ? (q.answers as Array<Record<string, any>>).map((a) => ({
+            text: typeof a.text === 'string' ? a.text.trim() : '',
+            isCorrect: Boolean(a.isCorrect),
           }))
         : [];
 
       if (isPublished) {
-        const strictOptions = mappedOptions.filter((o) => o.text !== '');
+        const strictAnswers = mappedAnswers.filter((a) => a.text !== '');
 
-        if (strictOptions.length < 2) {
-          throw new BadRequestException(
-            `Question ${qIndex + 1}: Minimum 2 options required`,
-          );
-        }
+        if (type !== QuestionType.ESSAY && type !== QuestionType.SHORT_ANSWER) {
+          if (strictAnswers.length < 2) {
+            throw new BadRequestException(
+              `Question ${qIndex + 1}: Minimum 2 answers required`,
+            );
+          }
 
-        if (!strictOptions.some((o) => o.isCorrect)) {
-          throw new BadRequestException(
-            `Question ${qIndex + 1}: At least 1 correct answer required`,
-          );
-        }
-
-        if (strictOptions.length > 8) {
-          throw new BadRequestException(
-            `Question ${qIndex + 1}: Maximum 8 options allowed`,
-          );
+          if (!strictAnswers.some((a) => a.isCorrect)) {
+            throw new BadRequestException(
+              `Question ${qIndex + 1}: At least 1 correct answer required`,
+            );
+          }
         }
 
         return {
-          text,
-          timeLimit,
-          options: strictOptions,
+          content,
+          type,
+          difficulty,
+          answers: strictAnswers,
         };
       }
 
-      // For draft, allow any options as they are
       return {
-        text,
-        timeLimit,
-        options: mappedOptions,
+        content,
+        type,
+        difficulty,
+        answers: mappedAnswers,
       };
     });
   }

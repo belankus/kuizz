@@ -82,7 +82,7 @@ export default function GamesActivity() {
           <Link href="/dashboard/quizes">
             <Button
               variant="outline"
-              className="dark:border-brand-400 dark:text-brand-400 dark:hover:bg-brand-500/20 rounded-full border-[#46178f] text-[#46178f] hover:bg-[#f3e8ff]"
+              className="rounded-full border-[#e54d1f] text-[#e54d1f] hover:bg-[#fff3eb] dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-500/20"
             >
               Host Game
             </Button>

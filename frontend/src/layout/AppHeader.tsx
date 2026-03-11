@@ -83,7 +83,7 @@ const AppHeader: React.FC = () => {
                 ref={inputRef}
                 type="text"
                 placeholder="Search quizzes, collections, players... ⌘K"
-                className="h-11 w-full rounded-full border-transparent bg-gray-50 pr-4 pl-11 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-gray-200 focus:bg-white focus:ring-4 focus:ring-[#46178f]/5 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-gray-700 dark:focus:bg-gray-900"
+                className="h-11 w-full rounded-full border-transparent bg-gray-50 pr-4 pl-11 text-sm text-gray-900 transition-all outline-none placeholder:text-gray-400 focus:border-gray-200 focus:bg-white focus:ring-4 focus:ring-[#e54d1f]/5 dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500 dark:focus:border-gray-700 dark:focus:bg-gray-900"
               />
             </div>
           </form>
@@ -99,7 +99,7 @@ const AppHeader: React.FC = () => {
 
           {/* Create Quiz Button */}
           <Link href="/dashboard/create">
-            <Button className="rounded-full bg-[#46178f] px-6 font-semibold text-white shadow-sm transition-all hover:bg-[#3b127a] hover:shadow-lg hover:shadow-[#46178f]/20">
+            <Button className="rounded-full bg-[#e54d1f] px-6 font-semibold text-white shadow-sm transition-all hover:bg-[#b23c18] hover:shadow-lg hover:shadow-[#e54d1f]/20">
               Create Quiz
             </Button>
           </Link>

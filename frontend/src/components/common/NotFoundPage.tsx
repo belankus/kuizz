@@ -29,7 +29,7 @@ const NotFoundPage: React.FC<NotFoundPageProps> = ({
             width={32}
             height={32}
           />
-          <span className="text-xl font-bold tracking-tight text-[#46178f]">
+          <span className="text-xl font-bold tracking-tight text-[#e54d1f]">
             Kuizz Global
           </span>
         </div>

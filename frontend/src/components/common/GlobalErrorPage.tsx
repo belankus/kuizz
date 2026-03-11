@@ -62,7 +62,7 @@ const GlobalErrorPage: React.FC<GlobalErrorPageProps> = ({
             width={32}
             height={32}
           />
-          <span className="text-xl font-bold tracking-tight text-[#46178f]">
+          <span className="text-xl font-bold tracking-tight text-[#e54d1f]">
             Kuizz Global
           </span>
         </div>
@@ -215,7 +215,7 @@ const GlobalErrorPage: React.FC<GlobalErrorPageProps> = ({
                         </div>
                         <button
                           onClick={handleCopyTraceId}
-                          className="flex items-center gap-2 rounded-lg border border-purple-100 bg-[#FAF5FF] px-3 py-2 text-xs font-bold tracking-wider text-[#A855F7] uppercase transition-colors hover:bg-[#F3E8FF]"
+                          className="flex items-center gap-2 rounded-lg border border-purple-100 bg-[#FAF5FF] px-3 py-2 text-xs font-bold tracking-wider text-[#A855F7] uppercase transition-colors hover:bg-[#fff3eb]"
                         >
                           {isCopied ? <Check size={14} /> : <Copy size={14} />}
                           {isCopied ? "Copied" : "Copy"}

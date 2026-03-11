@@ -11,6 +11,8 @@ import { DashboardModule } from './dashboard/dashboard.module.js';
 import { PingModule } from './ping/ping.module.js';
 import { CollectionsModule } from './collections/collections.module.js';
 import { CollectionItemsModule } from './collection-items/collection-items.module.js';
+import { QuestionBanksModule } from './question-banks/question-banks.module.js';
+import { TemplatesModule } from './templates/templates.module.js';
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { CollectionItemsModule } from './collection-items/collection-items.modul
     DashboardModule,
     CollectionsModule,
     CollectionItemsModule,
+    QuestionBanksModule,
+    TemplatesModule,
   ],
 })
 export class AppModule {}

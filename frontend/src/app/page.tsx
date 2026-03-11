@@ -40,7 +40,7 @@ export default function LandingPage() {
         dangerouslySetInnerHTML={{
           __html: `
         .kuizz-landing {
-            --primary: #46178F;
+            --primary: #e54d1f;
             --secondary: #1368CE;
             --accent: #FFC000;
             --accent-hover: #e0a800;

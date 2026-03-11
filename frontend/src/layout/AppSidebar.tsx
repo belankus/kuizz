@@ -19,6 +19,8 @@ import {
   ChevronDownIcon,
   Download,
   Gamepad2,
+  Database,
+  Layout,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -61,6 +63,16 @@ const navGroups: NavGroup[] = [
         icon: <Download size={20} />,
         name: "Import",
         path: "/dashboard/import",
+      },
+      {
+        icon: <Database size={20} />,
+        name: "Question Banks",
+        path: "/dashboard/question-banks",
+      },
+      {
+        icon: <Layout size={20} />,
+        name: "Templates",
+        path: "/dashboard/templates",
       },
     ],
   },
@@ -172,14 +184,14 @@ const AppSidebar: React.FC = () => {
               href={nav.path}
               className={`flex items-center gap-3 rounded-xl px-4 py-2.5 transition-colors ${
                 isActive(nav.path)
-                  ? "dark:bg-brand-500/20 dark:text-brand-400 bg-[#F3E8FF] font-semibold text-[#46178f]"
+                  ? "bg-[#fff3eb] font-semibold text-[#e54d1f] dark:bg-orange-500/20 dark:text-orange-400"
                   : "font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white/90"
               }`}
             >
               <span
                 className={
                   isActive(nav.path)
-                    ? "dark:text-brand-400 text-[#46178f]"
+                    ? "text-[#e54d1f] dark:text-orange-400"
                     : "text-gray-500 dark:text-gray-400"
                 }
               >
@@ -219,7 +231,7 @@ const AppSidebar: React.FC = () => {
                 width={32}
                 height={32}
               />
-              <span className="dark:text-brand-400 text-2xl font-bold tracking-tight text-[#46178f]">
+              <span className="text-2xl font-bold tracking-tight text-[#e54d1f] dark:text-orange-400">
                 Kuizz
               </span>
             </div>
@@ -272,7 +284,7 @@ const AppSidebar: React.FC = () => {
             {avatar ? (
               <Avatar config={avatar} size={40} />
             ) : (
-              <span className="dark:bg-brand-500 flex h-full w-full items-center justify-center bg-[#46178f] text-sm font-semibold text-white">
+              <span className="flex h-full w-full items-center justify-center bg-[#e54d1f] text-sm font-semibold text-white dark:bg-orange-500">
                 {initials}
               </span>
             )}
@@ -314,7 +326,7 @@ const AppSidebar: React.FC = () => {
               {avatar ? (
                 <Avatar config={avatar} size={40} />
               ) : (
-                <span className="dark:bg-brand-500 flex h-full w-full items-center justify-center bg-[#46178f] text-sm font-semibold text-white">
+                <span className="flex h-full w-full items-center justify-center bg-[#e54d1f] text-sm font-semibold text-white dark:bg-orange-500">
                   {initials}
                 </span>
               )}

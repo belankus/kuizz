@@ -50,7 +50,9 @@
     "swiper": "^11.2.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^4.0.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

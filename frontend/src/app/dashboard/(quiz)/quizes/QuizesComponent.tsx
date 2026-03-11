@@ -23,6 +23,8 @@ import { toast } from "sonner";
 import { socket } from "@/lib/socket";
 import { apiFetch, getAccessToken, getUser } from "@/lib/auth";
 import { CollectionItemCard } from "@/components/collections/CollectionItemCard";
+import CreateQuizModal from "@/components/quiz-editor/CreateQuizModal";
+import { useSearchParams } from "next/navigation";
 
 type Quiz = {
   id: string;
@@ -33,9 +35,9 @@ type Quiz = {
   isFavorite: boolean;
   _count: {
     gameSessions: number;
+    questions: number;
   };
   ownerId: string;
-  questions: { id: string }[];
 };
 
 export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
@@ -47,6 +49,16 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
   const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState("All Quizzes");
   const [activeSort, setActiveSort] = useState("Most Recent");
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("create") === "true") {
+      setCreateModalOpen(true);
+      // Clean up the URL
+      window.history.replaceState({}, "", "/dashboard/quizes");
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     apiFetch(`/quiz`)
@@ -185,7 +197,7 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
     if (isOwner) {
       menuActions.push({
         label: "Edit",
-        onClick: () => router.push(`/dashboard/quiz/${quiz.id}`),
+        onClick: () => router.push(`/dashboard/quiz/${quiz.id}/edit`),
       });
     }
 
@@ -218,17 +230,17 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
         id={quiz.id}
         title={quiz.title}
         type={isPublished ? "PUBLISHED" : "DRAFT"}
-        questionsCount={quiz.questions.length}
+        questionsCount={quiz._count.questions}
         updatedAt={timeAgo}
         primaryActionLabel={isPublished ? "Host Live" : "Continue Editing"}
         onPrimaryAction={() =>
           isPublished
             ? handleStartGame(quiz.id)
-            : router.push(`/dashboard/quiz/${quiz.id}`)
+            : router.push(`/dashboard/quiz/${quiz.id}/edit`)
         }
         secondaryActionLabel={null} // Don't show secondary button inside My Quizzes (cleaner)
         menuActions={menuActions}
-        onClick={() => router.push(`/dashboard/quiz/${quiz.id}`)}
+        onClick={() => router.push(`/dashboard/quiz/${quiz.id}/edit`)}
       />
     );
   };
@@ -285,7 +297,7 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
                     onClick={() => setActiveSort(sortOption)}
                     className={
                       activeSort === sortOption
-                        ? "font-bold text-[#46178f]"
+                        ? "font-bold text-[#e54d1f]"
                         : ""
                     }
                   >
@@ -302,10 +314,10 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
       <div className="xxl:grid-cols-5 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {/* Create New Card (Always visible) */}
         <div
-          onClick={() => router.push("/dashboard/create")}
-          className="group dark:hover:border-brand-500/50 flex h-[380px] cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-gray-200 bg-white/50 p-8 transition-all hover:border-[#46178f]/30 hover:bg-white hover:shadow-sm dark:border-gray-800 dark:bg-gray-900/50 dark:hover:bg-gray-800"
+          onClick={() => setCreateModalOpen(true)}
+          className="group flex h-[380px] cursor-pointer flex-col items-center justify-center rounded-[20px] border-2 border-dashed border-gray-200 bg-white/50 p-8 transition-all hover:border-[#e54d1f]/30 hover:bg-white hover:shadow-sm dark:border-gray-800 dark:bg-gray-900/50 dark:hover:border-orange-500/50 dark:hover:bg-gray-800"
         >
-          <div className="dark:text-brand-400 dark:group-hover:bg-brand-500 mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#46178f] shadow-sm transition-all group-hover:scale-110 group-hover:bg-[#46178f] group-hover:text-white dark:bg-gray-800 dark:group-hover:text-white">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#e54d1f] shadow-sm transition-all group-hover:scale-110 group-hover:bg-[#e54d1f] group-hover:text-white dark:bg-gray-800 dark:text-orange-400 dark:group-hover:bg-orange-500 dark:group-hover:text-white">
             <Plus size={32} />
           </div>
           <h3 className="mb-2 text-center text-xl font-bold text-gray-900 dark:text-white/90">
@@ -351,6 +363,11 @@ export default function QuizesComponent({ apiUrl }: { apiUrl: string }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <CreateQuizModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+      />
     </div>
   );
 }

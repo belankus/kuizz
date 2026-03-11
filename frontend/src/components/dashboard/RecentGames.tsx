@@ -67,7 +67,7 @@ export default function RecentGames() {
         </h2>
         <Link
           href="/dashboard/quizes"
-          className="dark:text-brand-400 text-sm font-semibold text-[#46178f] hover:underline"
+          className="text-sm font-semibold text-[#e54d1f] hover:underline dark:text-orange-400"
         >
           View all
         </Link>

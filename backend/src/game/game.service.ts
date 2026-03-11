@@ -63,8 +63,12 @@ export class GameService {
       where: { id: quizId },
       include: {
         questions: {
-          include: { options: true },
-          orderBy: { order: 'asc' },
+          include: {
+            question: {
+              include: { answers: true },
+            },
+          },
+          orderBy: { position: 'asc' },
         },
       },
     });
@@ -73,17 +77,18 @@ export class GameService {
 
     // 🔥 SNAPSHOT QUESTIONS
     const snapshotQuestions: SnapshotQuestion[] = quiz.questions.map((q) => {
-      const correctOptions = q.options.filter((o) => o.isCorrect);
+      const question = q.question;
+      const correctOptions = question.answers.filter((o) => o.isCorrect);
 
       if (correctOptions.length === 0) {
-        throw new Error(`Question "${q.text}" has no correct option`);
+        throw new Error(`Question "${question.content}" has no correct option`);
       }
 
       return {
-        id: q.id,
-        question: q.text,
-        timeLimit: q.timeLimit,
-        options: q.options.map((o) => ({
+        id: question.id,
+        question: question.content,
+        timeLimit: 30, // Default time limit if not in schema yet
+        options: question.answers.map((o) => ({
           id: o.id,
           text: o.text,
         })),

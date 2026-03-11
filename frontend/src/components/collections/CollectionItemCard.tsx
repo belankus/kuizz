@@ -151,7 +151,7 @@ export function CollectionItemCard({
                 e.stopPropagation();
                 onPrimaryAction?.();
               }}
-              className="dark:bg-brand-500 dark:hover:bg-brand-600 h-10 flex-1 rounded-[10px] bg-[#46178f] text-sm font-semibold text-white shadow-sm hover:bg-[#3b127a]"
+              className="h-10 flex-1 rounded-[10px] bg-[#e54d1f] text-sm font-semibold text-white shadow-sm hover:bg-[#b23c18] dark:bg-orange-500 dark:hover:bg-orange-600"
               size="sm"
             >
               {primaryActionLabel}

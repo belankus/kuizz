@@ -74,7 +74,7 @@ export default function UserDropdown() {
           {avatar ? (
             <Avatar config={avatar} size={44} />
           ) : (
-            <span className="bg-brand-500 flex h-full w-full items-center justify-center text-sm font-semibold text-white">
+            <span className="flex h-full w-full items-center justify-center bg-orange-500 text-sm font-semibold text-white">
               {initials}
             </span>
           )}
@@ -112,7 +112,7 @@ export default function UserDropdown() {
             {avatar ? (
               <Avatar config={avatar} size={40} />
             ) : (
-              <span className="bg-brand-500 flex h-10 w-10 items-center justify-center text-sm font-semibold text-white">
+              <span className="flex h-10 w-10 items-center justify-center bg-orange-500 text-sm font-semibold text-white">
                 {initials}
               </span>
             )}
