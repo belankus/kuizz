@@ -1,0 +1,92 @@
+---
+title: Quick Start
+description: Get Kuizz up and running on your local machine.
+---
+
+# Quick Start
+
+## Overview
+
+Get Kuizz up and running on your local machine for development or testing.
+
+## How It Works
+
+Kuizz uses a monorepo structure managed by PNPM. You can run the entire stack using Docker for dependencies and local processes for development, or use Docker Compose for the full stack.
+
+## Prerequisites
+
+-   **Node.js**: v20 or later
+-   **PNPM**: v9 or later (recommended)
+-   **Docker & Docker Compose**: For running PostgreSQL, Redis, and the logging stack.
+
+## Steps to Get Started
+
+### 1. Clone & Install
+
+```bash
+git clone https://github.com/your-repo/kuizz.git
+cd kuizz
+pnpm install
+```
+
+### 2. Environment Setup
+
+Copy the environment example files in both frontend and backend directories.
+
+```bash
+# Backend
+cp backend/.env.example backend/.env
+
+# Frontend
+cp frontend/.env.example frontend/.env
+```
+
+> [!NOTE]
+> Make sure to update the `JWT_SECRET` and OAuth credentials in the `.env` files if you plan to use authentication.
+
+### 3. Start Infrastructure
+
+Run the required services (PostgreSQL, Redis) using Docker:
+
+```bash
+docker-compose up -d postgres redis
+```
+
+### 4. Database Setup
+
+Run Prisma migrations to set up your database schema:
+
+```bash
+cd backend
+pnpm prisma migrate dev
+```
+
+### 5. Run Development Servers
+
+Use Turbo to start both the frontend and backend simultaneously:
+
+```bash
+# From the root directory
+pnpm dev
+```
+
+Alternatively, run them separately:
+- **Frontend**: `cd frontend && pnpm dev` (Runs on `http://localhost:3000`)
+- **Backend**: `cd backend && pnpm run start:dev` (Runs on `http://localhost:3001`)
+- **Documentation**: `cd docs && pnpm dev` (Runs on `http://localhost:3002`)
+
+## Key Components
+
+-   **PostgreSQL**: Primary database.
+-   **Redis**: Real-time message broker and cache.
+-   **Loki / Promtail**: Centralized logging system (if running full stack).
+
+## Code References
+
+-   **Docker Configuration**: `docker-compose.yml`
+-   **Main Scripts**: `package.json`
+-   **Turbo Config**: `turbo.json`
+
+## Notes
+
+If you encounter issues with `pnpm`, ensure you have sourced your Node version manager (e.g., `source ~/.nvm/nvm.sh && nvm use`).

@@ -1,0 +1,32 @@
+---
+title: Collaboration Feature
+description: Team-based tools for modern content workflows.
+---
+
+# Collaboration Feature
+
+## Overview
+
+Kuizz's collaboration feature enables multi-user workflows, allowing teams to build content together seamlessly.
+
+## How It Works
+
+Collaboration is built on a member-invitation system integrated with the platform's authentication:
+-   **Invite by Email**: Users are invited to join a workspace (Collection).
+-   **Role Assignment**: Roles like EDITOR and VIEWER define the scope of collaboration.
+-   **Workspace Isolation**: Users only see content they own or have been explicitly invited to.
+
+## Key Components
+
+-   **Membership Tracking**: The `CollectionMember` model in Prisma.
+-   **Role-Based Access**: Backend guards that verify `CollectionRole` before allowing mutations.
+-   **Invitation Flow**: Handles the lifecycle from invitation to acceptance.
+
+## Code References
+
+-   **Permissions**: `backend/src/lib/permissions/collection.permissions.ts`
+-   **Guards**: `backend/src/auth/guards/roles.guard.ts` (General roles, possibly specific ones for collections).
+
+## Notes
+
+Collaboration reduces the burden on individual creators and fosters a shared library of high-quality educational content.

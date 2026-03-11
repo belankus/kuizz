@@ -1,0 +1,43 @@
+---
+title: Deployment
+description: Containerization and environment configuration.
+---
+
+# Deployment
+
+## Overview
+
+Kuizz is designed to be easily deployable using Docker and modern CI/CD practices. The monorepo structure allows for unified builds and deployments.
+
+## How It Works
+
+### Containerization
+Each package (frontend, backend, docs) has its own `Dockerfile` optimized for multi-stage builds.
+-   **Build Stage**: Installs dependencies (using PNPM) and compiles TypeScript.
+-   **Production Stage**: Uses a lightweight alpine image containing only the necessary artifacts and runtime.
+
+### Orchestration
+For development and simple production setups, `docker-compose.yml` provides a one-command setup for the entire stack, including databases and logging.
+
+### Environment Variables
+Key configuration points:
+-   `DATABASE_URL`: Connection string for PostgreSQL.
+-   `REDIS_HOST`: Location of the Redis instance.
+-   `JWT_SECRET`: Secret key for signing access tokens.
+-   `JWT_REFRESH_SECRET`: Secret key for signing refresh tokens.
+
+## Key Components
+
+-   **`Dockerfile`**: (Frontend/Backend/Docs).
+-   **`docker-compose.dev.yml`**: For local development with hot-reloading.
+-   **`docker-compose.yml`**: For production-like environments.
+
+## Code References
+
+-   **Backend Docker**: `backend/Dockerfile`
+-   **Frontend Docker**: `frontend/Dockerfile`
+-   **Compose**: `./docker-compose.yml`
+
+## Notes
+
+Ensure that all environment variables are correctly set in your deployment environment (e.g., GitHub Actions, Vercel, Coolify, or manual VPS setup) before starting the containers.

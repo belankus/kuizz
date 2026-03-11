@@ -1,0 +1,40 @@
+---
+title: Error Handling
+description: Systematic error management across the stack.
+---
+
+# Error Handling
+
+## Overview
+
+Error handling in Kuizz is systematic and centralized, ensuring that developers can easily track issues while users receive clear, actionable feedback.
+
+## How It Works
+
+### Backend Errors
+The backend uses **NestJS Exception Filters** to catch and standardize all errors.
+-   Validation errors result in a `400 Bad Request`.
+-   Unauthorized access results in a `401 Unauthorized`.
+-   Unexpected failures are caught and logged as `500 Internal Server Error` with a unique **Trace ID**.
+
+### Frontend Errors
+The frontend uses a centralized `ErrorHub` and `ErrorProvider`.
+-   **User Errors**: Recoverable issues (e.g., wrong password) are displayed via **Toasts**.
+-   **System Errors**: Critical failures (e.g., network down) show a dedicated **Global Error Page** with technical details.
+-   **API Error Converter**: Transforms raw backend responses into typed `UserError` or `SystemError` classes.
+
+## Key Components
+
+-   **`handle-error.ts`**: The main function deciding whether to show a toast or a full error page.
+-   **`api-error-handler.ts`**: Maps HTTP status codes to application error types.
+-   **`GlobalErrorPage`**: A premium UI component for displaying critical failures.
+
+## Code References
+
+-   **Frontend Logic**: `frontend/src/lib/handle-error.ts`
+-   **Error Classes**: `frontend/src/lib/errors/`
+-   **Backend Filter**: `backend/src/lib/filters/` (Check for actual filter location).
+
+## Notes
+
+Every system error includes a `traceId` which can be shared with support or used to find the specific log entry in Grafana.

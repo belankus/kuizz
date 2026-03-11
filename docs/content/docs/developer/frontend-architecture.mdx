@@ -1,0 +1,41 @@
+---
+title: Frontend Architecture
+description: A deep dive into the Next.js and React implementation.
+---
+
+# Frontend Architecture
+
+## Overview
+
+The Kuizz frontend is a high-performance React application built with Next.js 15. It focuses on a premium user experience with smooth transitions and real-time updates.
+
+## How It Works
+
+### Core Technologies
+-   **Framework**: Next.js 15 (App Router).
+-   **Styling**: Tailwind CSS v4 for utility-first styling.
+-   **Animations**: Framer Motion for complex game UI transitions.
+-   **State Management**: React Hooks (useState, useEffect) and Context API for global state like Authentication and Error Handling.
+
+### Application Structure
+-   **`src/app`**: Contains the main routes and layouts.
+    -   `(public)`: Pages accessible without login (Join, Game).
+    -   `dashboard`: Authenticated creator area.
+-   **`src/components`**: reusable UI components organized by feature (quiz, collections, game).
+-   **`src/lib`**: Core utilities including API clients, socket configuration, and error handlers.
+
+## Key Components
+
+-   **`Socket.ts`**: Centralized Socket.io client configuration.
+-   **`ErrorProvider`**: Global error handling wrapper using the error hub pattern.
+-   **`api-error-handler.ts`**: standardizes how API responses are processed into meaningful UI errors.
+
+## Code References
+
+-   **Root Layout**: `frontend/src/app/layout.tsx`
+-   **Main API Client**: `frontend/src/lib/auth.ts` (contains `apiFetch`)
+-   **Logger**: `frontend/src/lib/logger.ts`
+
+## Notes
+
+The frontend uses **Server Components** for data fetching where possible, but switches to **Client Components** (`"use client"`) for interactive game logic and real-time features.

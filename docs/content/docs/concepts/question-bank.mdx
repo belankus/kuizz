@@ -1,0 +1,32 @@
+---
+title: Question Bank Concept
+description: Managing reusable questions across multiple quizzes.
+---
+
+# Question Bank Concept
+
+## Overview
+
+The **Question Bank** is a specialized feature within Collections that allows users to manage a repository of reusable questions. Instead of reinventing the wheel for every quiz, users can pull high-quality questions from their bank.
+
+## How It Works
+
+Questions are stored within a Collection designated as a "Question Bank" type. These questions can be:
+-   Previewed and selected for inclusion in new quizzes.
+-   Organized by category or tag (if implemented).
+-   Shared across different quizzes within the same workspace.
+
+## Key Components
+
+-   **CollectionItemType**: Distinguishes between `QUIZ_TEMPLATE` and `QUESTION_BANK`.
+-   **BankItems**: Relationship in the Prisma schema linking a Quiz (acting as a bank) to a Collection.
+
+## Code References
+
+-   **Prisma Schema**: `backend/prisma/schema.prisma` (see `enum CollectionItemType`)
+-   **Frontend Component**: `frontend/src/components/collections/CollectionItemCard.tsx`
+-   **Backend Service**: `backend/src/collection-items/collection-items.service.ts`
+
+## Notes
+
+A Question Bank is essentially a Quiz template that serves as a source of truth for specific questions. This modular approach ensures consistency across multiple training or education sessions.

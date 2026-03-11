@@ -1,0 +1,31 @@
+---
+title: "Tutorial: Building a Question Bank"
+description: A step-by-step guide to reusable content.
+---
+
+# Tutorial: Building a Question Bank
+
+## Overview
+
+Learn how to build a repository of verified questions that you can reuse across multiple quizzes.
+
+## How It Works
+
+1.  **Set Up a Bank**: Create a new collection and change its type to **Question Bank**.
+2.  **Load Template Quizzes**: Add quizzes that contain your "master" questions to this collection.
+3.  **Start a New Quiz**: Go to create a new quiz.
+4.  **Use the Importer**: Instead of typing, click **Import from Question Bank**.
+5.  **Filter & Add**: Search for the questions you need and click "Add to Quiz".
+
+## Key Components
+
+-   **Question Importer**: `frontend/src/app/dashboard/(quiz)/import/QuizesComponent.tsx` (or similar).
+-   **Data Sync**: Logic that clones question and option records into the new quiz.
+
+## Code References
+
+-   **Import Logic**: `backend/src/quiz/quiz.service.ts` (Check for import methods).
+
+## Notes
+
+The Question Bank is a powerful way to ensure that standardized questions are used consistently throughout your organization.

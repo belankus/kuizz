@@ -1,114 +1,37 @@
 ---
 title: Authentication
-description: Learn how to authenticate API requests using JWT access tokens and API keys.
+description: Secure session management and OAuth flows.
 ---
 
 # Authentication
 
-All Kuizz API requests must be authenticated. The API supports two authentication methods: **JWT Bearer Tokens** (for user sessions) and **API Keys** (for server-to-server integrations).
+## Overview
 
-## JWT Authentication
+Kuizz implements a secure, cookie-based authentication system supporting traditional email/password login as well as social OAuth providers.
 
-JWT tokens are issued when a user logs in through the Kuizz dashboard or via the `/auth/login` endpoint.
+## How It Works
 
-### Obtaining a Token
+### Flow
+1.  **Identity Verification**: User provides credentials or login via Google/GitHub.
+2.  **Token Issuance**: The backend generates an `accessToken` (short-lived) and a `refreshToken` (long-lived).
+3.  **Storage**: 
+    -   `accessToken` is stored as a `httpOnly` cookie or sent in the response body.
+    -   `refreshToken` is stored securely in the database (hashed) and sent as an `httpOnly` cookie.
+4.  **Verification**: The `JwtStrategy` on the backend validates the token for every protected request.
+5.  **Auto-Refresh**: The frontend client automatically refreshes the `accessToken` when it expires using the `refreshToken`.
 
-```bash
-POST /api/v1/auth/login
-Content-Type: application/json
+## Key Components
 
-{
-  "email": "you@example.com",
-  "password": "your-password"
-}
-```
+-   **`AuthService`**: Core logic for hashing, validation, and token generation.
+-   **`JwtStrategy`**: Passport strategy for decoding and verifying JWTs.
+-   **`GoogleStrategy` & `GithubStrategy`**: Handles OAuth2 callbacks and user creation.
 
-Response:
+## Code References
 
-```json
-{
-  "success": true,
-  "data": {
-    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "user": {
-      "id": "usr_abc123",
-      "email": "you@example.com",
-      "name": "John Doe"
-    }
-  }
-}
-```
+-   **Service**: `backend/src/auth/auth.service.ts`
+-   **Client Library**: `frontend/src/lib/auth.ts`
+-   **Passport Strategies**: `backend/src/auth/strategies/`
 
-### Using the Token
+## Notes
 
-Include the access token in the `Authorization` header:
-
-```bash
-GET /api/v1/quizzes
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-### Token Expiry & Refresh
-
-| Token | Expiry |
-|-------|--------|
-| Access Token | 15 minutes |
-| Refresh Token | 7 days |
-
-When an access token expires, use the refresh token to get a new one:
-
-```bash
-POST /api/v1/auth/refresh
-Content-Type: application/json
-
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-## Google OAuth
-
-Kuizz supports Google Sign-In. Redirect users to:
-
-```
-GET /api/v1/auth/google
-```
-
-After authentication, the user is redirected to the dashboard with cookies set automatically.
-
-## API Keys
-
-<Callout variant="warning" title="Coming Soon">
-  API key-based authentication for server-to-server integrations is on the roadmap for **v2.0**. For now, use JWT tokens.
-</Callout>
-
-## Error Responses
-
-| Status Code | Error Code | Description |
-|-------------|------------|-------------|
-| `401` | `UNAUTHORIZED` | Missing or invalid token |
-| `403` | `FORBIDDEN` | Token valid but insufficient permissions |
-| `419` | `TOKEN_EXPIRED` | Access token has expired |
-
-```json title="401 Unauthorized Response"
-{
-  "success": false,
-  "error": {
-    "code": "UNAUTHORIZED",
-    "message": "Authorization token is missing or invalid"
-  }
-}
-```
-
-## Cookie-Based Auth
-
-In addition to the `Authorization` header, the API also accepts tokens from **HttpOnly cookies** when making requests from the frontend dashboard. Cookies are set automatically on login.
-
-```
-Cookie: access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-<Callout variant="info" title="Cross-Subdomain Cookies">
-  Cookies are scoped to `.kuizz.my.id` and shared across `kuizz.my.id` and `api.kuizz.my.id`.
-</Callout>
+The system uses `bcrypt` for password hashing with a cost factor of 12, ensuring high resistance against brute-force attacks.

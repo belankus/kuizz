@@ -1,0 +1,33 @@
+---
+title: Collections Feature
+description: Advanced management and sharing of quiz groups.
+---
+
+# Collections Feature
+
+## Overview
+
+Collections provide a robust way to organize, manage, and share content at scale. It transforms Kuizz from a simple quiz tool into a collaborative workspace.
+
+## How It Works
+
+Collections use a relational model to link users, quizzes, and permissions.
+-   **Grouping**: Quizzes are added to collections as items.
+-   **Permissions**: RBAC (Role-Based Access Control) ensures only authorized users can edit or host quizzes.
+-   **Public Sharing**: Generates a shareable link that allows external users to view or save the collection.
+
+## Key Components
+
+-   **Prisma Relations**: Many-to-many relationship between Quizzes and Collections via `CollectionItem`.
+-   **Visibility Toggles**: Controls whether a collection is discoverable.
+-   **Collection Service**: Handles logic for member management and permission checks.
+
+## Code References
+
+-   **Service**: `backend/src/collections/collections.service.ts`
+-   **Controller**: `backend/src/collections/collections.controller.ts`
+-   **Frontend Hooks**: `frontend/src/hooks/useCollections.ts` (Check availability)
+
+## Notes
+
+Collections can be "Saved" by other users, allowing them to keep track of interesting content without having to be a member of the workspace.

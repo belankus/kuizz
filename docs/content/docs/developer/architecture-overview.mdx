@@ -1,0 +1,34 @@
+---
+title: Architecture Overview
+description: High-level design of the Kuizz ecosystem.
+---
+
+# Architecture Overview
+
+## Overview
+
+Kuizz is built using a modern, scalable architecture designed for real-time interactivity. The system is split into multiple distinct layers that communicate over REST APIs and WebSockets.
+
+## How It Works
+
+The architecture follows a decoupled client-server model:
+1.  **Client Tier**: Next.js 15 application handling the UI, state management, and real-time game interface.
+2.  **API Tier**: NestJS 11 backend providing RESTful endpoints for management and a WebSocket Gateway for live gameplay synchronization.
+3.  **Data Tier**: PostgreSQL for persistent data and Redis for real-time pub/sub and distributed session management.
+4.  **Infrastructure Tier**: Dockerized services with a centralized logging stack (Loki/Promtail/Grafana).
+
+## Key Components
+
+-   **Monorepo**: Managed by PNPM Workspaces and Turbo.
+-   **Synchronization**: Socket.io with Redis adapter ensures all players see the same game state.
+-   **Authentication**: JWT-based session management with OIDC support.
+
+## Code References
+
+-   **Root Config**: `turbo.json`
+-   **Workspace Config**: `pnpm-workspace.yaml`
+-   **Infrastructure**: `docker-compose.yml`
+
+## Notes
+
+The system is designed to be "stateless" at the API tier, allowing it to scale horizontally as long as a shared Redis instance is available for WebSockets.

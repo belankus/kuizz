@@ -40,7 +40,6 @@ const COOKIE_OPTIONS = {
   domain: isProd ? '.kuizz.my.id' : undefined,
 };
 
-console.log(process.env.NODE_ENV);
 @Controller('auth')
 export class AuthController {
   constructor(

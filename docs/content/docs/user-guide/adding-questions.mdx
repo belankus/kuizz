@@ -1,0 +1,36 @@
+---
+title: Adding Questions
+description: Master the quiz editor to add and manage questions.
+---
+
+# Adding Questions
+
+## Overview
+
+Questions are the heart of any quiz. Learn how to add, edit, and organize questions within your quiz to create an engaging experience for your players.
+
+## How to Add Questions
+
+1.  **Open Quiz Editor**: From your library, click the "Edit" button on any quiz.
+2.  **Add Question**: Click the "Add Question" button at the bottom of the question list.
+3.  **Enter Question Text**: Type your question in the main text area.
+4.  **Set Time Limit**: Choose how many seconds players have to answer (e.g., 20s, 30s).
+5.  **Configure Options**:
+    -   Add at least two answer options.
+    -   Mark the correct option(s) by clicking the checkmark next to them.
+6.  **Add Media**: (Optional) Upload an image or provide a media URL to accompany the question.
+
+## Key Components
+
+-   **Order**: Drag and drop questions to rearrange their sequence.
+-   **Media URL**: Supports images to provide visual context or clues.
+-   **Corrective Feedback**: Ensures players know the right answer after they submit their choice.
+
+## Code References
+
+-   **Question Model**: `backend/prisma/schema.prisma`
+-   **Editor Components**: `frontend/src/components/quiz/QuestionEditor.tsx` (Needs manual verification of exact path)
+
+## Notes
+
+You can have multiple correct options for a single question. Players must select all correct options to get full points (depending on game mode logic).

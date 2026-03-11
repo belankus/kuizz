@@ -1,0 +1,11 @@
+{
+  "title": "User Guide",
+  "pages": [
+    "creating-quiz",
+    "adding-questions",
+    "using-question-bank",
+    "organizing-with-collections",
+    "managing-content",
+    "sharing-and-collaboration"
+  ]
+}

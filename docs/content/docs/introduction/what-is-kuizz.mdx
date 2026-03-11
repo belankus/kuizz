@@ -1,0 +1,37 @@
+---
+title: What is Kuizz?
+description: An introduction to the real-time quiz platform.
+---
+
+# What is Kuizz?
+
+## Overview
+
+Kuizz is a real-time, interactive multiplayer quiz platform designed for education, training, and entertainment. Drawing inspiration from popular tools like Kahoot, Kuizz enables users to create engaging quizzes and host live sessions where players can compete in real-time.
+
+Built with a modern tech stack, Kuizz focuses on low-latency synchronization and a premium user experience, making it ideal for classrooms, corporate workshops, or social gatherings.
+
+## How It Works
+
+The Kuizz ecosystem consists of three primary phases:
+
+1.  **Creation**: Use the intuitive Creator Dashboard to build quizzes with multiple-choice questions, custom timers, and media support.
+2.  **Management**: Organize your quizzes into collections and maintain a personal question bank for quick reuse.
+3.  **Hosting & Gameplay**: Host a live game by sharing a unique Game PIN. Players join via their mobile or desktop devices, answer questions synchronously, and see their progress on a live leaderboard.
+
+## Key Components
+
+-   **Frontend**: Next.js 15 application providing a smooth, animated interface using React 19 and Framer Motion.
+-   **Backend**: NestJS 11 server handling REST API requests and real-time WebSocket communication via Socket.io.
+-   **Real-Time Engine**: Powered by Redis and WebSockets to ensure all players receive questions and see results simultaneously.
+-   **Data Layer**: PostgreSQL with Prisma ORM for reliable storage of quizzes, users, and game statistics.
+
+## Code References
+
+-   **Frontend Root**: `frontend/src/app`
+-   **Backend Root**: `backend/src`
+-   **Database Schema**: `backend/prisma/schema.prisma`
+
+## Notes
+
+Kuizz is designed with extensibility in mind, supporting future enhancements like AI-powered quiz generation and advanced reporting analytics.

@@ -1,0 +1,36 @@
+---
+title: Quiz Concept
+description: The fundamental unit of content in Kuizz.
+---
+
+# Quiz Concept
+
+## Overview
+
+A **Quiz** is the fundamental unit of content in Kuizz. it represents a collection of questions designed to be played in a real-time host-led session.
+
+## How It Works
+
+A Quiz consists of a title, an optional description, and a sequence of questions. Each question has a time limit and a set of options (one or more of which can be correct).
+
+Quizzes can exist in two states:
+-   **DRAFT**: The quiz is being edited and cannot be hosted yet.
+-   **PUBLISHED**: The quiz is finalized and ready for live gameplay.
+
+## Key Components
+
+The Quiz model is defined by several related entities in the database:
+
+-   **Quiz Model**: The top-level container holding metadata (title, status, owner).
+-   **Question Model**: Linked to a Quiz, containing the question text, media URL, and time limit.
+-   **Option Model**: Linked to a Question, containing answer choices and their correctness.
+
+## Code References
+
+-   **Prisma Schema**: `backend/prisma/schema.prisma` (see `model Quiz`)
+-   **Quiz Service**: `backend/src/quiz/quiz.service.ts`
+-   **Frontend Component**: `frontend/src/components/quiz/QuizCard.tsx`
+
+## Notes
+
+Quizzes are owned by a specific User. While in DRAFT mode, only the owner (or collaborators) can see and edit the quiz. Once PUBLISHED, it becomes eligible for hosting.

@@ -1,0 +1,35 @@
+---
+title: Quiz System Feature
+description: The engine behind real-time interactive gameplay.
+---
+
+# Quiz System Feature
+
+## Overview
+
+The Quiz System is the core module of Kuizz, enabling real-time, interactive gameplay. It handles everything from quiz creation and hosting to player interaction and live scoring.
+
+## How It Works
+
+The system operates on a state-machine model during live games:
+1.  **Lobby**: Players join using a Room Code.
+2.  **Question Reveal**: The host triggers the question; players see it on their screens.
+3.  **Submission**: Players submit answers within the time limit.
+4.  **Results**: Immediate feedback on correct/incorrect answers.
+5.  **Leaderboard**: Dynamic updates based on accuracy and response speed.
+
+## Key Components
+
+-   **WebSocket Gateway**: Manages real-time events (`create_game`, `join_game`, `send_answer`).
+-   **Game Session Manager**: Tracks the current state of an active game and synchronized timers.
+-   **Redis Adapter**: Ensures low-latency communication and sync across multiple server instances.
+
+## Code References
+
+-   **Game Gateway**: `backend/src/game/game.gateway.ts` (Needs verification)
+-   **Session Service**: `backend/src/game-session/game-session.service.ts`
+-   **Client Socket**: `frontend/src/lib/socket.ts`
+
+## Notes
+
+The quiz system uses **Optimistic UI** updates on the client side to ensure the interface feels snappy even with network jitter.

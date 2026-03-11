@@ -1,0 +1,37 @@
+---
+title: Managing Content
+description: How to publish, duplicate, and delete your work.
+---
+
+# Managing Content
+
+## Overview
+
+Effective content management ensures your library remains clean and up to date. This guide covers how to publish, delete, and duplicate your content.
+
+## How to Manage Content
+
+### Publishing
+-   When a quiz is ready, click the **Publish** button in the editor.
+-   Once published, you can no longer change the core question structure while a live game is active (to prevent synchronization issues).
+
+### Deleting
+-   To delete a quiz or collection, click the three-dot menu (...) and select **Delete**.
+-   **Warning**: This action is permanent and cannot be undone.
+
+### Favoriting
+-   Click the **Heart** icon on any quiz to add it to your "Favorites" tab for quick access.
+
+## Key Components
+
+-   **Status Indicator**: Shows whether a quiz is in `DRAFT` or `PUBLISHED` mode.
+-   **Trash/Archive**: (Context dependent, usually permanent delete in current implementation).
+
+## Code References
+
+-   **Quiz Component**: `frontend/src/app/dashboard/(quiz)/quizes/QuizesComponent.tsx`
+-   **Delete Endpoint**: `backend/src/quiz/quiz.controller.ts`
+
+## Notes
+
+Game statistics are preserved even if a quiz is deleted, allowing you to review past performance reports.

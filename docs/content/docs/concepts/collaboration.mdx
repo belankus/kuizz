@@ -1,0 +1,35 @@
+---
+title: Collaboration Concept
+description: Understand how multiple users can work together in Kuizz.
+---
+
+# Collaboration Concept
+
+## Overview
+
+Kuizz is designed for team-based content creation. **Collaboration** allows multiple users to work together on the same sets of quizzes and collections, ensuring institutional knowledge is shared and content is kept up to date.
+
+## How It Works
+
+Collaboration is primarily managed at the **Collection** level. By inviting users to a collection, the owner can grant them access to all quizzes contained within that collection.
+
+Permissions are governed by **Roles**:
+-   **OWNER**: Full control over the collection, including members and deletion.
+-   **EDITOR**: Can add/remove quizzes and edit content within the collection.
+-   **VIEWER**: Can see and host quizzes but cannot modify them.
+
+## Key Components
+
+-   **CollectionRole Enum**: Defines the possible roles (`OWNER`, `EDITOR`, `VIEWER`).
+-   **CollectionMember Model**: Tracks which users belong to which collection and their status (`PENDING_INVITE`, `ACCEPTED`).
+-   **Permissions Library**: Logic for verifying if a user can perform an action based on their role.
+
+## Code References
+
+-   **Prisma Schema**: `backend/prisma/schema.prisma` (see `model CollectionMember`)
+-   **Backend Permissions**: `backend/src/lib/permissions/collection.permissions.ts`
+-   **Collaboration UI**: `frontend/src/components/collections/CollectionMembersList.tsx`
+
+## Notes
+
+Collaboration is essential for large organizations or teaching teams. Future updates will include real-time co-authoring alerts to prevent overlapping edits on the same question.

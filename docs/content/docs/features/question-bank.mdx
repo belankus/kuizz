@@ -1,0 +1,32 @@
+---
+title: Question Bank Feature
+description: Modular questions for rapid and consistent creation.
+---
+
+# Question Bank Feature
+
+## Overview
+
+The Question Bank maximizes efficiency for power users and organizations by enabling systematic question reuse and management.
+
+## How It Works
+
+This feature treats a collection as a source of truth for modular questions.
+-   **Categorization**: Questions can be tagged or organized into "Bank Quizzes".
+-   **Searchability**: High-performance search across bank items.
+-   **Consistency**: Ensures that standardized questions (e.g., for corporate compliance) are used correctly across all quizzes.
+
+## Key Components
+
+-   **Item Types**: `QUESTION_BANK` vs `QUIZ_TEMPLATE`.
+-   **Import API**: Specific endpoints to fetch and clone questions into a target quiz.
+-   **UI Selector**: A specialized modal in the Quiz Editor for browsing bank content.
+
+## Code References
+
+-   **DTO**: `backend/src/collection-items/dto/create-collection-item.dto.ts`
+-   **Import API**: `backend/src/quiz/quiz.controller.ts` (Search for import methods)
+
+## Notes
+
+The Question Bank is an essential feature for large-scale deployments where consistency and speed of creation are critical.

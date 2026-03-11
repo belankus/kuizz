@@ -1,0 +1,39 @@
+---
+title: Testing Guide
+description: Best practices for unit, integration, and E2E testing.
+---
+
+# Testing Guide
+
+## Overview
+
+Testing ensures that new features don't break existing functionality and that the system behaves as expected under various conditions.
+
+## How It Works
+
+### Backend Testing
+We use **Jest** for unit and integration testing in the backend.
+-   **Unit Tests**: Located in `src/**/*.spec.ts`. Focus on business logic in services.
+-   **E2E Tests**: Located in `test/`. Focus on full API request/response cycles.
+-   **Command**: `cd backend && pnpm test`.
+
+### Frontend Testing
+We use **Playwright** for end-to-end testing of the user interface.
+-   **E2E Tests**: Focused on critical paths like quiz creation and joining a game.
+-   **Command**: `cd frontend && npx playwright test`.
+
+## Key Components
+
+-   **`jest.config.ts`**: Backend test configuration.
+-   **`playwright.config.ts`**: Frontend E2E test configuration.
+-   **`Prisma Testing`**: We use a separate test database or mock the Prisma client for unit tests.
+
+## Code References
+
+-   **Backend Tests**: `backend/test/`
+-   **Frontend Tests**: `frontend/tests/`
+-   **CI Config**: `.github/workflows/test.yml` (If implemented).
+
+## Notes
+
+When adding a new feature, aim for at least 80% code coverage for the core business logic in the service layer.

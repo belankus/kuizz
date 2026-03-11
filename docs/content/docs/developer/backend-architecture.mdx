@@ -1,0 +1,41 @@
+---
+title: Backend Architecture
+description: Understanding the NestJS and WebSocket logic.
+---
+
+# Backend Architecture
+
+## Overview
+
+The Kuizz backend is a robust NestJS 11 application that serves as the backbone for the entire system, handling authentication, data persistence, and real-time orchestration.
+
+## How It Works
+
+### Core Technologies
+-   **Framework**: NestJS 11.
+-   **ORM**: Prisma with PostgreSQL.
+-   **Real-Time**: Socket.io with Redis adapter.
+-   **Security**: Passport.js for JWT and OAuth strategies.
+
+### Module Structure
+The backend is organized into domain-specific modules:
+-   **`AuthModule`**: Handles user registration, login, and OIDC flows.
+-   **`QuizModule`**: Manages the lifecycle of quizzes and questions.
+-   **`GameModule`**: Orchestrates live game sessions via WebSockets.
+-   **`CollectionsModule`**: manages groups of quizzes and collaboration permissions.
+
+## Key Components
+
+-   **`PrismaService`**: Global service for database interactions.
+-   **`GameGateway`**: The WebSocket entry point for all real-time interactions.
+-   **`JwtStrategy`**: Validates incoming requests using JWTs stored in cookies or headers.
+
+## Code References
+
+-   **App Module**: `backend/src/app.module.ts`
+-   **Main Entry**: `backend/src/main.ts`
+-   **WebSocket Gateway**: `backend/src/game/game.gateway.ts`
+
+## Notes
+
+The backend follows the standard NestJS architecture of **Controllers** (HTTP), **Gateways** (WebSockets), and **Services** (Business Logic), ensuring a clean separation of concerns.

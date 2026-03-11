@@ -1,0 +1,44 @@
+---
+title: Git Workflow
+description: Branching strategy and commit guidelines.
+---
+
+# Git Workflow
+
+## Overview
+
+We follow a structured Git workflow to ensure a stable main branch and clear history of changes.
+
+## How It Works
+
+### Branching Strategy
+-   **`main`**: The production-ready branch. Only merge approved and tested code here.
+-   **`develop`**: The integration branch for features.
+-   **Feature Branches**: Create a new branch for every task: `feature/your-feature-name` or `fix/bug-description`.
+
+### Commit Guidelines
+We recommend using **Conventional Commits**:
+-   `feat: add real-time leaderboard`
+-   `fix: resolve socket reconnection issue`
+-   `docs: update API overview`
+-   `refactor: optimize database queries`
+
+### Pull Request Process
+1.  **Sync**: Ensure your branch is up to date with `main`.
+2.  **Verify**: Run `pnpm check` to confirm no linting or type errors.
+3.  **Submit**: Create a PR with a clear description of changes.
+4.  **Review**: Address any review comments from the maintainers.
+5.  **Merge**: Once approved, the branch will be squashed and merged.
+
+## Key Components
+
+-   **Conventional Commits**: Standardizes commit messages for automated changelogs.
+-   **PR Templates**: (If used, usually in `.github/PULL_REQUEST_TEMPLATE.md`).
+
+## Code References
+
+-   **Scripts**: `package.json` contains `lint-staged` configuration.
+
+## Notes
+
+Avoid pushing directly to `main`. All changes must go through a pull request to maintain code quality.

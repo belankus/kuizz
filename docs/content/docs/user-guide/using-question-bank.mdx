@@ -1,0 +1,31 @@
+---
+title: Using the Question Bank
+description: Efficiency tips for reusing questions across quizzes.
+---
+
+# Using the Question Bank
+
+## Overview
+
+The Question Bank is a powerful tool for streamlining quiz creation. Instead of creating questions from scratch, you can reuse proven questions from your personal repositories.
+
+## How to Use the Question Bank
+
+1.  **Designate a Bank**: Any collection containing "template" quizzes acts as a source for the Question Bank.
+2.  **Import Questions**: When editing a quiz, click "Import from Bank".
+3.  **Search & Select**: Use the search bar to find questions by keywords and select the ones you want to add.
+4.  **Confirm**: The selected questions will be cloned into your current quiz.
+
+## Key Components
+
+-   **Question Reuse**: Saves time and maintains consistency across different versions of a quiz.
+-   **Templating**: Change the "Type" of a collection item to `QUESTION_BANK` to make it available for imports.
+
+## Code References
+
+-   **Import Logic**: `frontend/src/app/dashboard/(quiz)/import/page.tsx`
+-   **Item Types**: `backend/src/collection-items/dto/create-collection-item.dto.ts`
+
+## Notes
+
+Importing a question creates a copy. Changing the original question in the bank will not automatically update the quizzes that have already imported it.

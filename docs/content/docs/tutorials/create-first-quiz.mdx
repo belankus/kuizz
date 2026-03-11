@@ -1,0 +1,33 @@
+---
+title: "Tutorial: Create Your First Quiz"
+description: From zero to a live game in five minutes.
+---
+
+# Tutorial: Create Your First Quiz
+
+## Overview
+
+This tutorial walks you through creating and hosting your very first quiz in Kuizz. By the end of this guide, you'll have a live game running.
+
+## How It Works
+
+1.  **Dashboard Entry**: Log in and select "Create New Quiz".
+2.  **Add Questions**: Input at least 3 multiple-choice questions with clear correct answers.
+3.  **Publishing**: Change the status from DRAFT to PUBLISHED.
+4.  **Hosting**: Click "Host Live" to generate a Game PIN.
+5.  **Join & Play**: Open the join link on a second device and enter the PIN to start the game.
+
+## Key Components
+
+-   **Creator Dashboard**: Your command center.
+-   **Game PIN**: The unique 6-digit code for your session.
+-   **Host Console**: Where you control the pace of the game.
+
+## Code References
+
+-   **Host Logic**: `frontend/src/app/game/[roomCode]/page.tsx`
+-   **Join Page**: `frontend/src/app/join/page.tsx`
+
+## Notes
+
+Make sure your browser allows high-bandwidth WebSocket connections for a smooth hosting experience.

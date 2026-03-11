@@ -1,0 +1,33 @@
+---
+title: Search and Filter Feature
+description: Find exactly what you need in seconds.
+---
+
+# Search and Filter Feature
+
+## Overview
+
+Kuizz provides powerful search and filtering capabilities to help users find their quizzes and collections quickly, even as their library scales.
+
+## How It Works
+
+Search and filtering are implemented on the client side for instant feedback, supported by backend query parameters for large datasets.
+-   **Full-Text Search**: Search by title or description keywords.
+-   **Status Filtering**: Filter by `DRAFT` or `PUBLISHED` states.
+-   **Category Filtering**: Sort and filter by collection types or subject areas.
+-   **Sorting**: Order results by "Most Recent", "Alphabetical", or "Popularity".
+
+## Key Components
+
+-   **Search Input**: Real-time filtering of the library list as the user types.
+-   **Filter Tabs**: Pre-defined filters for "Favorites", "Shared with me", and "Drafts".
+-   **Sort Dropdown**: Allows users to organize their view based on relevance or time.
+
+## Code References
+
+-   **Frontend Logic**: `frontend/src/app/dashboard/(quiz)/quizes/QuizesComponent.tsx` (Search logic inside `filteredQuizzes` and `sortedQuizzes`).
+-   **Backend Search**: (Backend likely supports query params in `quiz.controller.ts`).
+
+## Notes
+
+The search feature is designed to be case-insensitive and supports partial matches to ensure users can find content even with incomplete keywords.

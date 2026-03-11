@@ -1,0 +1,34 @@
+---
+title: Collection Concept
+description: Organizing quizzes into shared workspaces.
+---
+
+# Collection Concept
+
+## Overview
+
+A **Collection** is an organizational unit used to group related quizzes together. It acts as a workspace or folder for managing themed content or specific curriculum areas.
+
+## How It Works
+
+Collections allow users to:
+-   Group multiple quizzes under a single title and description.
+-   Set visibility levels (PRIVATE or PUBLIC).
+-   Collaborate with other users by adding them as members with specific roles.
+
+## Key Components
+
+The Collection system consists of:
+-   **Collection**: The main entity holding metadata and owner information.
+-   **CollectionItem**: A link between a Collection and its content (Quizzes).
+-   **CollectionMember**: Manages user access and permissions for the collection.
+
+## Code References
+
+-   **Prisma Schema**: `backend/prisma/schema.prisma` (see `model Collection`)
+-   **Collection Service**: `backend/src/collections/collections.service.ts`
+-   **Frontend Library**: `frontend/src/lib/collections.ts`
+
+## Notes
+
+Collections are the primary way to share content with other team members or the public. A quiz can belong to multiple collections through the `CollectionItem` relationship.

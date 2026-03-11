@@ -1,4 +1,14 @@
 {
   "title": "Developer",
-  "pages": ["api-overview", "authentication", "webhooks"]
+  "pages": [
+    "architecture-overview",
+    "frontend-architecture",
+    "backend-architecture",
+    "database-schema",
+    "api-overview",
+    "authentication",
+    "logging-and-monitoring",
+    "error-handling",
+    "deployment"
+  ]
 }

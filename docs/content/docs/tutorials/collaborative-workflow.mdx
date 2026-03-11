@@ -1,0 +1,31 @@
+---
+title: "Tutorial: Collaborative Workflow"
+description: Master effective team-based content creation.
+---
+
+# Tutorial: Collaborative Workflow
+
+## Overview
+
+Learn how to work with a team to build and manage large libraries of quiz content.
+
+## How It Works
+
+1.  **Collaboration Setup**: Ensure your teammates have Kuizz accounts.
+2.  **Invite Members**: In your collection settings, add their email addresses.
+3.  **Set Permissions**: Assign "Editor" status to colleagues who need to modify questions.
+4.  **Co-Creation**: Watch as your library grows through the combined efforts of your team.
+5.  **Audit Changes**: (Upcoming feature) Review who last edited a quiz.
+
+## Key Components
+
+-   **Member List Component**: `frontend/src/components/collections/CollectionMembersList.tsx`.
+-   **Permission Middleware**: Backend logic that guards against unauthorized edits.
+
+## Code References
+
+-   **Permissions Library**: `backend/src/lib/permissions/collection.permissions.ts`.
+
+## Notes
+
+Collaboration works best when roles are clearly defined. Use "Viewer" roles for those who only need to host games without changing content.

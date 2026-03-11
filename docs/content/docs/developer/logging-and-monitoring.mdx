@@ -1,0 +1,35 @@
+---
+title: Logging and Monitoring
+description: Observability with Loki, Promtail, and Grafana.
+---
+
+# Logging and Monitoring
+
+## Overview
+
+Kuizz uses a centralized logging architecture based on the LGTM stack (Loki, Grafana, Promtail) to ensure observability across the entire platform.
+
+## How It Works
+
+### Logging Pipeline
+1.  **Application Logging**: 
+    -   **Backend**: Uses NestJS default logger or a Pino wrapper.
+    -   **Frontend**: Uses **Pino** for structured JSON logging to stdout.
+2.  **Collection**: **Promtail** runs as a sidecar/service, scraping logs from Docker containers via the `json-file` driver.
+3.  **Storage**: Logs are pushed to **Loki**.
+4.  **Visualization**: **Grafana** provides dashboards for monitoring errors, request latency, and game session frequency.
+
+## Key Components
+
+-   **`promtail-config.yml`**: Defines scrape targets and labels.
+-   **`docker-compose.yml`**: Configures the logging stack services.
+-   **Frontend Logger**: `frontend/src/lib/logger.ts`
+
+## Code References
+
+-   **Logger Implementation**: `frontend/src/lib/logger.ts`
+-   **Promtail Config**: `./promtail-config.yml`
+
+## Notes
+
+Standardizing logs to JSON format (via Pino) allows Loki to perform powerful queries and filtering based on service name, environment, and error levels.

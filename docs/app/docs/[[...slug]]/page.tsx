@@ -16,6 +16,11 @@ interface PageProps {
 
 export default async function Page({ params }: PageProps) {
   const { slug } = await params;
+
+  if (!slug || slug.length === 0) {
+    notFound();
+  }
+
   const page = source.getPage(slug);
 
   if (!page) {
@@ -54,6 +59,11 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+
+  if (!slug || slug.length === 0) {
+    notFound();
+  }
+
   const page = source.getPage(slug);
 
   if (!page) {

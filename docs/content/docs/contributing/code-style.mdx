@@ -1,0 +1,40 @@
+---
+title: Code Style Guide
+description: Standards and tools for consistent development.
+---
+
+# Code Style Guide
+
+## Overview
+
+Maintaining a consistent code style is crucial for the readability and maintainability of the Kuizz monorepo. We use automated tools to enforce these standards across all packages.
+
+## How It Works
+
+### Core Rules
+-   **TypeScript**: Mandatory for all new code. Avoid using `any` whenever possible; use proper interfaces or types.
+-   **Formatting**: We use **Prettier** for consistent code formatting.
+-   **Linting**: **ESLint** is used to catch common errors and enforce best practices.
+-   **Naming Conventions**:
+    -   Files: `kebab-case.ts` or `PascalCase.tsx` for components.
+    -   Variables/Functions: `camelCase`.
+    -   Classes/Interfaces: `PascalCase`.
+
+### Automated Enforcement
+-   **Pre-commit Hooks**: We use **Husky** and **lint-staged** to run linters and formatters before every commit.
+-   **Turbo Tasks**: Run `pnpm lint` from the root to check the entire project.
+
+## Key Components
+
+-   **`.prettierrc`**: Global formatting configuration.
+-   **`eslint.config.mjs`**: Modern ESLint configuration for the project.
+-   **`tsconfig.json`**: TypeScript rules (strict mode enabled).
+
+## Code References
+
+-   **Backend Lint Script**: `backend/package.json` (`"lint": "eslint ... --fix"`)
+-   **Frontend Lint Script**: `frontend/package.json` (`"lint": "next lint"`)
+
+## Notes
+
+Always run `pnpm check` before pushing your changes to ensure both linting and type-checking pass.
