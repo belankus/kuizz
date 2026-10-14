@@ -1,0 +1,9 @@
+# Keep dependency lifecycle decisions explicit in local and Docker installs.
+strictDepBuilds: true
+allowBuilds:
+  '@nestjs/core': false
+  '@prisma/client': true
+  '@prisma/engines': true
+  bcrypt: true
+  prisma: true
+  unrs-resolver: true
