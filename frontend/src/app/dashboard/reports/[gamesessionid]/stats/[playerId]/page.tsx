@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
+import { useTranslations } from "next-intl";
 import { apiFetch } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export default function HostPlayerReviewPage({
   params: Promise<{ gamesessionid: string; playerId: string }>;
 }) {
   const { gamesessionid, playerId } = use(params);
+  const t = useTranslations("Reports");
   const router = useRouter();
   const [detail, setDetail] = useState<PlayerHistoryDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -61,17 +63,18 @@ export default function HostPlayerReviewPage({
         const res = await apiFetch(
           `/game-session/${gamesessionid}/players/${playerId}`,
         );
-        if (!res.ok) throw new Error("Failed to fetch player details");
+        if (!res.ok) throw new Error(t("playerDetailsLoadError"));
         const data = await res.json();
         setDetail(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        setError(err instanceof Error ? err.message : t("unknownError"));
       } finally {
         setLoading(false);
       }
     }
     fetchDetail();
-  }, [gamesessionid, playerId]);
+    document.title = `${t("playerHistoryTitle")} | Kuizz`;
+  }, [gamesessionid, playerId, t]);
 
   if (loading) {
     return (
@@ -93,12 +96,12 @@ export default function HostPlayerReviewPage({
   if (error || !detail) {
     return (
       <div className="p-6 text-center">
-        <h2 className="text-xl font-bold text-red-600">Error</h2>
+        <h2 className="text-xl font-bold text-red-600">{t("error")}</h2>
         <p className="mt-2 text-gray-500">
-          {error || "Player detail not found"}
+          {error || t("playerDetailNotFound")}
         </p>
         <Button onClick={() => router.back()} className="mt-4">
-          Go Back
+          {t("goBack")}
         </Button>
       </div>
     );
@@ -124,7 +127,7 @@ export default function HostPlayerReviewPage({
             className="mb-2 -ml-2 text-gray-500 hover:bg-transparent dark:text-gray-400"
           >
             <ChevronLeft className="mr-1 h-4 w-4" />
-            Back to Stats
+            {t("backToStats")}
           </Button>
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             {detail.session.title}
@@ -140,7 +143,7 @@ export default function HostPlayerReviewPage({
             </span>
             <span className="flex items-center">
               <User className="mr-1 h-4 w-4" />
-              Player:{" "}
+              {t("player")}:{" "}
               <span className="ml-1 font-medium text-gray-900 dark:text-gray-100">
                 {detail.nickname}
               </span>
@@ -151,7 +154,7 @@ export default function HostPlayerReviewPage({
         <div className="flex items-center gap-4 rounded-xl border bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <div className="border-r px-4 text-center dark:border-gray-800">
             <div className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400">
-              Player Score
+              {t("playerScore")}
             </div>
             <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
               <Trophy className="mr-1 mb-1 inline-block h-5 w-5" />
@@ -160,7 +163,7 @@ export default function HostPlayerReviewPage({
           </div>
           <div className="px-4 text-center">
             <div className="text-xs font-semibold text-gray-500 uppercase dark:text-gray-400">
-              Accuracy
+              {t("accuracy")}
             </div>
             <div
               className={`text-2xl font-bold ${accuracy > 70 ? "text-green-600" : accuracy > 40 ? "text-orange-500" : "text-red-500"}`}
@@ -173,9 +176,9 @@ export default function HostPlayerReviewPage({
 
       <div className="mx-auto grid max-w-4xl gap-6">
         <h2 className="flex items-center text-xl font-semibold text-gray-900 dark:text-white">
-          Question Review
+          {t("questionReview")}
           <Badge variant="secondary" className="ml-2 font-normal">
-            {detail.session.totalQuestions} Questions
+            {t("questionsCount", { count: detail.session.totalQuestions })}
           </Badge>
         </h2>
 
@@ -200,7 +203,7 @@ export default function HostPlayerReviewPage({
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
                     <span className="font-mono text-xs tracking-wider text-gray-500 uppercase dark:text-gray-400">
-                      Question {idx + 1}
+                      {t("questionNumber", { number: idx + 1 })}
                     </span>
                     <h3 className="text-lg leading-tight font-semibold text-gray-900 dark:text-white">
                       {q.question}
@@ -212,19 +215,19 @@ export default function HostPlayerReviewPage({
                         variant="secondary"
                         className="border-green-200 bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
                       >
-                        <CheckCircleIcon className="mr-1 h-3 w-3" /> Correct
+                        <CheckCircleIcon className="mr-1 h-3 w-3" /> {t("correct")}
                       </Badge>
                     ) : (
                       <Badge
                         variant="secondary"
                         className="border-red-200 bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400"
                       >
-                        <XCircleIcon className="mr-1 h-3 w-3" /> Incorrect
+                        <XCircleIcon className="mr-1 h-3 w-3" /> {t("incorrect")}
                       </Badge>
                     )
                   ) : (
                     <Badge variant="outline" className="text-gray-400">
-                      No Answer
+                      {t("noAnswer")}
                     </Badge>
                   )}
                 </div>
@@ -260,7 +263,7 @@ export default function HostPlayerReviewPage({
                         <div className="flex items-center gap-2">
                           {isUserChoice && (
                             <Badge className="h-5 px-1.5 text-[10px] uppercase">
-                              Player Choice
+                              {t("playerChoice")}
                             </Badge>
                           )}
                           {isCorrectOption && (
@@ -277,14 +280,14 @@ export default function HostPlayerReviewPage({
                 {userAnswer && (
                   <div className="flex w-fit items-center rounded-md bg-gray-50 p-2 px-3 text-xs text-gray-500 dark:bg-gray-800/50 dark:text-gray-400">
                     <Timer className="mr-1 h-3 w-3" />
-                    Response Time:{" "}
+                    {t("responseTime")}:{" "}
                     <span className="ml-1 font-medium">
                       {(userAnswer.responseTime / 1000).toFixed(2)}s
                     </span>
                     <span className="mx-2 text-gray-300 dark:text-gray-700">
                       |
                     </span>
-                    Limit: {q.timeLimit}s
+                    {t("timeLimit")}: {q.timeLimit}s
                   </div>
                 )}
               </div>

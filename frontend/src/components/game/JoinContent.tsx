@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { socket } from "@/lib/socket";
 import { apiFetch, getAccessToken } from "@/lib/auth";
 import { getRandomAvatar } from "@/components/avatar/AvatarBuilder";
@@ -9,6 +10,7 @@ import { Fredoka, Nunito } from "next/font/google";
 import Link from "next/link";
 import { AvatarModel } from "@/types";
 import Avatar from "../avatar/Avatar";
+import { useAudioManager } from "@/lib/useAudioManager";
 import {
   ArrowRight,
   CircleUser,
@@ -28,6 +30,8 @@ const nunito = Nunito({
 });
 
 export default function JoinContent() {
+  const t = useTranslations("Game");
+  const { playClick } = useAudioManager();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -72,11 +76,14 @@ export default function JoinContent() {
     setLoading(true);
     setError(null);
 
-    // One-time listeners for step 1
+    const emitCheck = () => {
+      socket.emit("check_room", { roomCode: code });
+    };
+
     const onRoomValid = () => {
       cleanupStep1Listeners();
       setLoading(false);
-      setStep(2); // Proceed to nickname phase
+      setStep(2);
     };
 
     const onRoomError = (errorMessage: string) => {
@@ -85,23 +92,32 @@ export default function JoinContent() {
       setLoading(false);
     };
 
-    const onRoomNotFound = () => onRoomError("Room tidak ditemukan.");
-    const onRoomLocked = () => onRoomError("Room sudah dikunci oleh host.");
-    const onGameStarted = () => onRoomError("Game sudah dimulai.");
-
     const cleanupStep1Listeners = () => {
+      clearTimeout(timeoutId);
+      socket.off("connect", emitCheck);
       socket.off("room_valid", onRoomValid);
-      socket.off("room_not_found", onRoomNotFound);
-      socket.off("room_locked", onRoomLocked);
-      socket.off("game_already_started", onGameStarted);
+      socket.off("room_not_found");
+      socket.off("room_locked");
+      socket.off("game_already_started");
     };
 
-    socket.on("room_valid", onRoomValid);
-    socket.on("room_not_found", onRoomNotFound);
-    socket.on("room_locked", onRoomLocked);
-    socket.on("game_already_started", onGameStarted);
+    const timeoutId = setTimeout(() => {
+      cleanupStep1Listeners();
+      setError("Time out. Cannot check the room. Please try again.");
+      setLoading(false);
+    }, 6000);
 
-    socket.emit("check_room", { roomCode: code });
+    socket.on("room_valid", onRoomValid);
+    socket.on("room_not_found", () => onRoomError(t("roomNotFound2")));
+    socket.on("room_locked", () => onRoomError(t("roomLocked2")));
+    socket.on("game_already_started", () => onRoomError(t("roomAlreadyStarted")));
+
+    if (!socket.connected) {
+      socket.once("connect", emitCheck);
+      socket.connect();
+    } else {
+      emitCheck();
+    }
   };
 
   const handleJoin = async () => {
@@ -111,7 +127,20 @@ export default function JoinContent() {
     setError(null);
 
     const avatarToSend = avatar || getRandomAvatar();
-    const existingToken = localStorage.getItem("playerToken");
+
+    const savedRoom = localStorage.getItem("roomCode");
+    const existingToken =
+      savedRoom === code ? localStorage.getItem("playerToken") : null;
+
+    const emitJoin = () => {
+      socket.emit("join_room", {
+        roomCode: code,
+        nickname: nick,
+        playerToken: existingToken ?? undefined,
+        avatar: avatarToSend,
+        authToken: getAccessToken() ?? undefined,
+      });
+    };
 
     const onPlayerRegistered = (data: { playerToken: string }) => {
       cleanupStep2Listeners();
@@ -131,41 +160,42 @@ export default function JoinContent() {
       setLoading(false);
     };
 
-    // Failsafe error handling in case the game state changed between Step 1 and Step 2
     const onActionError = (errorMessage: string) => {
       cleanupStep2Listeners();
       setError(errorMessage);
       setLoading(false);
     };
 
-    const onRoomNotFound = () => onActionError("Room tidak ditemukan.");
-    const onRoomLocked = () => onActionError("Room sudah dikunci oleh host.");
-    const onGameStarted = () => onActionError("Game sudah dimulai.");
-
     const cleanupStep2Listeners = () => {
+      clearTimeout(timeoutId);
+      socket.off("connect", emitJoin);
       socket.off("player_registered", onPlayerRegistered);
       socket.off("nickname_taken", onNicknameTaken);
-      socket.off("room_not_found", onRoomNotFound);
-      socket.off("room_locked", onRoomLocked);
-      socket.off("game_already_started", onGameStarted);
+      socket.off("room_not_found");
+      socket.off("room_locked");
+      socket.off("game_already_started");
     };
+
+    const timeoutId = setTimeout(() => {
+      cleanupStep2Listeners();
+      setError("Impossible de rejoindre la partie. Réessayez.");
+      setLoading(false);
+    }, 6000);
 
     socket.on("player_registered", onPlayerRegistered);
     socket.on("nickname_taken", onNicknameTaken);
-    socket.on("room_not_found", onRoomNotFound);
-    socket.on("room_locked", onRoomLocked);
-    socket.on("game_already_started", onGameStarted);
+    socket.on("room_not_found", () => onActionError("Room not found."));
+    socket.on("room_locked", () => onActionError("Room is locked."));
+    socket.on("game_already_started", () => onActionError("Game already started."));
 
-    socket.emit("join_room", {
-      roomCode: code,
-      nickname: nick,
-      playerToken: existingToken ?? undefined,
-      avatar: avatarToSend,
-      authToken: getAccessToken() ?? undefined,
-    });
+    if (!socket.connected) {
+      socket.once("connect", emitJoin);
+      socket.connect();
+    } else {
+      emitJoin();
+    }
   };
 
-  // Convert standard avatar ID syntax to URL if needed (e.g. dicebear)
   const renderAvatarPreview = () => {
     return (
       <div className="absolute -top-10 left-1/2 z-20 flex h-20 w-20 -translate-x-1/2 items-center justify-center overflow-hidden rounded-full border-4 border-[#1a1025] bg-white shadow-xl">
@@ -201,10 +231,9 @@ export default function JoinContent() {
             font-family: ${fredoka.style.fontFamily}, sans-serif;
         }
 
-        /* Ambient glowing shapes */
         .ambient-shape {
             position: absolute;
-            background: rgba(170, 51, 255, 0.05); /* very subtle purple */
+            background: rgba(170, 51, 255, 0.05);
             z-index: 0;
             pointer-events: none;
         }
@@ -219,7 +248,7 @@ export default function JoinContent() {
             height: 0;
             border-left: 50px solid transparent;
             border-right: 50px solid transparent;
-            border-bottom: 86px solid rgba(170, 51, 255, 0.08); /* triangle */
+            border-bottom: 86px solid rgba(170, 51, 255, 0.08);
             background: transparent;
         }
         
@@ -241,7 +270,6 @@ export default function JoinContent() {
             z-index: 10;
         }
         
-        /* Specific background for step 2 */
         .glass-panel-step2 {
             background-image: 
               radial-gradient(circle at top right, rgba(170, 51, 255, 0.3), transparent 50%),
@@ -290,7 +318,6 @@ export default function JoinContent() {
             box-shadow: none;
         }
         
-        /* Top lightning icon floating animation */
         @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-10px); }
@@ -304,7 +331,6 @@ export default function JoinContent() {
         }}
       />
 
-      {/* Decorative Background Shapes */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
         <div className="ambient-shape shape-circle top-[10%] left-[10%] h-40 w-40"></div>
         <div className="ambient-shape shape-triangle top-[30%] right-[20%] rotate-12"></div>
@@ -320,7 +346,6 @@ export default function JoinContent() {
       </div>
 
       <div className="relative z-10 flex min-h-screen w-full flex-col bg-(--bg-dark)">
-        {/* Navbar */}
         <nav className="flex w-full items-center justify-between p-6">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 -rotate-12 transform items-center justify-center rounded-lg bg-(--primary-accent) shadow-(--primary-accent)/30 shadow-lg">
@@ -338,7 +363,7 @@ export default function JoinContent() {
                 className="flex items-center gap-2 rounded-full border border-white/5 bg-[#2a1b3d] px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-[#34224c]"
               >
                 <CircleUser className="text-[20px]" />
-                Log in as Host
+                {t("loginAsHost")}
               </Link>
             ) : (
               <div className="flex items-center gap-2 rounded-full border border-white/5 bg-[#2a1b3d] px-4 py-2 text-sm font-bold tracking-widest text-white uppercase shadow-inner">
@@ -349,7 +374,6 @@ export default function JoinContent() {
           </div>
         </nav>
 
-        {/* Main Content */}
         <main className="flex flex-1 flex-col items-center justify-center p-4">
           {step === 1 && (
             <div className="floating-icon mb-8 flex h-20 w-20 rotate-3 items-center justify-center rounded-2xl bg-(--primary-accent) shadow-(--primary-accent)/30 shadow-lg">
@@ -361,21 +385,18 @@ export default function JoinContent() {
             <div
               className={`glass-panel w-full p-8 md:p-10 ${step === 2 ? "glass-panel-step2" : ""}`}
             >
-              {/* Avatar overlap for Step 2 */}
               {step === 2 && renderAvatarPreview()}
 
               <div className={`mb-8 text-center ${step === 2 ? "mt-4" : ""}`}>
-                <h1
-                  className={`header-font mb-2 text-3xl font-bold text-white`}
-                >
-                  {step === 1 ? "Enter Game PIN" : "Join the fun!"}
+                <h1 className="header-font mb-2 text-3xl font-bold text-white">
+                  {step === 1 ? t("enterGamePin") : t("joinFun")}
                 </h1>
                 <p className="text-sm font-medium text-[var(--text-dim)]">
                   {step === 1 ? (
-                    "Join the fun! Enter the PIN provided by your host."
+                    t("joinFunLabel")
                   ) : (
                     <span>
-                      You&apos;re connecting to Game PIN:{" "}
+                      {t("connectingToPin")}{" "}
                       <span className="font-bold text-[var(--primary-accent)]">
                         {code}
                       </span>
@@ -395,7 +416,7 @@ export default function JoinContent() {
                         if (e.key === "Enter" && !loading && code)
                           handleCheckRoom();
                       }}
-                      placeholder="Game PIN"
+                      placeholder={t("gamePin")}
                       className="input-dark header-font w-full rounded-xl px-6 py-4 text-center text-xl font-bold tracking-widest uppercase"
                       autoFocus
                     />
@@ -412,7 +433,7 @@ export default function JoinContent() {
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !loading && nick) handleJoin();
                       }}
-                      placeholder="Enter Nickname..."
+                      placeholder={t("nicknamePlaceholder")}
                       className="input-dark header-font w-full rounded-xl py-4 pr-6 pl-12 text-lg font-bold"
                       autoFocus
                     />
@@ -428,22 +449,28 @@ export default function JoinContent() {
 
                 {step === 1 ? (
                   <button
-                    onClick={handleCheckRoom}
+                    onClick={() => {
+                      playClick();
+                      handleCheckRoom();
+                    }}
                     disabled={!code || loading}
                     className="btn-primary header-font flex w-full items-center justify-center gap-2 rounded-xl py-4 text-xl font-bold"
                   >
-                    {loading ? "Checking..." : "Join Game"}
+                    {loading ? t("checking") : t("joinGameButton")}
                     {!loading && (
                       <ArrowRight className="text-white" size={24} />
                     )}
                   </button>
                 ) : (
                   <button
-                    onClick={handleJoin}
+                    onClick={() => {
+                      playClick();
+                      handleJoin();
+                    }}
                     disabled={!nick || loading}
                     className="btn-primary header-font flex w-full items-center justify-center gap-2 rounded-xl py-4 text-xl font-bold"
                   >
-                    {loading ? "Joining..." : "OK, Go!"}
+                    {loading ? t("joining") : t("okJoin")}
                     {!loading && (
                       <ArrowRight className="text-white" size={24} />
                     )}
@@ -455,13 +482,13 @@ export default function JoinContent() {
             {step === 1 && (
               <div className="mt-8 rounded-3xl border border-white/5 bg-[#130a1c] p-6 text-center opacity-80 transition-opacity hover:opacity-100">
                 <p className="mb-2 text-sm font-bold text-[var(--text-light)]">
-                  Don&apos;t have a PIN?
+                  {t("noPin")}
                 </p>
                 <Link
                   href="/"
                   className="flex items-center justify-center gap-1 text-sm font-bold text-[var(--primary-accent)] transition-colors hover:text-[var(--primary-hover)]"
                 >
-                  Browse public quizzes
+                  {t("browseQuizzes")}
                   <SquareArrowOutUpRight size={18} />
                 </Link>
               </div>
@@ -469,12 +496,12 @@ export default function JoinContent() {
 
             {step === 2 && (
               <p className="mt-8 text-center text-xs text-[var(--text-dim)] opacity-60">
-                By joining, you agree to our{" "}
+                {t("byJoining")}{" "}
                 <Link
                   href="#"
                   className="underline transition-colors hover:text-white"
                 >
-                  Terms of Service
+                  {t("tos")}
                 </Link>
                 .
               </p>
@@ -482,22 +509,21 @@ export default function JoinContent() {
           </div>
         </main>
 
-        {/* Footer */}
         <footer className="w-full py-6 text-center">
           <div className="flex items-center justify-center gap-4 text-xs font-bold text-[var(--text-dim)] opacity-50">
             {step === 1 ? (
               <>
                 <Link href="#" className="transition-colors hover:text-white">
-                  Terms
+                  {t("terms")}
                 </Link>
                 <span>•</span>
                 <Link href="#" className="transition-colors hover:text-white">
-                  Privacy
+                  {t("privacy")}
                 </Link>
               </>
             ) : (
               <span className="tracking-[3px] uppercase">
-                Kuizz Platform © {new Date().getFullYear()}
+                {new Date().getFullYear()} &copy; Kuizz
               </span>
             )}
           </div>

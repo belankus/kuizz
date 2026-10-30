@@ -75,7 +75,7 @@ services:
       - WATCHPACK_POLLING=true
     ports:
       - "3000:3000"
-    command: sh -c "corepack enable pnpm && pnpm config set store-dir /.pnpm-store && pnpm config set package-import-method copy && pnpm config set side-effects-cache false && pnpm i --prefer-offline && pnpm dev"
+    command: sh -c "corepack enable pnpm && pnpm config set store-dir /.pnpm-store && pnpm config set package-import-method copy && pnpm config set side-effects-cache false && pnpm i --prefer-offline --force && pnpm dev"
     depends_on:
       - backend
 

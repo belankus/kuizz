@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/auth";
 import { SharedQuizEditor } from "@/components/quiz/SharedQuizEditor";
 import { QuizModelType } from "@/types";
+import {useTranslations} from "next-intl";
 
 export default function CreatePage() {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
+  const t = useTranslations("QuizFactory");
 
   async function handleSaveQuiz(
     payload: QuizModelType,
@@ -26,20 +28,20 @@ export default function CreatePage() {
       });
 
       if (!res.ok) {
-        toast.error(`Failed to save quiz as ${status.toLowerCase()}`);
+        toast.error(t("failToSave", { status: status.toLowerCase() }));
         setIsSaving(false);
         return;
       }
 
       toast.success(
         status === "PUBLISHED"
-          ? "Quiz published successfully!"
-          : "Draft saved!",
+          ? t("quizSaved")
+          : t("draftSaved"),
       );
       router.push("/dashboard/quizes");
     } catch (err) {
-      toast.error("An error occurred while saving the quiz", {
-        description: err instanceof Error ? err.message : "Unknown error",
+      toast.error(t("errorSaving"), {
+        description: err instanceof Error ? err.message : t("unknownError"),
       });
       setIsSaving(false);
     }

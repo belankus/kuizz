@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   Table,
@@ -64,10 +65,17 @@ import {
   keepPreviousData,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 export default function ReportsPage() {
+  const t = useTranslations("Reports");
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  // Tab name
+  useEffect(() => {
+    document.title = "Reports & History | Kuizz";
+  }, []);
 
   // Tabs State
   const [activeTab, setActiveTab] = useState<"HOSTED" | "PLAYED">("HOSTED");
@@ -158,10 +166,10 @@ export default function ReportsPage() {
       {/* Header Area */}
       <div className="mb-8">
         <h1 className="mb-2 text-4xl font-black text-gray-900">
-          Reports & History
+          {t("reportsAndHistory")}
         </h1>
         <p className="text-[15px] font-medium text-gray-500">
-          View overall performance, hosted games details, and your play history.
+          {t("reportsSublabel")}
         </p>
       </div>
 
@@ -174,7 +182,7 @@ export default function ReportsPage() {
           </div>
           <div>
             <p className="mb-1 text-sm font-bold tracking-wider text-gray-500 uppercase">
-              Total Quizzes
+              {t("totalQuizzes")}
             </p>
             {loadingSummary ? (
               <div className="h-8 w-16 animate-pulse rounded bg-gray-200" />
@@ -193,7 +201,7 @@ export default function ReportsPage() {
           </div>
           <div>
             <p className="mb-1 text-sm font-bold tracking-wider text-gray-500 uppercase">
-              Games Hosted
+              {t("gamesHosted")}
             </p>
             {loadingSummary ? (
               <div className="h-8 w-16 animate-pulse rounded bg-gray-200" />
@@ -212,7 +220,7 @@ export default function ReportsPage() {
           </div>
           <div>
             <p className="mb-1 text-sm font-bold tracking-wider text-gray-500 uppercase">
-              Total Players
+              {t("totalPlayers")}
             </p>
             {loadingSummary ? (
               <div className="h-8 w-16 animate-pulse rounded bg-gray-200" />
@@ -231,7 +239,7 @@ export default function ReportsPage() {
           </div>
           <div>
             <p className="mb-1 text-sm font-bold tracking-wider text-gray-500 uppercase">
-              Avg. Accuracy
+              {t("globalAccuracy")}
             </p>
             {loadingSummary ? (
               <div className="h-8 w-16 animate-pulse rounded bg-gray-200" />
@@ -254,7 +262,7 @@ export default function ReportsPage() {
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
-          HOSTED GAMES
+          {t("hostedGames")}
         </button>
         <button
           onClick={() => setActiveTab("PLAYED")}
@@ -264,18 +272,18 @@ export default function ReportsPage() {
               : "border-transparent text-gray-500 hover:text-gray-700"
           }`}
         >
-          PLAYED GAMES
+          {t("playedGames")}
         </button>
       </div>
 
       {/* Hosted Games View */}
       {activeTab === "HOSTED" && (
         <div className="animate-in fade-in zoom-in-95 space-y-6 duration-200">
-          <ComponentCard title="Sessions You Hosted">
+          <ComponentCard title={t("sessionsHosted")}>
             <div className="mb-4 flex items-center justify-between px-4">
               <input
                 type="text"
-                placeholder="Search by title..."
+                placeholder={t("search")}
                 className="w-full rounded-full border-transparent bg-gray-50 px-5 py-2.5 text-sm text-gray-900 transition-all outline-none focus:border-gray-200 focus:bg-white focus:ring-4 focus:ring-[#46178f]/5 sm:w-80"
                 value={search}
                 onChange={(e) => {
@@ -287,7 +295,7 @@ export default function ReportsPage() {
 
             {loadingHosted ? (
               <div className="py-10 text-center text-gray-500">
-                Loading sessions...
+                {t("loadingSessions")}
               </div>
             ) : hostedSessions.length === 0 ? (
               <Empty className="m-4 rounded-[20px] border border-dashed">
@@ -295,10 +303,9 @@ export default function ReportsPage() {
                   <EmptyMedia variant="icon">
                     <Gamepad2 />
                   </EmptyMedia>
-                  <EmptyTitle>No Hosted Games</EmptyTitle>
+                  <EmptyTitle>{t("noHostedGames")}</EmptyTitle>
                   <EmptyDescription>
-                    You haven&apos;t hosted any games yet. Start a quiz to see
-                    its history here!
+                    {t("haventHosted")}
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -314,31 +321,31 @@ export default function ReportsPage() {
                               isHeader
                               className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase"
                             >
-                              Title
+                              {t("title")}
                             </TableCell>
                             <TableCell
                               isHeader
                               className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase"
                             >
-                              Status
+                              {t("status")}
                             </TableCell>
                             <TableCell
                               isHeader
                               className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase"
                             >
-                              Date Played
+                              {t("datePlayed")}
                             </TableCell>
                             <TableCell
                               isHeader
                               className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase"
                             >
-                              Players
+                              {t("players")}
                             </TableCell>
                             <TableCell
                               isHeader
                               className="px-5 py-4 text-right text-xs font-bold tracking-wider text-gray-600 uppercase"
                             >
-                              Actions
+                              {t("actions")}
                             </TableCell>
                           </TableRow>
                         </TableHeader>
@@ -405,7 +412,7 @@ export default function ReportsPage() {
                                         }
                                       >
                                         <BarChartBig className="mr-2 h-4 w-4" />
-                                        View Full Stats
+                                        {t("viewStats")}
                                       </DropdownMenuItem>
                                       {(session.status === "WAITING" ||
                                         session.status === "STARTED") &&
@@ -423,7 +430,7 @@ export default function ReportsPage() {
                                             }}
                                           >
                                             <Gamepad2 className="mr-2 h-4 w-4" />
-                                            Enter Lobby
+                                            {t("enterLobby")}
                                           </DropdownMenuItem>
                                         )}
                                     </DropdownMenuGroup>
@@ -437,7 +444,7 @@ export default function ReportsPage() {
                                         }}
                                       >
                                         <TrashIcon className="mr-2 h-4 w-4" />
-                                        Delete
+                                        {t("delete")}
                                       </DropdownMenuItem>
                                     </DropdownMenuGroup>
                                   </DropdownMenuContent>
@@ -455,7 +462,7 @@ export default function ReportsPage() {
                 {totalPages > 1 && (
                   <div className="mt-6 flex items-center justify-between px-4">
                     <div className="text-sm font-bold text-gray-500">
-                      Page {page} of {totalPages}
+                      {t("pageXofY", { current: page, total: totalPages })}
                     </div>
                     <div className="flex gap-2">
                       <Button
@@ -465,7 +472,7 @@ export default function ReportsPage() {
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                         disabled={page === 1}
                       >
-                        Previous
+                        {t("previous")}
                       </Button>
                       <Button
                         variant="outline"
@@ -476,7 +483,7 @@ export default function ReportsPage() {
                         }
                         disabled={page === totalPages}
                       >
-                        Next
+                        {t("next")}
                       </Button>
                     </div>
                   </div>
@@ -490,7 +497,7 @@ export default function ReportsPage() {
       {/* Played Games View */}
       {activeTab === "PLAYED" && (
         <div className="animate-in fade-in zoom-in-95 space-y-6 duration-200">
-          <ComponentCard title="Games You Played">
+          <ComponentCard title={t("gamesPlayed")}>
             {loadingPlayed ? (
               <div className="animate-pulse space-y-4 p-4">
                 {[1, 2, 3].map((i) => (
@@ -510,10 +517,9 @@ export default function ReportsPage() {
                   <EmptyMedia variant="icon">
                     <History />
                   </EmptyMedia>
-                  <EmptyTitle>No Gameplay History</EmptyTitle>
+                  <EmptyTitle>{t("noGameplayHistory")}</EmptyTitle>
                   <EmptyDescription>
-                    You haven&apos;t played any games yet. Join a room and
-                    complete a quiz to track your score here!
+                    {t("haventPlayed")}
                   </EmptyDescription>
                 </EmptyHeader>
                 <Button
@@ -521,7 +527,7 @@ export default function ReportsPage() {
                   asChild
                 >
                   <Link href="/join">
-                    Join a Game <ArrowUpRightIcon className="ml-2 h-4 w-4" />
+                    {t("joinGame")} <ArrowUpRightIcon className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               </Empty>
@@ -536,31 +542,31 @@ export default function ReportsPage() {
                             isHeader
                             className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase"
                           >
-                            Quiz Title
+                            {t("title")}
                           </TableCell>
                           <TableCell
                             isHeader
                             className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase"
                           >
-                            Played As
+                            {t("playedAs")}
                           </TableCell>
                           <TableCell
                             isHeader
                             className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase"
                           >
-                            Score
+                            {t("score")}
                           </TableCell>
                           <TableCell
                             isHeader
                             className="px-5 py-4 text-start text-xs font-bold tracking-wider text-gray-600 uppercase"
                           >
-                            Date
+                            {t("date")}
                           </TableCell>
                           <TableCell
                             isHeader
                             className="px-5 py-4 text-right text-xs font-bold tracking-wider text-gray-600 uppercase"
                           >
-                            Action
+                            {t("action")}
                           </TableCell>
                         </TableRow>
                       </TableHeader>
@@ -575,7 +581,7 @@ export default function ReportsPage() {
                                 {record.session?.title || "Unknown Quiz"}
                               </div>
                               <div className="mt-1 text-xs font-semibold text-gray-500">
-                                {record.session?.totalQuestions} Questions
+                                {t("totalQuestions", { count: record.session?.totalQuestions })}
                               </div>
                             </TableCell>
                             <TableCell className="px-5 py-4 font-bold text-gray-700">
@@ -610,7 +616,7 @@ export default function ReportsPage() {
                                 <Link
                                   href={`/dashboard/reports/player-history/${record.id}`}
                                 >
-                                  View Details
+                                  {t("viewDetails")}
                                 </Link>
                               </Button>
                             </TableCell>
@@ -633,10 +639,9 @@ export default function ReportsPage() {
             <AlertDialogMedia className="bg-red-50 text-red-600">
               <Trash2Icon />
             </AlertDialogMedia>
-            <AlertDialogTitle>Delete Game Session?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteSession")}</AlertDialogTitle>
             <AlertDialogDescription className="font-medium text-gray-500">
-              This will permanently delete the game session history and all its
-              associated player statistics.
+              {t("deletePermanentlyConfirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4">
@@ -647,14 +652,14 @@ export default function ReportsPage() {
                 setOpenModal(false);
               }}
             >
-              Cancel
+              {t("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               className="rounded-xl bg-red-600 px-6 font-bold text-white hover:bg-red-700"
               onClick={handleDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? "Deleting..." : "Delete"}
+              {isDeleting ? t("deleting") : t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

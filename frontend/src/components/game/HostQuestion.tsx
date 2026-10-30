@@ -8,6 +8,9 @@ import {
   Circle,
   Diamond,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useEffect } from "react";
+import { useAudioManager } from "@/lib/useAudioManager";
 
 interface HostQuestionProps {
   question: string;
@@ -79,6 +82,15 @@ export default function HostQuestion({
   totalQuestions,
   onEndGame,
 }: HostQuestionProps) {
+  const t = useTranslations("Game");
+  const { playClick, playGameBgm, stopAll } = useAudioManager();
+
+  useEffect(() => {
+    playGameBgm();
+
+    return stopAll;
+  }, [playGameBgm, stopAll]);
+
   const totalAnswered = Object.values(answerStats).reduce((a, b) => a + b, 0);
   const waitingFor = Math.max(0, totalPlayers - totalAnswered);
   const percentCompleted =
@@ -101,67 +113,76 @@ export default function HostQuestion({
   return (
     <div className="flex min-h-screen flex-col bg-[#1a0f1a] font-sans text-white">
       {/* Top Bar */}
-      <header className="relative flex h-24 items-center justify-between border-b border-white/5 px-8 pt-4 pb-4">
+      <header className="relative flex min-h-[5.5rem] flex-wrap items-center justify-between gap-4 border-b border-white/5 px-4 pt-4 pb-4 sm:px-8">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded bg-[#f97316] text-xl font-bold">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-[#f97316] text-xl font-bold">
             ?
           </div>
-          <div className="max-w-[300px] truncate text-2xl font-black tracking-tighter">
+          <div className="max-w-[180px] truncate text-xl font-black tracking-tighter sm:max-w-[300px] sm:text-2xl">
             {topic}
           </div>
         </div>
 
-        <div className="absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 gap-16 font-medium">
+        <div className="order-3 flex w-full items-center justify-around font-medium sm:order-2 sm:absolute sm:top-1/2 sm:left-1/2 sm:w-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:gap-16">
           <div className="flex flex-col items-center">
             <div className="mb-1 text-[10px] font-bold tracking-widest text-gray-400">
               PIN CODE
             </div>
-            <div className="text-2xl font-bold tracking-[0.2em]">
+            <div className="text-xl font-bold tracking-[0.2em] sm:text-2xl">
               {roomCode.slice(0, 3)} {roomCode.slice(3)}
             </div>
           </div>
           <div className="flex flex-col items-center">
             <div className="mb-1 text-[10px] font-bold tracking-widest text-gray-400">
-              PLAYERS
+              {t("players")}
             </div>
-            <div className="text-2xl font-bold">
+            <div className="text-xl font-bold sm:text-2xl">
               {totalAnswered} / {totalPlayers}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="order-2 flex items-center gap-2 sm:order-3 sm:gap-4">
           <button
-            onClick={onSkipQuestion}
-            className="flex items-center gap-2 rounded-lg bg-[#2a1b25] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3a2835]"
+            onClick={() => {
+              playClick();
+              onSkipQuestion?.();
+            }}
+            className="flex items-center gap-2 rounded-lg bg-[#2a1b25] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3a2835] sm:px-5 sm:py-2.5 sm:text-sm"
           >
             <FastForward size={16} fill="white" />
-            <span>Skip</span>
+            <span>{t("skip")}</span>
           </button>
           <button
-            onClick={onEndGame}
-            className="rounded-lg bg-[#ef4444] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-600"
+            onClick={() => {
+              playClick();
+              onEndGame();
+            }}
+            className="rounded-lg bg-[#ef4444] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-600 sm:px-5 sm:py-2.5 sm:text-sm"
           >
-            End Game
+            {t("endGame")}
           </button>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex flex-1 flex-col items-center px-10 pt-12 pb-8">
+      <main className="flex flex-1 flex-col items-center px-4 pt-6 pb-8 sm:px-10 sm:pt-12">
         {/* Question Header */}
-        <div className="mb-6 rounded-full border border-[#f97316]/30 bg-[#f97316]/10 px-5 py-1.5 text-[11px] font-bold tracking-widest text-[#f97316]">
-          QUESTION {currentQuestionIndex + 1} OF {totalQuestions}
+        <div className="mb-4 rounded-full border border-[#f97316]/30 bg-[#f97316]/10 px-4 py-1 text-[10px] font-bold tracking-widest text-[#f97316] sm:mb-6 sm:px-5 sm:py-1.5 sm:text-[11px]">
+          {t("questionOf", {
+            current: currentQuestionIndex + 1,
+            total: totalQuestions,
+          })}
         </div>
-        <h1 className="mb-14 max-w-5xl text-center text-[40px] leading-tight font-extrabold tracking-tight">
+        <h1 className="mb-8 max-w-5xl text-center text-2xl leading-tight font-extrabold tracking-tight sm:mb-14 sm:text-4xl lg:text-[40px]">
           {question}
         </h1>
 
-        <div className="flex w-full max-w-5xl gap-8">
+        <div className="flex w-full max-w-5xl flex-col gap-8 lg:flex-row">
           {/* Left Column - Timer & Responses */}
-          <div className="flex w-[280px] shrink-0 flex-col items-center gap-6 pt-4">
+          <div className="flex w-full shrink-0 flex-col items-center gap-6 pt-0 lg:w-[280px] lg:pt-4">
             {/* Circular Timer */}
-            <div className="relative flex h-56 w-56 items-center justify-center">
+            <div className="relative flex h-44 w-44 items-center justify-center sm:h-56 sm:w-56">
               <svg
                 className="absolute h-full w-full -rotate-90 transform"
                 viewBox="0 0 160 160"
@@ -187,7 +208,7 @@ export default function HostQuestion({
                 )}
               </svg>
               <div className="relative z-10 flex flex-col items-center">
-                <span className="text-7xl leading-none font-bold">
+                <span className="text-5xl leading-none font-bold sm:text-7xl">
                   {phase === "QUESTION" ? timeLeft : 0}
                 </span>
                 <span className="mt-2 text-[10px] font-bold tracking-[0.2em] text-gray-400">
@@ -197,18 +218,21 @@ export default function HostQuestion({
             </div>
 
             {/* Responses Card */}
-            <div className="flex w-full flex-col items-center justify-center rounded-[20px] border border-white/5 bg-[#22151f] p-6 shadow-xl">
-              <div className="mt-2 mb-2 text-xs font-medium text-gray-400">
+            <div className="flex w-full flex-col items-center justify-center rounded-[20px] border border-white/5 bg-[#22151f] p-4 shadow-xl sm:p-6">
+              <div className="mt-1 mb-1 text-xs font-medium text-gray-400 sm:mt-2 sm:mb-2">
                 Responses received
               </div>
-              <div className="mb-2 text-5xl font-extrabold text-white">
+              <div className="mb-1 text-3xl font-extrabold text-white sm:mb-2 sm:text-5xl">
                 {totalAnswered}
               </div>
             </div>
 
             {phase === "QUESTION" && totalAnswered === totalPlayers && (
               <button
-                onClick={onEndQuestion}
+                onClick={() => {
+                  playClick();
+                  onEndQuestion();
+                }}
                 className="w-full rounded-xl bg-white px-8 py-3.5 font-bold text-[#1a0f1a] shadow-lg transition-transform hover:bg-gray-200 active:scale-95"
               >
                 Show Results
@@ -217,7 +241,10 @@ export default function HostQuestion({
 
             {phase === "REVEAL" && onSkipQuestion && (
               <button
-                onClick={onSkipQuestion}
+                onClick={() => {
+                  playClick();
+                  onSkipQuestion();
+                }}
                 className="w-full rounded-xl bg-[#f97316] px-8 py-3.5 font-bold shadow-lg transition-transform hover:bg-orange-600 active:scale-95"
               >
                 Next Question
@@ -226,9 +253,9 @@ export default function HostQuestion({
           </div>
 
           {/* Right Column - Answer Distribution */}
-          <div className="flex-1 rounded-[24px] border border-white/5 bg-[#22151f] p-8 shadow-xl">
-            <div className="mb-10 flex items-center justify-between">
-              <div className="flex items-center gap-3 text-xl font-bold">
+          <div className="flex-1 rounded-[24px] border border-white/5 bg-[#22151f] p-5 shadow-xl sm:p-8">
+            <div className="mb-6 flex items-center justify-between sm:mb-10">
+              <div className="flex items-center gap-3 text-lg font-bold sm:text-xl">
                 <BarChart2 className="text-[#f97316]" size={24} />
                 Live Answer Distribution
               </div>
@@ -240,7 +267,7 @@ export default function HostQuestion({
               )}
             </div>
 
-            <div className="space-y-7">
+            <div className="space-y-5 sm:space-y-7">
               {options.map((opt, index) => {
                 const count = answerStats[opt.id] || 0;
                 const percentage =
@@ -265,15 +292,17 @@ export default function HostQuestion({
                     className={`transition-all duration-500 ${opacityClass}`}
                   >
                     <div className="mb-2.5 flex items-center justify-between font-bold">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3 sm:gap-4">
                         <div
-                          className={`flex h-8 w-8 items-center justify-center rounded-lg ${style.bg} text-white shadow-sm`}
+                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${style.bg} text-white shadow-sm`}
                         >
                           <Icon size={16} fill="currentColor" />
                         </div>
-                        <span className="text-[17px]">{opt.text}</span>
+                        <span className="text-base sm:text-[17px]">
+                          {opt.text}
+                        </span>
                       </div>
-                      <span className="text-[15px] font-bold text-gray-400">
+                      <span className="ml-2 text-xs font-bold text-gray-400 sm:text-[15px]">
                         {count} Answers
                       </span>
                     </div>
@@ -294,20 +323,20 @@ export default function HostQuestion({
       </main>
 
       {/* Footer Progress Bar */}
-      <footer className="mx-10 mb-8 rounded-[20px] border border-white/5 bg-[#22151f] p-6">
-        <div className="mb-3 flex justify-between text-[13px] font-medium">
+      <footer className="mx-4 mb-8 rounded-[20px] border border-white/5 bg-[#22151f] p-4 sm:mx-10 sm:p-6">
+        <div className="mb-3 flex justify-between text-xs font-medium sm:text-[13px]">
           <span className="text-gray-400">
             Waiting for{" "}
             <span className="font-bold text-white">{waitingFor} players</span>
           </span>
           <span className="text-gray-400">
-            <span className="text-lg font-bold text-white">
+            <span className="text-base font-bold text-white sm:text-lg">
               {percentCompleted}%
             </span>{" "}
             Completed
           </span>
         </div>
-        <div className="h-4 w-full overflow-hidden rounded-full bg-[#1a0f1a]">
+        <div className="h-3 w-full overflow-hidden rounded-full bg-[#1a0f1a] sm:h-4">
           <div
             className="h-full rounded-full bg-linear-to-r from-[#f97316] to-[#f472b6] transition-all duration-700 ease-out"
             style={{ width: `${percentCompleted}%` }}

@@ -14,7 +14,10 @@ import GameAlreadyStarted from "./fallback/GameAlreadyStarted";
 import RoomLocked from "./fallback/RoomLocked";
 import HostQuestion from "./HostQuestion";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { PlayerModel } from "@/types";
+import { useAudioManager } from "@/lib/useAudioManager";
+import AudioVolumeControl from "./AudioVolumeControl";
 
 type GamePhase =
   | "WAITING"
@@ -38,6 +41,8 @@ interface CurrentQuestion {
 }
 
 export default function GameContainer({ roomCode }: GameContainerProps) {
+  const t = useTranslations("Game");
+  const { playClick } = useAudioManager();
   const [phase, setPhase] = useState<GamePhase>("WAITING");
   const [question, setQuestion] = useState<CurrentQuestion | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -66,6 +71,12 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
   const [now, setNow] = useState(Date.now());
   const router = useRouter();
 
+  useEffect(() => {
+    const hostToken = localStorage.getItem("hostToken");
+    const hostRoom = localStorage.getItem("hostRoom");
+    setIsHost(Boolean(hostToken && hostRoom === roomCode));
+  }, [roomCode]);
+
   const handleLeaveGame = () => {
     localStorage.removeItem("guestAvatar");
     localStorage.removeItem("playerToken");
@@ -77,7 +88,7 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
 
   const handleAbortGame = () => {
     if (
-      confirm("Are you sure you want to end the game early for all players?")
+      confirm(t("confirmEndGame"))
     ) {
       socket.emit("abort_game", {
         roomCode,
@@ -257,12 +268,16 @@ export default function GameContainer({ roomCode }: GameContainerProps) {
 
   return (
     <div className="relative min-h-screen">
+      {isHost && <AudioVolumeControl />}
       {isHost &&
         phase !== "FINISHED" &&
         phase !== "QUESTION" &&
         phase !== "REVEAL" && (
           <button
-            onClick={handleAbortGame}
+            onClick={() => {
+              playClick();
+              handleAbortGame();
+            }}
             className="absolute top-4 right-4 z-50 rounded-lg bg-red-600/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm hover:bg-red-600/40"
           >
             End Game

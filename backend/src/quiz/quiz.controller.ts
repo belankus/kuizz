@@ -13,6 +13,7 @@ import {
   StreamableFile,
   BadRequestException,
   UseGuards,
+  Headers
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { QuizService } from './quiz.service.js';
@@ -22,7 +23,9 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 
 @Controller('quiz')
 export class QuizController {
-  constructor(private readonly quizService: QuizService) {}
+  constructor(
+    private readonly quizService: QuizService
+  ) { }
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -31,14 +34,15 @@ export class QuizController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.quizService.findOne(id);
+  findOne(@Param('id') id: string, @Headers('authorization') authHeader?: string) {
+    return this.quizService.findOneWithAuthHeader(id, authHeader);
   }
 
   @Get(':id/export')
-  async exportQuiz(@Param('id') id: string) {
+  @UseGuards(JwtAuthGuard)
+  async exportQuiz(@Param('id') id: string, @CurrentUser() user: { id: string }) {
     try {
-      const buffer = await this.quizService.exportQuiz(id);
+      const buffer = await this.quizService.exportQuiz(id, user.id);
 
       return new StreamableFile(buffer, {
         disposition: `attachment; filename=quiz-${id}.xlsx`,
@@ -74,19 +78,47 @@ export class QuizController {
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  async updateQuiz(@Param('id') id: string, @Body() body: UpdateQuizDto) {
-    return this.quizService.updateQuiz(id, body);
+  async updateQuiz(@Param('id') id: string, @Body() body: UpdateQuizDto, @CurrentUser() user: { id: string }) {
+    return this.quizService.updateQuiz(id, body, user.id);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async deleteQuiz(@Param('id') id: string) {
-    return this.quizService.deleteQuiz(id);
+  async deleteQuiz(@Param('id') id: string, @CurrentUser() user: { id: string }) {
+    return this.quizService.deleteQuiz(id, user.id);
   }
 
   @Put(':id/favorite')
   @UseGuards(JwtAuthGuard)
-  async toggleFavorite(@Param('id') id: string) {
-    return await this.quizService.toggleFavorite(id);
+  async toggleFavorite(@Param('id') id: string, @CurrentUser() user: { id: string }) {
+    return await this.quizService.toggleFavorite(id, user.id);
+  }
+
+  @Post(':id/share')
+  @UseGuards(JwtAuthGuard)
+  async shareQuiz(
+    @Param('id') quizId: string,
+    @Body('email') email: string,
+    @CurrentUser() user: { id: string }
+  ) {
+    if (!email || typeof email !== 'string') {
+      throw new BadRequestException("Email address is required and must be a type of string");
+    }
+
+    return this.quizService.shareQuizWithEmail(quizId, email, user.id);
+  }
+
+  @Delete(':id/share/:userId')
+  @UseGuards(JwtAuthGuard)
+  async unshareQuiz(
+    @Param('id') quizId: string,
+    @Param('userId') targetUserId: string,
+    @CurrentUser() user: { id: string }
+  ) {
+    return this.quizService.unshareQuizWithUser(
+      quizId,
+      targetUserId,
+      user.id
+    );
   }
 }

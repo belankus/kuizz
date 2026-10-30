@@ -6,6 +6,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 // ─── Storage helpers (access token in memory / sessionStorage) ───────────────
 
 const TOKEN_KEY = "kuizz_access_token";
+const AUTH_MARKER_COOKIE = "kuizz_authenticated";
 
 export function getAccessToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -14,10 +15,12 @@ export function getAccessToken(): string | null {
 
 export function setAccessToken(token: string) {
   sessionStorage.setItem(TOKEN_KEY, token);
+  document.cookie = `${AUTH_MARKER_COOKIE}=1; path=/; max-age=${7 * 24 * 60 * 60}; samesite=lax`;
 }
 
 export function removeAccessToken() {
   sessionStorage.removeItem(TOKEN_KEY);
+  document.cookie = `${AUTH_MARKER_COOKIE}=; path=/; max-age=0; samesite=lax`;
 }
 
 export function getUserFromToken(): UserModelType | null {

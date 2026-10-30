@@ -5,12 +5,14 @@ import { AvatarModel, LeaderboardProps, PlayerModel } from "@/types";
 import { motion } from "framer-motion";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function Leaderboard({
   players,
   prevPlayers,
   myName,
 }: LeaderboardProps) {
+  const t = useTranslations("Game");
   const [localAvatar, setLocalAvatar] = useState<AvatarModel | null>(null);
   const [displayPlayers, setDisplayPlayers] = useState<PlayerModel[]>(
     prevPlayers && prevPlayers.length > 0 ? prevPlayers : players,
@@ -22,12 +24,12 @@ export default function Leaderboard({
       try {
         setLocalAvatar(JSON.parse(stored));
       } catch (e) {
-        toast.error("Failed to load avatar", {
-          description: e instanceof Error ? e.message : "Please try again.",
+        toast.error(t("avatarLoadError"), {
+          description: e instanceof Error ? e.message : t("tryAgain"),
         });
       }
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (prevPlayers && prevPlayers.length > 0) {
@@ -42,7 +44,7 @@ export default function Leaderboard({
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-linear-to-br from-purple-800 via-indigo-700 to-blue-900 px-6 text-white">
-      <h1 className="mb-10 text-4xl font-bold">Leaderboard</h1>
+      <h1 className="mb-10 text-4xl font-bold">{t("leaderboard")}</h1>
 
       <motion.div layout className="w-full max-w-3xl space-y-3">
         {displayPlayers.map((player, index) => {
@@ -77,7 +79,7 @@ export default function Leaderboard({
                 <div className="text-base font-semibold">{player.nickname}</div>
               </div>
               <div className="text-base font-bold">
-                <AnimatedCounter value={player.score} /> pts
+                <AnimatedCounter value={player.score} /> {t("points")}
               </div>
             </motion.div>
           );

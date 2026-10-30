@@ -1,5 +1,7 @@
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import { getLocale, getMessages } from "next-intl/server";
+import { NextIntlClientProvider } from "next-intl";
 
 import { SidebarProvider } from "@/context/SidebarContext";
 import { ThemeProvider } from "@/context/ThemeContext";
@@ -11,22 +13,27 @@ const outfit = Outfit({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className={`${outfit.className} dark:bg-gray-900`}>
-        <QueryProvider>
-          <ThemeProvider>
-            <TooltipProvider>
-              <SidebarProvider>{children}</SidebarProvider>
-              <Toaster richColors />
-            </TooltipProvider>
-          </ThemeProvider>
-        </QueryProvider>
+        <NextIntlClientProvider messages={messages}>
+          <QueryProvider>
+            <ThemeProvider>
+              <TooltipProvider>
+                <SidebarProvider>{children}</SidebarProvider>
+                <Toaster richColors />
+              </TooltipProvider>
+            </ThemeProvider>
+          </QueryProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

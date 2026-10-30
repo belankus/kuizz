@@ -19,19 +19,26 @@ enum Role {
   SUPERADMIN
 }
 
+enum Visibility {
+  PRIVATE
+  SHARED
+  PUBLIC
+}
+
 model User {
-  id           String       @id @default(uuid())
-  email        String       @unique
-  name         String?
-  password     String?
-  role         Role         @default(USER)
-  provider     String?
-  providerId   String?
-  refreshToken String?
-  avatar       Json?
-  quizzes      Quiz[]
-  gameHistory  GamePlayer[] @relation("UserGameHistory")
-  createdAt    DateTime     @default(now())
+  id            String       @id @default(uuid())
+  email         String       @unique
+  name          String?
+  password      String?
+  role          Role         @default(USER)
+  provider      String?
+  providerId    String?
+  refreshToken  String?
+  avatar        Json?
+  quizzes       Quiz[]
+  sharedQuizzes  QuizAccess[]
+  gameHistory   GamePlayer[] @relation("UserGameHistory")
+  createdAt     DateTime     @default(now())
 }
 
 model Quiz {
@@ -39,8 +46,10 @@ model Quiz {
   title        String
   description  String?
   status       QuizStatus    @default(DRAFT)
+  visibility  Visibility   @default(PRIVATE)
   ownerId      String?
   owner        User?         @relation(fields: [ownerId], references: [id])
+  sharedWith  QuizAccess[]
   questions    Question[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -51,6 +60,17 @@ model Quiz {
 enum QuizStatus {
   DRAFT
   PUBLISHED
+}
+
+model QuizAccess {
+  id        String   @id @default(uuid())
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([quizId, userId])
 }
 
 model Question {

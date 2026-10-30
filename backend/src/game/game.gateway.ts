@@ -59,13 +59,15 @@ export class GameGateway {
         roomCode: game.roomCode,
       });
 
-      client.emit('game_created', game);
+      // Removal of hostToken from publi emissions
+      const { hostToken, ...publicGameData } = game;
+      client.emit('game_created', publicGameData);
     } catch {
       client.emit('unauthorized');
     }
   }
 
-  // ==== NEW: Step 1 Kahoot-style JOIN ====
+  // ==== NEW : Step 1 Kahoot-style JOIN ====
   @SubscribeMessage('check_room')
   async handleCheckRoom(
     @MessageBody() data: { roomCode: string },
@@ -123,7 +125,7 @@ export class GameGateway {
 
     const tokenToUse = data.playerToken;
 
-    // 🔥 If playerToken exists → check if valid
+    // If playerToken exists -> check if valid
     const playersList = await this.gameService.getPlayersList(data.roomCode);
 
     if (tokenToUse) {
@@ -148,7 +150,7 @@ export class GameGateway {
       }
     }
 
-    // New Player -> check nickname uniqueness
+    // new player -> check nickname availability
     const isNicknameAvailable = await this.gameService.checkAndAddNickname(
       data.roomCode,
       data.nickname,
@@ -258,7 +260,7 @@ export class GameGateway {
           questionStartTime: startTime,
         });
 
-        // 🔥 MARK SESSION STARTED (ONLY ONCE)
+        // MARK SESSION STARTED (ONLY ONCE)
         await this.gameService.markSessionStarted(currentInfo.sessionId);
 
         const questions = await this.gameService.getQuestions(data.roomCode);
@@ -281,6 +283,7 @@ export class GameGateway {
     data: {
       roomCode: string;
       selectedOptionId: string;
+      playerToken?: string;
     },
     @ConnectedSocket() client: CustomSocket,
   ) {
@@ -290,10 +293,10 @@ export class GameGateway {
     if (info.phase !== 'QUESTION') return;
     if (!info.questionStartTime) return;
 
-    const playerToken = client.data.playerToken;
+    const playerToken = data.playerToken || client.data.playerToken;
     if (!playerToken) return;
 
-    // ATOMIC SUBMISSION (HSETNX guarantees only first answer applies)
+    // ATOMIC SUBMISION (HSETNX guarantees only first answer applies)
     const responseTime = Date.now() - info.questionStartTime;
 
     const wasAccepted = await this.gameService.submitAnswer(
@@ -304,9 +307,9 @@ export class GameGateway {
       responseTime,
     );
 
-    if (!wasAccepted) return; // Prevent double answer processing further down
+    if (!wasAccepted) return; // prevent double answer processing further down
 
-    // 🔥 GET ATOMIC ANSWER STATS
+    // GET ATOMIC ANSWER STATS
     const stats = await this.gameService.getAnswerStats(
       data.roomCode,
       info.currentQuestionIndex,
@@ -330,8 +333,15 @@ export class GameGateway {
       return;
     }
 
-    if (!client.data.playerToken && data.playerToken) {
-      client.data.playerToken = data.playerToken;
+    const playerTokenToUse = data.playerToken || client.data.playerToken;
+
+    if (playerTokenToUse) {
+      client.data.playerToken = playerTokenToUse;
+      await this.gameService.updatePlayerId(
+        data.roomCode,
+        playerTokenToUse,
+        client.id,
+      );
     }
 
     void client.join(data.roomCode);
@@ -342,7 +352,7 @@ export class GameGateway {
       phase: string;
       players: unknown[];
       isLocked: boolean;
-      sessionId: string; // NEW
+      sessionId: string;
       title: string;
       question?: SnapshotQuestion;
       startTime?: number;
@@ -353,7 +363,7 @@ export class GameGateway {
       phase: info.phase,
       players: playersList,
       isLocked: info.isLocked,
-      sessionId: info.sessionId, // NEW
+      sessionId: info.sessionId,
       title: info.title,
     };
 
@@ -390,7 +400,7 @@ export class GameGateway {
       void (async () => {
         const updatedInfo = await this.gameService.getGameInfo(roomCode);
 
-        // 🔥 GUARD: Only proceed if we are still on the SAME question and in QUESTION phase
+        // GUARD: Only proceed if we are still on the SAME question and in QUESTION phase
         if (
           !updatedInfo ||
           updatedInfo.phase !== 'QUESTION' ||
@@ -431,7 +441,7 @@ export class GameGateway {
 
     const playersList = await this.gameService.getPlayersList(roomCode);
 
-    // 🔥 SCORING ATOMICALLY
+    // SCORING ATOMICALLY
     for (const player of playersList) {
       const answer = await this.gameService.getAnswer(
         roomCode,
@@ -443,10 +453,8 @@ export class GameGateway {
 
       if (currentQuestion.correctOptionIds.includes(answer.selectedOptionId)) {
         const maxScore = 1000;
-
         const timeFactor =
           1 - answer.responseTime / (currentQuestion.timeLimit * 1000);
-
         const score = Math.max(0, Math.floor(maxScore * timeFactor));
 
         await this.gameService.incrementScore(
@@ -457,7 +465,7 @@ export class GameGateway {
       }
     }
 
-    // 🔥 SET PHASE LEADERBOARD
+    // SET PHASE LEADERBOARD
     await this.gameService.updateGameInfo(roomCode, { phase: 'LEADERBOARD' });
 
     const rankings = await this.gameService.getLeaderboard(roomCode);
@@ -466,7 +474,7 @@ export class GameGateway {
       rankings,
     });
 
-    // 🔥 AFTER 3 SECONDS → NEXT QUESTION OR FINISH
+    // AFTER 3 SECONDS -> MOVE TO NEXT QUESTION OR FINISH GAME
     setTimeout(() => {
       void (async () => {
         const latestInfo = await this.gameService.getGameInfo(roomCode);
@@ -486,7 +494,7 @@ export class GameGateway {
             finalRankings,
           });
 
-          // 🔥 PERSIST TO DB + CLEAN REDIS
+          // PERSIST TO DB + CLEAN REDIS
           await this.gameService.finalizeGame(roomCode);
 
           return;
@@ -563,7 +571,7 @@ export class GameGateway {
       finalRankings,
     });
 
-    // 🔥 PERSIST TO DB + CLEAN REDIS
+    // PERSIST TO DB + CLEAN REDIS
     await this.gameService.finalizeGame(data.roomCode);
   }
 }

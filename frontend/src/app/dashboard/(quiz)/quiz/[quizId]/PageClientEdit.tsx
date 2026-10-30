@@ -7,6 +7,7 @@ import { apiFetch } from "@/lib/auth";
 import { nanoid } from "nanoid";
 import { SharedQuizEditor } from "@/components/quiz/SharedQuizEditor";
 import { OptionModelType, QuestionModelType, QuizModelType } from "@/types";
+import { useTranslations } from "next-intl";
 
 const colorPalette = [
   { color: "bg-red-600", icon: "triangle" },
@@ -40,6 +41,8 @@ interface QuizModel extends QuizModelType {
 export default function EditPage() {
   const { quizId } = useParams();
   const router = useRouter();
+  const t = useTranslations("QuizEditor");
+  const tf = useTranslations("QuizFactory");
 
   const [initialData, setInitialData] = useState<QuizModel | null>(null);
 
@@ -76,9 +79,11 @@ export default function EditPage() {
         });
       })
       .catch(() => {
-        toast.error("Failed to load quiz");
+        toast.error(tf("loadFailed"));
       });
-  }, [quizId]);
+
+    document.title = t("editTitle");
+  }, [quizId, t, tf]);
 
   async function handleSaveQuiz(
     payload: QuizModelType,
@@ -95,20 +100,20 @@ export default function EditPage() {
       });
 
       if (!res.ok) {
-        toast.error("Failed to update quiz");
+        toast.error(tf("updateFailed"));
         setIsSaving(false);
         return;
       }
 
       toast.success(
         status === "PUBLISHED"
-          ? "Quiz published successfully!"
-          : "Draft updated!",
+          ? tf("quizPublished")
+          : tf("draftUpdated"),
       );
       router.push("/dashboard/quizes");
     } catch (err) {
-      toast.error("Failed to update quiz", {
-        description: err instanceof Error ? err.message : "Unknown error",
+      toast.error(tf("updateFailed"), {
+        description: err instanceof Error ? err.message : tf("unknownError"),
       });
       setIsSaving(false);
     }

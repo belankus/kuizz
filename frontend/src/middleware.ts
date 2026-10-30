@@ -22,19 +22,19 @@ export function middleware(request: NextRequest) {
   );
   const isAuthRoute = AUTH_ROUTES.some((p) => pathname.startsWith(p));
 
-  // Cookie yang diset oleh backend
-  const hasRefreshToken = request.cookies.has("refreshToken");
-  const hasAccessToken = request.cookies.has("accessToken");
+  // The JWT is kept in sessionStorage, so use a local navigation marker here.
+  // API requests still validate the JWT independently.
+  const isAuthenticated = request.cookies.has("kuizz_authenticated");
 
   // Kalau akses halaman protected tanpa cookie → redirect login
-  if (isProtected && !hasRefreshToken && !hasAccessToken) {
+  if (isProtected && !isAuthenticated) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   // Kalau sudah login, coba akses /login atau /register → redirect dashboard
-  if (isAuthRoute && (hasRefreshToken || hasAccessToken)) {
+  if (isAuthRoute && isAuthenticated) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 

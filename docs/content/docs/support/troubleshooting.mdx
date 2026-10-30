@@ -114,10 +114,16 @@ const config = {
 response.cookie("access_token", token, {
   httpOnly: true,
   secure: true,
-  domain: ".kuizz.my.id",
+  domain: ".example.com",
   sameSite: "lax",
 });
 ```
+
+Set `COOKIE_DOMAIN` to the shared parent domain of the frontend and API
+(for example, `.ewenrdo.fr` for `kuizz.ewenrdo.fr` and
+`api.ewenrdo.fr`). Leave it unset when the API uses a different domain
+(for example, a Render hostname); the browser will then keep a host-only
+cookie for the API.
 
 ---
 

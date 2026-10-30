@@ -110,5 +110,7 @@ Cookie: access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 <Callout variant="info" title="Cross-Subdomain Cookies">
-  Cookies are scoped to `.kuizz.my.id` and shared across `kuizz.my.id` and `api.kuizz.my.id`.
+  Cookies are scoped to the shared parent domain configured by `COOKIE_DOMAIN`
+  and shared across the frontend and API subdomains. Leave it unset when the
+  API uses a different domain.
 </Callout>

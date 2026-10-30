@@ -37,6 +37,7 @@ services:
       SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-Admin@123456}
 
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
     ports:
       - "3001:3001"
     depends_on:

@@ -190,7 +190,7 @@ export default function UserDropdown() {
               fill=""
             />
           </svg>
-          Keluar
+          Logout
         </button>
       </Dropdown>
     </div>

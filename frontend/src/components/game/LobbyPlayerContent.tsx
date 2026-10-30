@@ -12,11 +12,13 @@ interface LobbyContentInterface {
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export default function LobbyPlayer({
   nickname,
   players,
 }: LobbyContentInterface) {
+  const t = useTranslations("Game");
   const [localAvatar, setLocalAvatar] = useState<AvatarModel | null>(null);
 
   useEffect(() => {
@@ -25,12 +27,12 @@ export default function LobbyPlayer({
       try {
         setLocalAvatar(JSON.parse(stored));
       } catch (e) {
-        toast.error("Failed to load avatar", {
-          description: e instanceof Error ? e.message : "Unknown error",
+        toast.error(t("avatarLoadError"), {
+          description: e instanceof Error ? e.message : t("unknownError"),
         });
       }
     }
-  }, []);
+  }, [t]);
 
   const isLocked = false;
 
@@ -41,19 +43,19 @@ export default function LobbyPlayer({
       <div className="relative z-10 flex min-h-screen flex-col items-center px-6 pt-16 text-white">
         <div className="w-full max-w-3xl text-center">
           {/* Joined Identity */}
-          <div className="text-lg opacity-90">You joined as</div>
+          <div className="text-lg opacity-90">{t("joinedAs")}</div>
           <div className="mt-2 text-3xl font-bold">{nickname}</div>
 
           {/* Status */}
           <div className="mt-6 inline-block rounded-full bg-white/10 px-6 py-3 text-lg">
             {isLocked
-              ? "Room is locked 🔒"
-              : "Waiting for host to start the game"}
+              ? t("roomLockedStatus")
+              : t("waitingForHostToStart")}
           </div>
 
           {/* Player Count */}
           <div className="mt-10 text-sm opacity-80">
-            {players.length} participants in the room
+            {t("participantsInRoom", { count: players.length })}
           </div>
 
           {/* Player List */}

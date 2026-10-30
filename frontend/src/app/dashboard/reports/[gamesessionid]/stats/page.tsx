@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useParams, useRouter } from "next/navigation";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
@@ -57,6 +58,7 @@ type StatsData = {
 };
 
 export default function GameStatsPage() {
+  const t = useTranslations("Reports");
   const { gamesessionid } = useParams() as { gamesessionid: string };
   const router = useRouter();
   const [data, setData] = useState<StatsData | null>(null);
@@ -66,12 +68,12 @@ export default function GameStatsPage() {
     const fetchStats = async () => {
       try {
         const res = await apiFetch(`/game-session/${gamesessionid}/stats`);
-        if (!res.ok) throw new Error("Failed to load statistics");
+        if (!res.ok) throw new Error(t("statsLoadError"));
         const json = await res.json();
         setData(json);
       } catch (err) {
-        toast.error("Could not load game session statistics", {
-          description: err instanceof Error ? err.message : "Unknown error",
+        toast.error(t("statsLoadFailed"), {
+          description: err instanceof Error ? err.message : t("unknownError"),
         });
       } finally {
         setLoading(false);
@@ -79,12 +81,13 @@ export default function GameStatsPage() {
     };
 
     fetchStats();
-  }, [gamesessionid]);
+    document.title = `${t("sessionStatsTitle")} | Kuizz`;
+  }, [gamesessionid, t]);
 
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="text-gray-500">Loading Game Statistics...</div>
+        <div className="text-gray-500">{t("loadingStats")}</div>
       </div>
     );
   }
@@ -92,7 +95,7 @@ export default function GameStatsPage() {
   if (!data) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="text-red-500">Game session not found.</div>
+        <div className="text-red-500">{t("sessionNotFound")}</div>
       </div>
     );
   }
@@ -119,14 +122,14 @@ export default function GameStatsPage() {
     stroke: { width: 1, colors: ["#fff"] },
     xaxis: {
       categories: questionsAnalytics.map((_, i) => `Q${i + 1}`),
-      title: { text: "Questions" },
+      title: { text: t("questions") },
     },
     yaxis: {
-      title: { text: "Number of Answers" },
+      title: { text: t("numberOfAnswers") },
     },
     tooltip: {
       y: {
-        formatter: (val) => `${val} answers`,
+        formatter: (val) => t("answers", { count: val }),
       },
     },
     fill: { opacity: 1 },
@@ -135,11 +138,11 @@ export default function GameStatsPage() {
 
   const chartSeries = [
     {
-      name: "Correct",
+      name: t("correct"),
       data: questionsAnalytics.map((q) => q.correct),
     },
     {
-      name: "Incorrect",
+      name: t("incorrect"),
       data: questionsAnalytics.map((q) => q.incorrect),
     },
   ];
@@ -151,11 +154,13 @@ export default function GameStatsPage() {
           onClick={() => router.push("/dashboard/reports")}
           className="text-sm text-indigo-600 hover:underline"
         >
-          &larr; Back to History
+          &larr; {t("backToHistory")}
         </button>
       </div>
 
-      <PageBreadcrumb pageTitle={`${session.title} - Session Stats`} />
+      <PageBreadcrumb
+        pageTitle={t("sessionStats", { title: session.title })}
+      />
 
       {/* Summary Cards */}
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -165,7 +170,9 @@ export default function GameStatsPage() {
               <Users className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Participants</p>
+              <p className="text-sm font-medium text-gray-500">
+                {t("participants")}
+              </p>
               <h3 className="flex items-center gap-2 text-2xl font-bold">
                 {stats.totalPlayers}
               </h3>
@@ -180,7 +187,7 @@ export default function GameStatsPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">
-                Overall Accuracy
+                {t("overallAccuracy")}
               </p>
               <h3 className="flex items-center gap-2 text-2xl font-bold">
                 {stats.accuracyRate}%
@@ -195,7 +202,9 @@ export default function GameStatsPage() {
               <Trophy className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Average Score</p>
+              <p className="text-sm font-medium text-gray-500">
+                {t("averageScore")}
+              </p>
               <h3 className="flex items-center gap-2 text-2xl font-bold">
                 {stats.averageScore}
               </h3>
@@ -209,7 +218,9 @@ export default function GameStatsPage() {
               <HelpCircle className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Questions</p>
+              <p className="text-sm font-medium text-gray-500">
+                {t("questions")}
+              </p>
               <h3 className="flex items-center gap-2 text-2xl font-bold">
                 {session.totalQuestions}
               </h3>
@@ -221,7 +232,7 @@ export default function GameStatsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Chart */}
         <div className="lg:col-span-2">
-          <ComponentCard title="Questions Accuracy">
+          <ComponentCard title={t("questionsAccuracy")}>
             <div className="h-80 w-full">
               {typeof window !== "undefined" && (
                 <ReactApexChart
@@ -237,10 +248,10 @@ export default function GameStatsPage() {
 
         {/* Top Players section */}
         <div className="space-y-6 lg:col-span-1">
-          <ComponentCard title="Top Performers">
+          <ComponentCard title={t("topPerformers")}>
             {topPlayers.length === 0 ? (
               <div className="py-4 text-center text-sm text-gray-500">
-                No players joined this session.
+                {t("noPlayersJoined")}
               </div>
             ) : (
               <ul className="divide-y divide-gray-100 dark:divide-white/5">
@@ -266,7 +277,7 @@ export default function GameStatsPage() {
                       </span>
                     </div>
                     <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                      {player.score} pts
+                      {t("points", { count: player.score })}
                     </Badge>
                   </li>
                 ))}
@@ -274,10 +285,10 @@ export default function GameStatsPage() {
             )}
           </ComponentCard>
 
-          <ComponentCard title="Session Info">
+          <ComponentCard title={t("sessionInfo")}>
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Status:</span>
+                <span className="text-gray-500">{t("status")}:</span>
                 <Badge
                   className={
                     session.status === "FINISHED"
@@ -285,18 +296,20 @@ export default function GameStatsPage() {
                       : "bg-gray-50 text-gray-700 dark:bg-gray-950 dark:text-gray-300"
                   }
                 >
-                  {session.status}
+                  {session.status === "FINISHED"
+                    ? t("finishedStatus")
+                    : t("inProgressStatus")}
                 </Badge>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Started At:</span>
+                <span className="text-gray-500">{t("startedAt")}:</span>
                 <span className="font-medium">
                   {new Date(session.createdAt).toLocaleString()}
                 </span>
               </div>
               {session.finishedAt && (
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Finished At:</span>
+                  <span className="text-gray-500">{t("finishedAt")}:</span>
                   <span className="font-medium">
                     {new Date(session.finishedAt).toLocaleString()}
                   </span>
@@ -311,10 +324,10 @@ export default function GameStatsPage() {
       <div className="mt-6">
         <div className="rounded-2xl border bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">
-            Player Results
+            {t("playerResults")}
           </h3>
           {playersDetail.length === 0 ? (
-            <p className="text-sm text-gray-500">No player data available.</p>
+            <p className="text-sm text-gray-500">{t("noPlayerData")}</p>
           ) : (
             <div className="mt-4 overflow-hidden rounded-xl border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900">
               <div className="max-w-full overflow-x-auto">
@@ -325,25 +338,25 @@ export default function GameStatsPage() {
                         isHeader
                         className="px-6 py-4 font-medium text-gray-500"
                       >
-                        Nickname
+                        {t("nickname")}
                       </TableCell>
                       <TableCell
                         isHeader
                         className="px-6 py-4 font-medium text-gray-500"
                       >
-                        Correctness
+                        {t("correctness")}
                       </TableCell>
                       <TableCell
                         isHeader
                         className="px-6 py-4 font-medium text-gray-500"
                       >
-                        Total Score
+                        {t("totalScore")}
                       </TableCell>
                       <TableCell
                         isHeader
                         className="px-6 py-4 text-right font-medium text-gray-500"
                       >
-                        Action
+                        {t("action")}
                       </TableCell>
                     </TableRow>
                   </TableHeader>
@@ -363,13 +376,17 @@ export default function GameStatsPage() {
                         </TableCell>
                         <TableCell className="px-6 py-4">
                           <span className="text-gray-500 dark:text-gray-400">
-                            {player.answers.filter((a) => a.isCorrect).length}/
-                            {session.totalQuestions} correct
+                            {t("correctAnswers", {
+                              correct: player.answers.filter(
+                                (a) => a.isCorrect,
+                              ).length,
+                              total: session.totalQuestions,
+                            })}
                           </span>
                         </TableCell>
                         <TableCell className="px-6 py-4">
                           <Badge className="bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
-                            {player.totalScore} pts
+                            {t("points", { count: player.totalScore })}
                           </Badge>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right">
@@ -377,7 +394,7 @@ export default function GameStatsPage() {
                             <Link
                               href={`/dashboard/reports/${gamesessionid}/stats/${player.id}`}
                             >
-                              View Details
+                              {t("viewDetails")}
                             </Link>
                           </Button>
                         </TableCell>

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { DashboardMetricsType } from "@/types";
 import { ApexOptions } from "apexcharts";
+import { useTranslations } from "next-intl";
 
 // Dynamically import ReactApexChart to avoid SSR issues
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -17,12 +18,14 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
 });
 
 export default function Overview() {
+  const t = useTranslations("Dashboard");
   const [data, setData] = useState<DashboardMetricsType | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     fetchDashboardSummary();
+    document.title = "Overview | Kuizz";
   }, []);
 
   const fetchDashboardSummary = async () => {
@@ -79,14 +82,14 @@ export default function Overview() {
 
   const chartSeries = [
     {
-      name: "Games Hosted",
+      name: t("gamesHosted"),
       data: data.gamesPerDay.map((d) => d.count),
     },
   ];
 
   return (
     <>
-      <PageBreadcrumb pageTitle="Dashboard Overview" />
+      <PageBreadcrumb pageTitle={t("overview")} />
 
       {/* Metric Cards Row */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
@@ -100,7 +103,7 @@ export default function Overview() {
                 {data.metrics.totalQuizzes}
               </h4>
               <span className="text-sm font-medium text-gray-500">
-                Total Quizzes
+                {t("totalQuizzes")}
               </span>
             </div>
           </div>
@@ -116,7 +119,7 @@ export default function Overview() {
                 {data.metrics.totalGamesHosted}
               </h4>
               <span className="text-sm font-medium text-gray-500">
-                Games Hosted
+                {t("gamesHosted")}
               </span>
             </div>
           </div>
@@ -132,7 +135,7 @@ export default function Overview() {
                 {data.metrics.totalPlayers}
               </h4>
               <span className="text-sm font-medium text-gray-500">
-                Total Players
+                {t("totalPlayers")}
               </span>
             </div>
           </div>
@@ -148,7 +151,7 @@ export default function Overview() {
                 {data.metrics.averageAccuracy}%
               </h4>
               <span className="text-sm font-medium text-gray-500">
-                Global Accuracy
+                {t("globalAccuracy")}
               </span>
             </div>
           </div>
@@ -159,7 +162,7 @@ export default function Overview() {
         {/* Chart Column */}
         <div className="col-span-12 rounded-2xl border border-gray-200 bg-white p-6 xl:col-span-8 dark:border-gray-800 dark:bg-white/3">
           <h4 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
-            Games Activity (Last 7 Days)
+            {t("gamesActivity")}
           </h4>
           <div className="h-[300px] w-full">
             <ReactApexChart
@@ -175,19 +178,19 @@ export default function Overview() {
         <div className="col-span-12 rounded-2xl border border-gray-200 bg-white p-6 xl:col-span-4 dark:border-gray-800 dark:bg-white/3">
           <div className="mb-4 flex items-center justify-between">
             <h4 className="text-lg font-semibold text-gray-800 dark:text-white/90">
-              Recent Games
+              {t("recentGames")}
             </h4>
             <button
               onClick={() => router.push("/dashboard/reports")}
               className="text-brand-500 hover:text-brand-600 text-sm font-medium"
             >
-              View All
+              {t("viewAll")}
             </button>
           </div>
 
           <div className="flex flex-col gap-4 border-t border-gray-100 pt-4 dark:border-gray-800">
             {data.recentGames.length === 0 ? (
-              <p className="text-sm text-gray-500">No games hosted yet.</p>
+              <p className="text-sm text-gray-500">{t("noGames")}</p>
             ) : (
               data.recentGames.map((game) => (
                 <div
@@ -212,10 +215,10 @@ export default function Overview() {
                             : "bg-gray-50 text-gray-700 dark:bg-gray-950 dark:text-gray-300"
                       }
                     >
-                      {game.status}
+                      {t(game.status.toLowerCase()).toUpperCase()}
                     </Badge>
                     <span className="text-xs font-medium text-gray-500">
-                      {game.totalPlayers} Players
+                      {game.totalPlayers} {t("players")}
                     </span>
                   </div>
                 </div>

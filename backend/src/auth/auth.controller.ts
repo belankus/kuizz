@@ -33,12 +33,20 @@ const isProd = process.env.NODE_ENV === 'production';
 const ACCESS_COOKIE = 'accessToken';
 const REFRESH_COOKIE = 'refreshToken';
 
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  sameSite: isProd ? ('none' as const) : ('lax' as const),
-  secure: isProd, // set true in production (HTTPS)
-  domain: isProd ? '.kuizz.my.id' : undefined,
-};
+function getCookieDomain(): string | undefined {
+  if (!isProd) return undefined;
+
+  return process.env.COOKIE_DOMAIN?.trim() || undefined;
+}
+
+function getCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: isProd ? ('none' as const) : ('lax' as const),
+    secure: isProd, // set true in production (HTTPS)
+    domain: getCookieDomain(),
+  };
+}
 
 @Controller('auth')
 export class AuthController {
@@ -48,12 +56,13 @@ export class AuthController {
   ) {}
 
   private setCookies(res: Response, accessToken: string, refreshToken: string) {
+    const cookieOptions = getCookieOptions();
     res.cookie(ACCESS_COOKIE, accessToken, {
-      ...COOKIE_OPTIONS,
+      ...cookieOptions,
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
     res.cookie(REFRESH_COOKIE, refreshToken, {
-      ...COOKIE_OPTIONS,
+      ...cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
   }
@@ -96,8 +105,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.logout(user.id);
-    res.clearCookie(ACCESS_COOKIE);
-    res.clearCookie(REFRESH_COOKIE);
+    const cookieOptions = getCookieOptions();
+    res.clearCookie(ACCESS_COOKIE, cookieOptions);
+    res.clearCookie(REFRESH_COOKIE, cookieOptions);
     return { message: 'Logged out successfully' };
   }
 
@@ -154,7 +164,7 @@ export class AuthController {
         user.role,
         user.name,
       );
-    res.cookie(REFRESH_COOKIE, refreshToken, COOKIE_OPTIONS);
+    res.cookie(REFRESH_COOKIE, refreshToken, getCookieOptions());
     const frontendUrl = this.config.get<string>(
       'FRONTEND_URL',
       'http://localhost:3000',
@@ -181,7 +191,7 @@ export class AuthController {
         user.role,
         user.name,
       );
-    res.cookie(REFRESH_COOKIE, refreshToken, COOKIE_OPTIONS);
+    res.cookie(REFRESH_COOKIE, refreshToken, getCookieOptions());
     const frontendUrl = this.config.get<string>(
       'FRONTEND_URL',
       'http://localhost:3000',

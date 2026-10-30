@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useEffect } from "react";
 import { socket } from "@/lib/socket";
 import { getAccessToken } from "@/lib/auth";
+import { useTranslations } from "next-intl";
 
 export default function TestSocketPage() {
+  const t = useTranslations("TestSocket");
   useEffect(() => {
     if (!socket.connected) {
       socket.connect();
@@ -55,10 +57,10 @@ export default function TestSocketPage() {
 
   return (
     <div style={{ padding: 40 }}>
-      <h1>Socket Test (Host)</h1>
+      <h1>{t("title")}</h1>
 
-      <Button onClick={createGame}>Create Game</Button>
-      <Button onClick={startGame}>Start Game</Button>
+      <Button onClick={createGame}>{t("createGame")}</Button>
+      <Button onClick={startGame}>{t("startGame")}</Button>
     </div>
   );
 }

@@ -6,3 +6,8 @@ dist
 .vscode/
 .idea/
 .pnpm-store
+docs/.source/
+*.source/
+.next/
+dist/
+build/

@@ -6,13 +6,23 @@ export class RedisService implements OnModuleDestroy {
   private client: Redis;
 
   constructor() {
-    this.client = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: 6379,
-    });
+    if (process.env.REDIS_URL) {
+      // Priorité à l'URL complète fournie par Render ou Upstash
+      this.client = new Redis(process.env.REDIS_URL);
+    } else {
+      // Fallback vers HOST / PORT
+      this.client = new Redis({
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT) || 6379,
+      });
+    }
 
     this.client.on('connect', () => {
       console.log('✅ Redis connected');
+    });
+
+    this.client.on('error', (err) => {
+      console.error('❌ Redis error:', err.message);
     });
   }
 

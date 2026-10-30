@@ -4,8 +4,10 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { setAccessToken } from "@/lib/auth";
 import LoadingCircle from "@/components/common/LoadingCircle";
+import { useTranslations } from "next-intl";
 
 function CallbackContent() {
+  const t = useTranslations("Common");
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -19,7 +21,7 @@ function CallbackContent() {
     }
   }, [router, searchParams]);
 
-  return <LoadingCircle>Memproses login...</LoadingCircle>;
+  return <LoadingCircle>{t("processingLogin")}</LoadingCircle>;
 }
 
 export default function AuthCallbackPage() {

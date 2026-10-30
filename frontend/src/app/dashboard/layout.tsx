@@ -34,6 +34,10 @@ export default function AdminLayout({
         {/* Page Content */}
         <div className="mx-auto w-full max-w-[1600px] p-4 md:p-8">
           {children}
+
+          <div className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            2025 - {new Date().getFullYear()} &copy; Kuizz
+          </div>
         </div>
       </div>
     </div>

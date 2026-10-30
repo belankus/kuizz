@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { apiFetch } from "@/lib/auth";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ type UserProfile = {
 };
 
 export default function ProfilePage() {
+  const t = useTranslations("Profile");
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,11 +40,7 @@ export default function ProfilePage() {
   const [avatarConfig, setAvatarConfig] = useState<AvatarModel | null>(null);
   const [savingAvatar, setSavingAvatar] = useState(false);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const res = await apiFetch("/users/me");
       if (!res.ok) throw new Error();
@@ -51,11 +49,15 @@ export default function ProfilePage() {
       setName(data.name ?? "");
       setAvatarConfig(data.avatar ?? null);
     } catch {
-      toast.error("Failed to load profile");
+      toast.error(t("failedToLoadProfile"));
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleSaveProfile = async () => {
     setSavingProfile(true);
@@ -66,10 +68,10 @@ export default function ProfilePage() {
         headers: { "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error();
-      toast.success("Profile updated!");
+      toast.success(t("profileUpdated"));
       setProfile((p) => (p ? { ...p, name } : p));
     } catch {
-      toast.error("Failed to update profile");
+      toast.error(t("failedToUpdateProfile"));
     } finally {
       setSavingProfile(false);
     }
@@ -77,7 +79,7 @@ export default function ProfilePage() {
 
   const handleSavePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error(t("pwdDoesNotMatch"));
       return;
     }
     setSavingPassword(true);
@@ -89,12 +91,12 @@ export default function ProfilePage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
-      toast.success("Password changed!");
+      toast.success(t("passwordChanged"));
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err) {
-      toast.error("Failed to change password", {
+      toast.error(t("failedToChangePassword"), {
         description: err instanceof Error ? err.message : "Unknown error",
       });
     } finally {
@@ -112,9 +114,9 @@ export default function ProfilePage() {
         headers: { "Content-Type": "application/json" },
       });
       if (!res.ok) throw new Error();
-      toast.success("Avatar saved!");
+      toast.success(t("avatarSaved"));
     } catch {
-      toast.error("Failed to save avatar");
+      toast.error(t("failedToSaveAvatar"));
     } finally {
       setSavingAvatar(false);
     }
@@ -140,9 +142,9 @@ export default function ProfilePage() {
           </div>
           <div>
             <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
-              Profile Information
+              {t("information")}
             </h3>
-            <p className="text-sm text-gray-500">Update your display name</p>
+            <p className="text-sm text-gray-500">{t("updateName")}</p>
           </div>
         </div>
 
@@ -150,7 +152,7 @@ export default function ProfilePage() {
           {avatarConfig && <AvatarDisplay config={avatarConfig} size={64} />}
           <div>
             <p className="text-xl font-bold text-gray-800 dark:text-white/90">
-              {profile?.name ?? "No name set"}
+              {profile?.name ?? t("noName")}
             </p>
             <p className="text-sm text-gray-500">{profile?.email}</p>
             <Badge
@@ -168,13 +170,13 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Display Name
+              {t("displayName")}
             </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
-              placeholder="Your name"
+              placeholder={t("namePlaceholder")}
             />
           </div>
           <div>
@@ -199,7 +201,7 @@ export default function ProfilePage() {
           ) : (
             <Save size={16} />
           )}
-          Save Profile
+          {t("saveProfile")}
         </button>
       </div>
 
@@ -211,10 +213,10 @@ export default function ProfilePage() {
           </div>
           <div>
             <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
-              Change Password
+              {t("changePassword")}
             </h3>
             <p className="text-sm text-gray-500">
-              Leave blank to keep current password
+              {t("passwordHint")}
             </p>
           </div>
         </div>
@@ -222,13 +224,13 @@ export default function ProfilePage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {[
             {
-              label: "Current Password",
+              label: t("currentPassword"),
               val: oldPassword,
               set: setOldPassword,
             },
-            { label: "New Password", val: newPassword, set: setNewPassword },
+            { label: t("newPassword"), val: newPassword, set: setNewPassword },
             {
-              label: "Confirm New Password",
+              label: t("confirmPassword"),
               val: confirmPassword,
               set: setConfirmPassword,
             },
@@ -242,7 +244,7 @@ export default function ProfilePage() {
                 value={val}
                 onChange={(e) => set(e.target.value)}
                 className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200"
-                placeholder="••••••••"
+                placeholder={t("passwordPlaceholder")}
               />
             </div>
           ))}
@@ -258,7 +260,7 @@ export default function ProfilePage() {
           ) : (
             <KeyRound size={16} />
           )}
-          Change Password
+          {t("changePassword")}
         </button>
       </div>
 
@@ -270,10 +272,10 @@ export default function ProfilePage() {
           </div>
           <div>
             <h3 className="text-base font-semibold text-gray-800 dark:text-white/90">
-              My Avatar
+              {t("myAvatar")}
             </h3>
             <p className="text-sm text-gray-500">
-              Customize your avatar — shown when you join a game
+              {t("avatarDescription")}
             </p>
           </div>
         </div>
@@ -290,7 +292,7 @@ export default function ProfilePage() {
           ) : (
             <Save size={16} />
           )}
-          Save Avatar
+          {t("saveAvatar")}
         </button>
       </div>
     </div>
